@@ -18,7 +18,7 @@ layout(binding = 1) uniform Light
    vec3 lightDirection;
    float lightIntensity;
    vec3 lightColor;
-   bool castShadow;
+   float castShadow;
 };
 
 void main() 
@@ -26,13 +26,13 @@ void main()
     vec3 normal = normalize(vnormal);
     vec3 col = vec3(0.0f);
 	float shadow = 1.0f;
-	if(castShadow)
+	if(castShadow > 0.5f)
 	  shadow = calculateShadowFactor(worldSpacePosition, length(viewSpacePosition), enablePCF);
 
     col += max(dot(normal, lightDirection), 0.0) * lightColor * lightIntensity * shadow;
 	col	+= (normal.y * 0.5 + 0.5) *	vec3(0.16, 0.20, 0.28);
 
-	if(castShadow && enableShadowDebug)
+	if(castShadow > 0.5f && enableShadowDebug)
 	  col *= debugCascade();
     col /= (1.0 + col);
     fragColor = vec4(col, 1.0f);

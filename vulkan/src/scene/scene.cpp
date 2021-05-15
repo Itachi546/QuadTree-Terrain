@@ -11,7 +11,7 @@ struct LightData
 	glm::vec3 lightDirection;
 	float intensity;
 	glm::vec3 lightColor;
-	bool castShadow;
+	float castShadow;
 };
 
 Scene::Scene(std::string name, Context* context)
@@ -28,6 +28,7 @@ Scene::Scene(std::string name, Context* context)
 	glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, 1.0f, -1.0f));
 	m_sun = CreateRef<DirectionalLight>(lightDir);
 	m_sun->set_light_color(glm::vec3(1.28f, 1.20f, 0.99f));
+	m_sun->set_cast_shadow(true);
 
 	m_lightUniformBuffer = Device::create_uniformbuffer(BufferUsageHint::DynamicDraw, sizeof(LightData));
 	m_uniformBindings = Device::create_shader_bindings();
@@ -59,12 +60,16 @@ void Scene::destroy_entity(Entity* entity)
 void Scene::update(Context* context, float dt)
 {
 	m_camera->update(dt);
-	m_sunLightShadowCascade->update(m_camera);
+
+	float distance = glm::length(m_camera->get_position() - m_camera->m_targetPosition);
+	if (m_sun->cast_shadow() && distance > 0.1f)
+		m_sunLightShadowCascade->update(m_camera);
+
 	m_state.projection = m_camera->get_projection();
 	m_state.view = m_camera->get_view();
 	context->copy(m_uniformBuffer, &m_state, 0, sizeof(GlobalState));
 
-	LightData sun = { m_sun->get_direction(), m_sun->get_intensity(), m_sun->get_light_color(), m_sun->cast_shadow() };
+	LightData sun = { m_sun->get_direction(), m_sun->get_intensity(), m_sun->get_light_color(), float(m_sun->cast_shadow()) };
 	context->copy(m_lightUniformBuffer, &sun, 0, sizeof(LightData));
 }
 
@@ -80,17 +85,20 @@ void Scene::render(Context* context)
 	bindings[1] = m_lightBindings;
 	bindings[2] = m_sunLightShadowCascade->get_depth_bindings();
 	context->set_shader_bindings(bindings, ARRAYSIZE(bindings));
-
 	_render(context);
 }
 
 void Scene::_render(Context* context)
 {
-	glm::mat4 model = glm::mat4(1.0f);
 	for (auto& entity : m_entities)
 	{
-		glm::mat4 model = entity->transform->get_mat4();
+		Ref<Transform> transform = entity->transform;
+		glm::mat4 model = transform->get_mat4();
 		Ref<Mesh> mesh = entity->mesh;
+
+		glm::vec3 scale = (mesh->boundingBox.max - mesh->boundingBox.min) * transform->scale * 0.5f;
+		DebugDraw::draw_box(glm::translate(glm::mat4(1.0f), transform->position) * glm::scale(glm::mat4(1.0f), scale));
+
 		context->set_buffer(mesh->vb->buffer, mesh->vb->offset);
 		context->set_buffer(mesh->ib->buffer, mesh->ib->offset);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
@@ -102,11 +110,43 @@ void Scene::_render(Context* context)
 void Scene::destroy()
 {
 	m_sunLightShadowCascade->destroy();
+
 	for (std::size_t i = 0; i < m_entities.size(); ++i)
 		delete m_entities[i];
 	m_entities.clear();
 	Device::destroy_buffer(m_uniformBuffer);
 	Device::destroy_buffer(m_lightUniformBuffer);
+}
+
+void Scene::set_camera(Ref<Camera> camera)
+{
+	m_camera = camera;
+	m_sunLightShadowCascade->update(camera);
+}
+
+bool Scene::cast_ray(const Ray& ray, RayHit& hit)
+{
+	float min_dist = FLT_MAX;
+	bool intersect = false;
+	Entity* intersectedEntity = nullptr;
+	for (auto& entity : m_entities)
+	{
+		Ref<Transform> transform = entity->transform;
+		BoundingBox box = entity->mesh->boundingBox;
+		float t = 0.0f;
+		if (ray.intersect_box(transform->position + box.min * transform->scale, transform->position + box.max * transform->scale, t))
+		{
+			if (t < min_dist)
+			{
+				intersect = true;
+				intersectedEntity = entity;
+				min_dist = t;
+			}
+		}
+	}
+	hit.entity = intersectedEntity;
+	hit.t = min_dist;
+	return intersect;
 }
 
 Entity* Scene::create_cube()
@@ -177,6 +217,9 @@ void Scene::initialize_cube_mesh(Context* context)
 		20, 22, 21, 20, 23, 22, // Bottom
 	};
 
+	m_cubeMesh->boundingBox.min = glm::vec3(-1.0f);
+	m_cubeMesh->boundingBox.max = glm::vec3(1.0f);
+
 	m_cubeMesh->finalize(context);
 }
 
@@ -196,6 +239,9 @@ void Scene::initialize_plane_mesh(Context* context)
 		0, 1, 3,
 		1, 2, 3
 	};
+
+	m_planeMesh->boundingBox.min = glm::vec3(-1.0f, -0.05f, -1.0f);
+	m_planeMesh->boundingBox.max = glm::vec3( 1.0f,  0.05f,  1.0f);
 	m_planeMesh->finalize(context);
 }
 
@@ -258,6 +304,9 @@ void Scene::initialize_sphere_mesh(Context* context)
 
 	m_sphereMesh->vertices = vertices;
 	m_sphereMesh->indices = indices;
+
+	m_sphereMesh->boundingBox.min = glm::vec3(-1.0f);
+	m_sphereMesh->boundingBox.max = glm::vec3( 1.0f);
 	m_sphereMesh->finalize(context);
 }
 

@@ -15,3 +15,17 @@ using namespace glm;
 #define PI_4     0.785398163397448309616  // pi/4
 #define INV_PI   0.318309886183790671538  // 1/pi
 
+struct BoundingBox
+{
+	glm::vec3 min;
+	glm::vec3 max;
+
+	BoundingBox(const BoundingBox& box) : min(box.min), max(box.max){}
+	BoundingBox(){}
+	BoundingBox(const glm::vec3& min, const glm::vec3& max) : min(min), max(max) {}
+
+	BoundingBox operator=(const BoundingBox& box)
+	{
+		return BoundingBox{ box.min, box.max };
+	}
+};

@@ -313,9 +313,6 @@
     <ClInclude Include="src\terrain\terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\terrain_example.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\terrain\terrain_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>

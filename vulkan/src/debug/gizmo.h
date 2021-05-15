@@ -1,7 +1,8 @@
 #pragma once
 
-#include "core/math.h"
 #include "core/base.h"
+#include "core/ray.h"
+#include "core/math.h"
 
 class Context;
 class Pipeline;
@@ -11,7 +12,6 @@ class ShaderBindings;
 class Entity;
 
 struct Transform;
-struct Ray;
 
 
 enum class Operation
@@ -38,6 +38,8 @@ public:
 	bool is_active() { return activeAxis != Axis::None; }
 	void set_active(Entity* entity) { active = entity; }
 	void destroy();
+
+	Ray get_ray() { return m_ray; }
 private:
 	uint32_t m_width;
 	uint32_t m_height;
@@ -71,6 +73,7 @@ private:
 	Entity* active = nullptr;
 	Ref<OutlineFX> m_outlineFX;
 	glm::vec3 previous_intersect = glm::vec3(0.0f);
+	Ray m_ray;
 	//float prev_angle = 0.0f;
 
 	bool prev_frame_button_state = false;
@@ -85,5 +88,4 @@ private:
 
 	void draw_scale();
 	void manipulate_scale(const Ray& ray, bool button);
-
 };

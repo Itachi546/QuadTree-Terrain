@@ -1,10 +1,13 @@
 #pragma once
 
 #include "core/math.h"
+#include "core/ray.h"
 #include <array>
+
 
 class Camera
 {
+	friend class Scene;
 public:
 	Camera();
 	void update(float dt);

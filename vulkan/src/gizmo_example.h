@@ -34,17 +34,21 @@ public:
 		scene = CreateRef<Scene>("PhysicsTest", m_context);
 		gizmo = CreateRef<Gizmo>();
 		gizmo->init(m_context, m_window->get_width(), m_window->get_height());
-		gizmo->set_operation(Operation::Rotate);
+		gizmo->set_operation(Operation::Translate);
 
 		{
 			Entity* plane = scene->create_plane();
 			plane->transform->position.y -= 1.0f;
-			plane->transform->scale = glm::vec3(4.0f);
+			plane->transform->scale = glm::vec3(4.0f, 1.0f, 4.0f);
 		}
 
 		{
 			cube = scene->create_cube();
 			gizmo->set_active(cube);
+		}
+		{
+			Entity* sphere = scene->create_sphere();
+			sphere->transform->position -= glm::vec3(2.0f, 0.0f, 0.0f);
 		}
 
 		uint32_t width = m_window->get_width();
@@ -64,11 +68,13 @@ public:
 private:
 	void render() override
 	{
+
 		float dt = m_window->get_frame_time();
 		handle_input(dt);
 		scene->update(m_context, dt);
 
 		std::shared_ptr<Mouse> mouse = m_window->get_mouse();
+		
 		gizmo->manipulate(camera->get_projection(), camera->get_view(), float(mouseX), float(mouseY), mouse->is_down(Button::Left));
 
 		m_context->begin();
@@ -84,6 +90,15 @@ private:
 		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
 		m_context->end();
+
+		RayHit hit = {};
+		if (!gizmo->is_active() && mouse->is_down(Button::Left))
+		{
+			if (scene->cast_ray(gizmo->get_ray(), hit))
+			{
+				gizmo->set_active(hit.entity);
+			}
+		}
 	}
 
 	void handle_input(float dt)
@@ -113,7 +128,7 @@ private:
 		auto mouse = m_window->get_mouse();
 		float x, y;
 		mouse->get_mouse_position(&x, &y);
-		if (mouse->is_down(Button::Left) && !gizmo->is_active())
+		if (mouse->is_down(Button::Middle))
 		{
 			float dx = x - mouseX;
 			float dy = y - mouseY;

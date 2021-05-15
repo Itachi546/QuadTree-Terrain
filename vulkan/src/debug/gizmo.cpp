@@ -6,7 +6,6 @@
 #include "renderer/device.h"
 #include "scene/entity.h"
 #include "fx/outlinefx.h"
-#include <core/ray.h>
 
 #include <algorithm>
 
@@ -69,7 +68,8 @@ static float closest_distance(const Ray& ray, glm::vec3 normal, glm::vec3 center
 
 void Gizmo::prepass(Context* context, ShaderBindings* globalBindings)
 {
-	m_outlineFX->render(context, { active }, globalBindings);
+	if(active != nullptr)
+		m_outlineFX->render(context, { active }, globalBindings);
 }
 
 void Gizmo::init(Context* context, int width, int height)
@@ -78,6 +78,26 @@ void Gizmo::init(Context* context, int width, int height)
 	m_height = height;
 	m_outlineFX = CreateRef<OutlineFX>();
 	m_outlineFX->init(width, height);
+
+	PipelineDescription pipelineDesc = {};
+	pipelineDesc.renderPass = context->get_global_renderpass();
+
+	std::string vertexCode = load_file("spirv/line.vert.spv");
+	std::string fragmentCode = load_file("spirv/line.frag.spv");
+
+	ShaderDescription lineShaders[2] = {
+		ShaderDescription{ShaderStage::Vertex,   vertexCode,   static_cast<uint32_t>(vertexCode.size())},
+		ShaderDescription{ShaderStage::Fragment, fragmentCode, static_cast<uint32_t>(fragmentCode.size())},
+	};
+	pipelineDesc.shaderStageCount = 2;
+	pipelineDesc.shaderStages = lineShaders;
+	pipelineDesc.rasterizationState.faceCulling = FaceCulling::None;
+	pipelineDesc.rasterizationState.topology = Topology::Line;
+	pipelineDesc.rasterizationState.lineWidth = 1.0f;
+	pipelineDesc.rasterizationState.enableDepthTest = false;
+	pipelineDesc.rasterizationState.enableDepthWrite = false;
+	pipelineDesc.rasterizationState.depthTestFunction = CompareOp::LessOrEqual;
+
 }
 
 void Gizmo::on_resize(uint32_t width, uint32_t height)
@@ -95,6 +115,8 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 	this->invProjection = glm::inverse(projection);
 	this->invView = glm::inverse(view);
 
+	Ray ray = generate_ray(invView, invProjection, mouseX, mouseY, float(m_width), float(m_height));
+	m_ray = ray;
 	if (active == nullptr)
 		return;
 
@@ -102,7 +124,7 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 		activeAxis = Axis::None;
 
 
-	Ray ray = generate_ray(invView, invProjection, mouseX, mouseY, float(m_width), float(m_height));
+
 	switch (operation)
 	{
 
@@ -126,7 +148,8 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 
 void Gizmo::render(Context* context)
 {
-	DebugDraw::immediate_draw_textured_quad(context, m_outlineFX->get_output_image_bindings());
+	if(active != nullptr)
+		DebugDraw::immediate_draw_textured_quad(context, m_outlineFX->get_output_image_bindings());
 }
 
 void Gizmo::destroy()
@@ -143,9 +166,9 @@ void Gizmo::draw_translation()
 	float distance = glm::distance(camPos, origin);
 
 	float scale = fixedFactor * distance;
-	DebugDraw::draw_line(origin, origin + glm::vec3(scale, 0.0f, 0.0f), activeAxis == Axis::X ? selectionColor : axisColor[0], 4);
-	DebugDraw::draw_line(origin, origin + glm::vec3(0.0f, scale, 0.0f), activeAxis == Axis::Y ? selectionColor : axisColor[1], 4);
-	DebugDraw::draw_line(origin, origin + glm::vec3(0.0f, 0.0f, scale), activeAxis == Axis::Z ? selectionColor : axisColor[2], 4);
+	DebugDraw::draw_line_no_depth(origin, origin + glm::vec3(scale, 0.0f, 0.0f), activeAxis == Axis::X ? selectionColor : axisColor[0], 4);
+	DebugDraw::draw_line_no_depth(origin, origin + glm::vec3(0.0f, scale, 0.0f), activeAxis == Axis::Y ? selectionColor : axisColor[1], 4);
+	DebugDraw::draw_line_no_depth(origin, origin + glm::vec3(0.0f, 0.0f, scale), activeAxis == Axis::Z ? selectionColor : axisColor[2], 4);
 
 	if (activeAxis != Axis::None && prev_frame_button_state)
 	{
@@ -154,10 +177,10 @@ void Gizmo::draw_translation()
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), translate_start); 
 		model *= glm::mat4(glm::mat3(invView));
 		model = glm::scale(model, glm::vec3(radius * 0.5f));
-		DebugDraw::draw_circle(model, glm::vec3(1.0f));
+		DebugDraw::draw_circle_no_depth(model, glm::vec3(1.0f));
 
 		glm::vec3 dir = glm::normalize(origin - translate_start);
-		DebugDraw::draw_line(translate_start + (radius * 0.5f + 0.005f) * dir, origin, glm::vec3(1.0f), 2);
+		DebugDraw::draw_line_no_depth(translate_start + (radius * 0.5f + 0.005f) * dir, origin, glm::vec3(1.0f), 2);
 	}
 
 }
@@ -240,20 +263,20 @@ void Gizmo::draw_rotation()
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(radius));
 
 	glm::mat4 model = translate * scale;
-	DebugDraw::draw_circle(model, activeAxis == Axis::Z ? selectionColor : axisColor[2]);
+	DebugDraw::draw_circle_no_depth(model, activeAxis == Axis::Z ? selectionColor : axisColor[2]);
 
 	// Y-Axis;
 	model = translate * glm::rotate(glm::mat4(1.0f), float(PI_2), glm::vec3(1.0f, 0.0f, 0.0f)) * scale;
-	DebugDraw::draw_circle(model, activeAxis == Axis::Y ? selectionColor : axisColor[1]);
+	DebugDraw::draw_circle_no_depth(model, activeAxis == Axis::Y ? selectionColor : axisColor[1]);
 
 	// X-Axis
 	model = translate * glm::rotate(glm::mat4(1.0f), float(PI_2), glm::vec3(0.0f, 1.0f, 0.0f)) * scale;
-	DebugDraw::draw_circle(model, activeAxis == Axis::X ? selectionColor : axisColor[0]);
+	DebugDraw::draw_circle_no_depth(model, activeAxis == Axis::X ? selectionColor : axisColor[0]);
 
 	// Bounding Circle
 	scale = glm::scale(glm::mat4(1.0f), glm::vec3(radius * 1.1f));
 	model = translate * glm::mat4(glm::mat3(invView)) * scale;
-	DebugDraw::draw_circle(model, glm::vec3(1.0f));
+	DebugDraw::draw_circle_no_depth(model, glm::vec3(1.0f));
 
 }
 
@@ -330,8 +353,8 @@ void Gizmo::draw_scale()
 	{
 		glm::vec3 color = int(activeAxis) == i ? selectionColor : axisColor[i];
 		glm::vec3 end = origin + scale * axes[i];
-		DebugDraw::draw_line(origin, end, color, 4);
-		DebugDraw::draw_points(end, color);
+		DebugDraw::draw_line_no_depth(origin, end, color, 4);
+		DebugDraw::draw_points_no_depth(end, color);
 	}
 }
 

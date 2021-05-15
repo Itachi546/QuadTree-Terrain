@@ -237,7 +237,6 @@
     <ClInclude Include="src\terrain\perlin_noise.h" />
     <ClInclude Include="src\terrain\terrain.h" />
     <ClInclude Include="src\terrain\terrain_stream.h" />
-    <ClInclude Include="src\terrain_example.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\main.frag">

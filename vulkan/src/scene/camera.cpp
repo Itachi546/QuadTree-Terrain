@@ -36,7 +36,7 @@ void Camera::update(float dt)
 	calculate_view();
 
 	// Calculate frustum corner
-	static const glm::vec3 frustumCorners[8] = 
+	static const glm::vec3 frustumCorners[8] =
 	{
 		glm::vec3(-1.0f,  1.0f, -1.0f),
 		glm::vec3(1.0f,  1.0f, -1.0f),

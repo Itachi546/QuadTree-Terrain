@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.h"
+#include "core/ray.h"
 
 class GraphicsWindow;
 class Context;
@@ -23,10 +24,11 @@ public:
 	void prepass(Context* context);
 	void render(Context* context);
 	void destroy();
-	void set_camera(Ref<Camera> camera) { m_camera = camera; }
+	void set_camera(Ref<Camera> camera);
+
 	Ref<Camera> get_camera() { return m_camera; }
 
-
+	bool cast_ray(const Ray& ray, RayHit& hit);
 	void get_entity_iterator(EntityIterator& begin, EntityIterator& end)
 	{
 		begin = m_entities.begin();
