@@ -1,0 +1,6 @@
+* Physics System
+** Impulse Based
+*** 3 step 
+**** Dynamic state Evolution
+**** Collision Detection
+**** Collision Resolution
