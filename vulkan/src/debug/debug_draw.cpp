@@ -48,6 +48,7 @@ void DebugDraw::init(Context* context)
 	s_DebugData.point_pipeline = Device::create_pipeline(pipelineDesc);
 
 	// Shape Pipeline
+	pipelineDesc.rasterizationState.enableDepthTest = false;
 	pipelineDesc.rasterizationState.topology = Topology::Triangle;
 	pipelineDesc.rasterizationState.pointSize = 1.0f;
 	s_DebugData.shape_pipeline = Device::create_pipeline(pipelineDesc);

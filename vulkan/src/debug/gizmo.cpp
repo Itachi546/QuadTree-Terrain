@@ -142,8 +142,7 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 		break;
 	}
 
-	if(activeAxis != Axis::None)
-		prev_frame_button_state = button;
+	prev_frame_button_state = button;
 }
 
 void Gizmo::render(Context* context)
@@ -164,11 +163,27 @@ void Gizmo::draw_translation()
 	glm::vec3 camPos = invView[3];
 	glm::vec3 origin = active->transform->position;
 	float distance = glm::distance(camPos, origin);
-
 	float scale = fixedFactor * distance;
-	DebugDraw::draw_line_no_depth(origin, origin + glm::vec3(scale, 0.0f, 0.0f), activeAxis == Axis::X ? selectionColor : axisColor[0], 4);
-	DebugDraw::draw_line_no_depth(origin, origin + glm::vec3(0.0f, scale, 0.0f), activeAxis == Axis::Y ? selectionColor : axisColor[1], 4);
-	DebugDraw::draw_line_no_depth(origin, origin + glm::vec3(0.0f, 0.0f, scale), activeAxis == Axis::Z ? selectionColor : axisColor[2], 4);
+	glm::vec3 forward = glm::vec3(view[0][2], view[1][2], view[2][2]);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		if (std::abs(forward[i]) > minAngleThreshold)
+			continue;
+		glm::vec3 color = axisColor[i];
+		if (int(activeAxis) == i)
+			color = selectionColor;
+
+		DebugDraw::draw_line_no_depth(origin, origin + scale * axes[i], color, 4);
+
+		glm::vec3 start = origin + scale * 0.9f * axes[i];
+		glm::vec3 right = glm::normalize(glm::cross(forward, axes[i]));
+		glm::vec3 v0 = start + glm::vec3(0.06f * scale) * right;
+		glm::vec3 v1 = start - glm::vec3(0.06f * scale) * right;
+		glm::vec3 v2 = start + 0.12f * scale * axes[i];
+
+		DebugDraw::draw_triangle(v0, v1, v2, color);
+	}
 
 	if (activeAxis != Axis::None && prev_frame_button_state)
 	{
@@ -199,10 +214,15 @@ void Gizmo::manipulate_translation(const Ray& ray, bool button)
 
 	float t[3] = { FLT_MAX, FLT_MAX, FLT_MAX };
 	float axis_distance[3] = { FLT_MAX, FLT_MAX, FLT_MAX };
+
+	glm::vec3 forward = glm::vec3(view[0][2], view[1][2], view[2][2]);
 	if (activeAxis == Axis::None)
 	{
 		for (int i = 0; i < 3; ++i)
-			axis_distance[i] = closest_distance(ray, axes_ray[i], t[i]);
+		{
+			if(std::abs(forward[i]) < minAngleThreshold)
+				axis_distance[i] = closest_distance(ray, axes_ray[i], t[i]);
+		}
 
 		float d = std::min(axis_distance[0], std::min(axis_distance[1], axis_distance[2]));
 		if (d < distanceThreshold)

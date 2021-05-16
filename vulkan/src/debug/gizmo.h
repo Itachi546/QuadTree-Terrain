@@ -55,6 +55,8 @@ private:
 
 	Operation operation = Operation::Translate;
 	float distanceThreshold = 0.05f;
+	// angle between view vector and the direction axis threshold
+	const float minAngleThreshold = 0.95f;
 
 	const glm::vec3 selectionColor = glm::vec3(1.0f, 0.51f, 0.06f);
 	const glm::vec3 axisColor[3] = {

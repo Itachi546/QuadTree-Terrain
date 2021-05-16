@@ -1,5 +1,5 @@
 # Yeti3D
-  Graphics Abstraction on top of low level graphics such as Vulkan for learning purpose.
+  Graphics Abstraction on top of low level graphics API such as Vulkan for learning purpose.
   
 
 # Screenshot
