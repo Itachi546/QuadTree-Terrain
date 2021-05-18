@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "light/cascaded_shadow.h"
 #include "light/directional_light.h"
+#include "terrain/terrain.h"
 
 struct LightData
 {
@@ -61,8 +62,7 @@ void Scene::update(Context* context, float dt)
 {
 	m_camera->update(dt);
 
-	float distance = glm::length(m_camera->get_position() - m_camera->m_targetPosition);
-	if (m_sun->cast_shadow() && distance > 0.1f)
+	if (m_sun->cast_shadow())
 		m_sunLightShadowCascade->update(m_camera);
 
 	m_state.projection = m_camera->get_projection();
@@ -86,6 +86,10 @@ void Scene::render(Context* context)
 	bindings[2] = m_sunLightShadowCascade->get_depth_bindings();
 	context->set_shader_bindings(bindings, ARRAYSIZE(bindings));
 	_render(context);
+
+	if (m_terrain)
+		m_terrain->render(context, bindings, ARRAYSIZE(bindings));
+
 }
 
 void Scene::_render(Context* context)
@@ -97,13 +101,16 @@ void Scene::_render(Context* context)
 		Ref<Mesh> mesh = entity->mesh;
 
 		glm::vec3 scale = (mesh->boundingBox.max - mesh->boundingBox.min) * transform->scale * 0.5f;
-		DebugDraw::draw_box(glm::translate(glm::mat4(1.0f), transform->position) * glm::scale(glm::mat4(1.0f), scale));
+
+		if(m_showBoundingBox)
+			DebugDraw::draw_box(glm::translate(glm::mat4(1.0f), transform->position) * glm::scale(glm::mat4(1.0f), scale));
 
 		context->set_buffer(mesh->vb->buffer, mesh->vb->offset);
 		context->set_buffer(mesh->ib->buffer, mesh->ib->offset);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
 		context->draw_indexed(mesh->get_indices_count());
 	}
+
 }
 
 

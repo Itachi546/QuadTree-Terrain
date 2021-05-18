@@ -9,6 +9,7 @@ struct ContactPoint
 	// Pointing from object A to object B
 	glm::vec3 normal;
 	float penetration;
+	glm::vec3 p;
 };
 
 class Manifold

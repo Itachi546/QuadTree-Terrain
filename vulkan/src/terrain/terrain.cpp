@@ -11,8 +11,8 @@
 
 float Terrain::get_height(int x, int y)
 {
-	const float heightScale = 120.0f;
-	return ((static_cast<float>(m_stream->get(x + 1, y + 1)) / 255.0f) * 2.0f - 1.0f)* heightScale;
+	const float heightScale = 180.0f;
+	return (m_stream->get(x, y)) * heightScale;
 }
 
 Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
@@ -38,26 +38,30 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
 	desc.rasterizationState.polygonMode = PolygonMode::Fill;
 	m_pipeline = Device::create_pipeline(desc);
 
-	const double frequency = 0.05;
-	noise = new siv::PerlinNoise(1024);
 	m_mesh = CreateRef<Mesh>();
 
-	const float scalingFactor = 0.1f;
-	int w = stream->get_width() / 8;
-	int h = stream->get_height() / 8;
+	// Terrain Width and height
+	int w = 512;
+	int h = 512;
 
+	int sw = m_stream->get_width();
+	int sh = m_stream->get_height();
 	std::vector<Vertex> vertices;
 	for (int z = 0; z <= h; ++z)
 	{
+		float fz = float(z) / float(h);
 		for (int x = 0; x <= w; ++x)
 		{
-			float h = get_height(x, z);
-			float a = get_height(x + 1, z);
-			float b = get_height(x - 1, z);
-			float c = get_height(x, z + 1);
-			float d = get_height(x, z - 1);
+		
+			float fx = float(x) / float(w);
+			int ix = static_cast<int>(fx * (sw - 2) + 1);
+			int iz = static_cast<int>(fz * (sh - 2) + 1);
 
-			h = (h + a + b + c + d) / 5.0f;
+			float h = get_height(ix, iz);
+			float a = get_height(ix + 1, iz);
+			float b = get_height(ix - 1, iz);
+			float c = get_height(ix, iz + 1);
+			float d = get_height(ix, iz - 1);
 
 			Vertex vertex;
 			vertex.position = glm::vec3(x - w * 0.5f, h, z - h * 0.5f);
@@ -79,7 +83,7 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
 			uint32_t i1 = i0 + 1;
 			uint32_t i2 = i0 + (w + 1);
 			uint32_t i3 = i2 + 1;
-
+			/*
 			glm::vec3 n0 = vertices[i0].normal;
 			glm::vec3 n1 = vertices[i1].normal;
 			glm::vec3 n2 = vertices[i2].normal;
@@ -92,7 +96,7 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
 			vertices[i1].normal = glm::normalize((new_n1 + new_n2) * 0.5f);
 			vertices[i2].normal = glm::normalize((new_n1 + new_n2) * 0.5f);
 			vertices[i3].normal = glm::normalize(new_n2);
-
+			*/
 			indices.push_back(i2);
 			indices.push_back(i1);
 			indices.push_back(i0);
@@ -108,11 +112,10 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
 	m_mesh->finalize(context);
 }
 
-void Terrain::render(Context* context, ShaderBindings* uniformBindings)
+void Terrain::render(Context* context, ShaderBindings** uniformBindings, int count)
 {
 	context->set_graphics_pipeline(m_pipeline);
-	ShaderBindings* bindingArr[] = { uniformBindings };
-	context->set_shader_bindings(bindingArr, 1);
+	context->set_shader_bindings(uniformBindings, count);
 	glm::mat4 model = glm::mat4(1.0f);
 	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);
 	VertexBufferView* vb = m_mesh->get_vb();

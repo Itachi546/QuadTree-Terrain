@@ -105,7 +105,7 @@ void VulkanTexture::create_sampler(VkDevice device, SamplerDescription* desc)
 	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 	createInfo.minLod = 0.0f;
 	createInfo.maxLod = 0.0f;
-	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_WHITE;
 	createInfo.unnormalizedCoordinates = VK_FALSE;
 
 	vkCreateSampler(device, &createInfo, 0, &m_sampler);

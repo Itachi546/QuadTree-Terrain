@@ -3,6 +3,7 @@
 #include "example_base.h"
 #include "debug/gizmo.h"
 #include "core/ray.h"
+#include "physics/physics.h"
 
 class GizmoExample : public ExampleBase
 {
@@ -26,12 +27,13 @@ public:
 		pipelineDesc.shaderStages = shaderDescription;
 		pipelineDesc.renderPass = m_context->get_global_renderpass();
 		pipelineDesc.rasterizationState.enableDepthTest = true;
-		pipelineDesc.rasterizationState.polygonMode = PolygonMode::Fill;
-		pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
+		pipelineDesc.rasterizationState.polygonMode = PolygonMode::Line;
+		pipelineDesc.rasterizationState.faceCulling = FaceCulling::None;
 		pipelineDesc.blendState.enable = false;
 		pipeline = Device::create_pipeline(pipelineDesc);
 
 		scene = CreateRef<Scene>("PhysicsTest", m_context);
+
 		gizmo = CreateRef<Gizmo>();
 		gizmo->init(m_context, m_window->get_width(), m_window->get_height());
 		gizmo->set_operation(Operation::Translate);
@@ -39,17 +41,33 @@ public:
 		{
 			Entity* plane = scene->create_plane();
 			plane->transform->position.y -= 1.0f;
-			plane->transform->scale = glm::vec3(4.0f, 1.0f, 4.0f);
+			plane->transform->scale = glm::vec3(10.0f, 1.0f, 10.0f);
+			Ref<Rigidbody> rb = CreateRef<Rigidbody>();
+			rb->transform = plane->transform;
+			rb->collider = CreateRef<PlaneCollider>(glm::vec3(0.0f, 1.0f, 0.0f), plane->transform->position.y);
+			physicsSystem->add_rigid_body(rb);
 		}
 
 		{
-			cube = scene->create_cube();
-			gizmo->set_active(cube);
-		}
-		{
 			Entity* sphere = scene->create_sphere();
 			sphere->transform->position -= glm::vec3(2.0f, 0.0f, 0.0f);
+
+			Ref<Rigidbody> rb = CreateRef<Rigidbody>();
+			rb->transform = sphere->transform;
+			rb->collider = CreateRef<SphereCollider>();
+			physicsSystem->add_rigid_body(rb);
 		}
+
+		{
+			Entity* sphere = scene->create_sphere();
+			sphere->transform->position -= glm::vec3(0.0f, 0.0f, 0.0f);
+			sphere->transform->scale *= 0.2f;
+			Ref<Rigidbody> rb = CreateRef<Rigidbody>();
+			rb->transform = sphere->transform;
+			rb->collider = CreateRef<SphereCollider>();
+			physicsSystem->add_rigid_body(rb);
+		}
+
 
 		uint32_t width = m_window->get_width();
 		uint32_t height = m_window->get_height();
@@ -66,16 +84,17 @@ public:
 	}
 
 private:
-	void render() override
-	{
 
-		float dt = m_window->get_frame_time();
+	void update(float dt) override
+	{
 		handle_input(dt);
 		scene->update(m_context, dt);
-
-		std::shared_ptr<Mouse> mouse = m_window->get_mouse();
-		
 		gizmo->manipulate(camera->get_projection(), camera->get_view(), float(mouseX), float(mouseY), mouse->is_down(Button::Left));
+		physicsSystem->draw_manifolds();
+	}
+
+	void render() override
+	{
 
 		m_context->begin();
 		gizmo->prepass(m_context, scene->get_uniform_binding());
@@ -103,7 +122,6 @@ private:
 
 	void handle_input(float dt)
 	{
-		auto keyboard = m_window->get_keyboard();
 		if (keyboard->is_down(KeyCode::W))
 			camera->walk(-dt);
 		else if (keyboard->is_down(KeyCode::S))

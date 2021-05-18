@@ -2,11 +2,14 @@
 
 #include "example_base.h"
 #include "light/cascaded_shadow.h"
+#include "terrain/terrain_stream.h"
+#include "terrain/terrain.h"
 
-class CubeExample : public ExampleBase
+
+class TerrainExample : public ExampleBase
 {
 public:
-	CubeExample() : ExampleBase(1920, 1055)
+	TerrainExample() : ExampleBase(1920, 1055)
 	{
 		std::string vertexCode = load_file("spirv/main.vert.spv");
 		ASSERT(vertexCode.size() % 4 == 0);
@@ -31,25 +34,23 @@ public:
 		pipeline = Device::create_pipeline(pipelineDesc);
 
 		scene = std::make_shared<Scene>("Hello World", m_context);
-		cube = scene->create_cube();
-		cube->transform->scale *= 0.5f;
-
-		Entity* plane = scene->create_plane();
-		plane->transform->position.y -= 0.5f;
-		plane->transform->scale = glm::vec3(10.0f);
-
-		Entity* sphere = scene->create_sphere();
-		sphere->transform->position += glm::vec3(1.0f, 0.0f, 0.0f);
-		sphere->transform->scale *= 0.5f;
-
-		Entity* cube2 = scene->create_cube();
-		cube2->transform->position -= glm::vec3(-2.0f, 0.0f, 0.0f);
-		cube2->transform->scale *= 0.5f;
-
-
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
+		camera->set_position(glm::vec3(0.0f, 50.0f, 0.0f));
 		scene->set_camera(camera);
+		
+		Entity* cube = scene->create_cube();
+		cube->transform->scale *= 1.0f;
+		cube->transform->position.z += 50.0f;
+		cube->transform->position.y += 20.0f;
+
+		PerlinGenerator generator = {};
+		generator.frequency = 0.008f;
+		generator.exponent = 4.0f;
+		generator.octaves = 6;
+		Ref<TerrainStream> stream = CreateRef<TerrainStream>(generator);
+		terrain = CreateRef<Terrain>(m_context, stream);
+		scene->set_terrain(terrain);
 	}
 
 	void update(float dt) override
@@ -75,19 +76,20 @@ public:
 
 	void handle_input(float dt)
 	{
+		const float speed = 20.0f;
 		auto keyboard = m_window->get_keyboard();
 		if (keyboard->is_down(KeyCode::W))
-			camera->walk(-dt);
+			camera->walk(-dt * speed);
 		else if (keyboard->is_down(KeyCode::S))
-			camera->walk(dt);
+			camera->walk(dt * speed);
 		if (keyboard->is_down(KeyCode::A))
-			camera->strafe(-dt);
+			camera->strafe(-dt * speed);
 		else if (keyboard->is_down(KeyCode::D))
-			camera->strafe(dt);
+			camera->strafe(dt * speed);
 		if (keyboard->is_down(KeyCode::Q))
-			camera->lift(dt);
+			camera->lift(dt * speed);
 		else if (keyboard->is_down(KeyCode::E))
-			camera->lift(-dt);
+			camera->lift(-dt * speed);
 
 		auto mouse = m_window->get_mouse();
 		float x, y;
@@ -109,8 +111,9 @@ public:
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 	}
 
-	~CubeExample()
+	~TerrainExample()
 	{
+		terrain->destroy();
 		scene->destroy();
 		Device::destroy_pipeline(pipeline);
 	}
@@ -119,11 +122,12 @@ private:
 	Pipeline* pipeline;
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
+	Ref<Terrain> terrain;
 	Ref<Camera> camera;
 	float mouseX = 0.0f, mouseY = 0.0f;
 };
 
-ExampleBase* CreateCubeExampleFn()
+ExampleBase* CreateTerrainExampleFn()
 {
-	return new CubeExample();
+	return new TerrainExample();
 }

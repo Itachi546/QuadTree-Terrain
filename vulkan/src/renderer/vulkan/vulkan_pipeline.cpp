@@ -355,7 +355,7 @@ VkPipeline VulkanPipeline::create_pipeline(VkDevice device, VkPipelineLayout lay
 	dsCreateInfo.depthTestEnable = desc.rasterizationState.enableDepthTest;
 	dsCreateInfo.depthWriteEnable = desc.rasterizationState.enableDepthWrite;
 	dsCreateInfo.depthCompareOp = VkTypeConverter::from(desc.rasterizationState.depthTestFunction);
-	dsCreateInfo.minDepthBounds = -1.0;
+	dsCreateInfo.minDepthBounds =  0.0;
 	dsCreateInfo.maxDepthBounds =  1.0;
 	createInfo.pDepthStencilState = &dsCreateInfo;
 

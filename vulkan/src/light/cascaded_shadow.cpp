@@ -11,6 +11,7 @@
 #include "renderer/shaderbinding.h"
 #include "renderer/buffer.h"
 #include "scene/entity.h"
+#include "terrain/terrain.h"
 
 ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction)
 {
@@ -51,6 +52,11 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		desc.type = TextureType::DepthStencil;
 
 		SamplerDescription sampler = SamplerDescription::Initialize();
+		sampler.minFilter = TextureFilter::Linear;
+		sampler.magFilter = TextureFilter::Linear;
+		sampler.wrapU = WrapMode::ClampToEdge;
+		sampler.wrapV = WrapMode::ClampToEdge;
+		sampler.wrapW = WrapMode::ClampToEdge;
 		desc.sampler = &sampler;
 
 		FramebufferDescription fbDesc = {};
@@ -160,6 +166,20 @@ void ShadowCascade::render(Context* context, Scene* scene)
 			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
 			context->draw_indexed(mesh->get_indices_count());
 		}
+		/*
+		Ref<Terrain> terrain = scene->get_terrain();
+		if (terrain)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			Ref<Mesh> mesh = terrain->get_mesh();
+			VertexBufferView* vb = mesh->get_vb();
+			IndexBufferView* ib = mesh->get_ib();
+			context->set_buffer(vb->buffer, vb->offset);
+			context->set_buffer(ib->buffer, ib->offset);
+			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
+			context->draw_indexed(mesh->get_indices_count());
+		}
+		*/
 		context->end_renderpass();
 	}
 }

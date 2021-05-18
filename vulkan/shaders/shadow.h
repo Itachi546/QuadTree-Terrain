@@ -40,14 +40,14 @@ float getSplitShadowValue(sampler2D depthTexture, int index, vec3 p, bool enable
 		vec2 texSize = textureSize(depthTexture, 0).xy;
 		float	dx = scale * 1.0f / texSize.x;
 		float	dy = scale * 1.0f / texSize.y;
-		int range = 2 - index;
+		int range = 2;
 		int count = 0;
 		for (int i = -range; i <= range; ++i)
 		{
 			for (int j = -range; j <= range; ++j)
 			{
 				vec2 uv = vec2(projectedCoord.x + dx * float(i), 1.0f - projectedCoord.y + dy * float(j));
-				float	depth = texture(depthTexture, uv).r;
+				float depth = texture(depthTexture, uv).r;
 				shadow += (depth > projectedCoord.z - bias) ? 1.0 : 0.0;
 				count++;
 			}

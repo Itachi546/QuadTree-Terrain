@@ -13,5 +13,6 @@ public:
 	static bool CheckIntersection(Ref<Rigidbody> ra, Ref<Rigidbody> rb, Ref<Manifold> manifold);
 
 private:
-	static bool SpherePlaneIntersection(Ref<Transform> sphereTransform, Ref<SphereCollider> sphere, Ref<Transform> planeTransform, Ref<PlaneCollider> plane, Ref<Manifold> manifold);
+	static bool SpherePlaneIntersection(Ref<Transform> tA, Ref<SphereCollider> cA, Ref<Transform> tB, Ref<PlaneCollider> cB, Ref<Manifold> manifold);
+	static bool SphereSphereIntersection(Ref<Transform> tA, Ref<SphereCollider> cA, Ref<Transform> tB, Ref<SphereCollider> cB, Ref<Manifold> manifold);
 };

@@ -11,6 +11,7 @@ void PhysicsSystem::init()
 
 void PhysicsSystem::step(float dt)
 {
+	m_manifolds.clear();
 	check_collision();
 }
 
@@ -28,6 +29,14 @@ void PhysicsSystem::remove_rigid_body(Ref<Rigidbody> rb)
 
 void PhysicsSystem::draw_manifolds()
 {
+	for (const auto& manifold : m_manifolds)
+	{
+		for (const auto& contact : manifold->contacts)
+		{
+			DebugDraw::draw_points(contact.p, glm::vec3(1.0f));
+			DebugDraw::draw_line(contact.p, contact.p + contact.normal * contact.penetration, glm::vec3(1.0f, 0.0f, 0.0f), 2);
+		}
+	}
 }
 
 void PhysicsSystem::destroy()
@@ -45,6 +54,7 @@ void PhysicsSystem::check_collision()
 		if (a->collider == nullptr) continue;
 		for (auto j = i + 1; j != end; ++j)
 		{
+			// @TODO remove the creation of manifold
 			Ref<Rigidbody> b = *j;
 			Ref<Manifold> manifold = CreateRef<Manifold>(a, b);
 			if (b->collider == nullptr) continue;

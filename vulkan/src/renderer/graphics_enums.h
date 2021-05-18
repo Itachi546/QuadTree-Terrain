@@ -97,7 +97,8 @@ enum class TextureFilter
 enum WrapMode
 {
 	Repeat,
-	ClampToEdge
+	ClampToEdge,
+	ClampToBorder
 };
 
 enum class DescriptorType

@@ -13,6 +13,7 @@ class UniformBuffer;
 class Camera;
 class ShadowCascade;
 class DirectionalLight;
+class Terrain;
 
 class Scene
 {
@@ -24,7 +25,9 @@ public:
 	void prepass(Context* context);
 	void render(Context* context);
 	void destroy();
+
 	void set_camera(Ref<Camera> camera);
+	void show_bounding_box(bool state) { m_showBoundingBox = state; }
 
 	Ref<Camera> get_camera() { return m_camera; }
 
@@ -34,6 +37,9 @@ public:
 		begin = m_entities.begin();
 		end = m_entities.end();
 	}
+
+	void set_terrain(Ref<Terrain> terrain) { m_terrain = terrain; }
+	Ref<Terrain> get_terrain() { return m_terrain; }
 
 	ShaderBindings* get_uniform_binding() { return m_uniformBindings; }
 
@@ -60,9 +66,14 @@ private:
 	Ref<Mesh> m_planeMesh;
 	Ref<Mesh> m_sphereMesh;
 
+	Ref<Terrain> m_terrain;
+
 	Ref<ShadowCascade> m_sunLightShadowCascade;
 	Ref<DirectionalLight> m_sun;
 	ShaderBindings* m_lightBindings = nullptr;
+	
+	// Debug
+	bool m_showBoundingBox = false;
 
 	void initialize_cube_mesh(Context* context);
 	void initialize_plane_mesh(Context* context);

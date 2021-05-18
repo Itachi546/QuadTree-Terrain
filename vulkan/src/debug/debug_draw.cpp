@@ -148,6 +148,7 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 	{
 		context->copy(s_DebugData.buffer, s_DebugData.shapes.data(), offset, totalShapes * sizeof(Point));
 		context->set_graphics_pipeline(s_DebugData.shape_pipeline);
+		context->set_uniform(ShaderStage::Vertex, 0, sizeof(DebugDrawData), &defaultData);
 		context->set_buffer(s_DebugData.buffer, offset);
 		ShaderBindings* bindingArr[] = { globalBindings };
 		context->set_shader_bindings(bindingArr, 1);

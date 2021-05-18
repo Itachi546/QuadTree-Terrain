@@ -194,6 +194,7 @@
     <ClInclude Include="src\physics\collider.h" />
     <ClInclude Include="src\physics\collision_detection.h" />
     <ClInclude Include="src\physics\manifold.h" />
+    <ClInclude Include="src\physics\physics.h" />
     <ClInclude Include="src\physics\physics_system.h" />
     <ClInclude Include="src\physics\plane_collider.h" />
     <ClInclude Include="src\physics\rigidbody.h" />
@@ -236,6 +237,7 @@
     <ClInclude Include="src\scene\scene.h" />
     <ClInclude Include="src\terrain\perlin_noise.h" />
     <ClInclude Include="src\terrain\terrain.h" />
+    <ClInclude Include="src\terrain_example.h" />
     <ClInclude Include="src\terrain\terrain_stream.h" />
   </ItemGroup>
   <ItemGroup>

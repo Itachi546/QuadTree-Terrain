@@ -7,8 +7,15 @@
 #include "glsl_common.h"
 
 layout(location = 0) out vec3 vnormal;
+layout(location = 1) out vec3 worldSpacePosition;
+layout(location = 2) out vec3 viewSpacePosition;
+void main() 
+{
+    vec4 worldSpace = model * vec4(position, 1.0);
+    vec4 camSpace = globalState.view * worldSpace;
+    gl_Position = globalState.projection * camSpace;
 
-void main() {
-    gl_Position = globalState.projection * globalState.view * model * vec4(position, 1.0);
     vnormal = inverse(transpose(mat3(model))) * normal;
+    worldSpacePosition = worldSpace.xyz;
+    viewSpacePosition = camSpace.xyz;
 }
