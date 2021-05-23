@@ -25,7 +25,7 @@ public:
 		boundingBox(boundingBox){}
 
 	void calculate_bounding_box();
-	void finalize(Context* context);
+	void finalize(Context* context, bool reuse = false);
 
 	VertexBufferView* get_vb() { return vb; }
 	IndexBufferView* get_ib() { return ib; }

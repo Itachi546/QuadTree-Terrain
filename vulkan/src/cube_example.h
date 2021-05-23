@@ -2,6 +2,7 @@
 
 #include "example_base.h"
 #include "light/cascaded_shadow.h"
+#include "core/frustum.h"
 
 class CubeExample : public ExampleBase
 {
@@ -31,8 +32,8 @@ public:
 		pipeline = Device::create_pipeline(pipelineDesc);
 
 		scene = std::make_shared<Scene>("Hello World", m_context);
-		cube = scene->create_cube();
-		cube->transform->scale *= 0.5f;
+		//cube = scene->create_cube();
+		//cube->transform->scale *= 0.5f;
 
 		Entity* plane = scene->create_plane();
 		plane->transform->position.y -= 0.5f;
@@ -42,14 +43,15 @@ public:
 		sphere->transform->position += glm::vec3(1.0f, 0.0f, 0.0f);
 		sphere->transform->scale *= 0.5f;
 
-		Entity* cube2 = scene->create_cube();
-		cube2->transform->position -= glm::vec3(-2.0f, 0.0f, 0.0f);
-		cube2->transform->scale *= 0.5f;
 
+		cube = scene->create_cube();
+		cube->transform->position -= glm::vec3(-2.0f, 0.0f, 0.0f);
+		cube->transform->scale *= 0.5f;
 
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 		scene->set_camera(camera);
+		scene->show_bounding_box(true);
 	}
 
 	void update(float dt) override

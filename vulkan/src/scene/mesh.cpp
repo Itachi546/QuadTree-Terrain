@@ -24,14 +24,17 @@ void Mesh::calculate_bounding_box()
 	boundingBox.max = max;
 }
 
-void Mesh::finalize(Context* context)
+void Mesh::finalize(Context* context, bool reuse)
 {
-	GpuMemory* memory = GpuMemory::get_instance();
-	vb = memory->allocate_vb(sizeof(Vertex) * static_cast<uint32_t>(vertices.size()));
-	context->copy(vb->buffer, vertices.data(), vb->offset, vb->size);
-	ib = memory->allocate_ib(sizeof(uint32_t) * static_cast<uint32_t>(indices.size()));
-	context->copy(ib->buffer, indices.data(), ib->offset, ib->size);
+	if (!reuse || vb == nullptr || ib == nullptr)
+	{
+		GpuMemory* memory = GpuMemory::get_instance();
+		vb = memory->allocate_vb(sizeof(Vertex) * static_cast<uint32_t>(vertices.size()));
+		ib = memory->allocate_ib(sizeof(uint32_t) * static_cast<uint32_t>(indices.size()));
+	}
 
+	context->copy(vb->buffer, vertices.data(), vb->offset, vb->size);
+	context->copy(ib->buffer, indices.data(), ib->offset, ib->size);
 	indices_count = static_cast<uint32_t>(indices.size());
 	// @TODO is it needed later?
 	vertices.clear();

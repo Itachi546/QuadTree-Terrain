@@ -6,6 +6,7 @@
 #include "light/cascaded_shadow.h"
 #include "light/directional_light.h"
 #include "terrain/terrain.h"
+#include "core/frustum.h"
 
 struct LightData
 {
@@ -94,21 +95,27 @@ void Scene::render(Context* context)
 
 void Scene::_render(Context* context)
 {
+	Ref<Frustum> frustum = m_camera->get_frustum();
 	for (auto& entity : m_entities)
 	{
 		Ref<Transform> transform = entity->transform;
-		glm::mat4 model = transform->get_mat4();
 		Ref<Mesh> mesh = entity->mesh;
 
-		glm::vec3 scale = (mesh->boundingBox.max - mesh->boundingBox.min) * transform->scale * 0.5f;
+		BoundingBox box = mesh->boundingBox;
+		if (frustum->intersect_box(BoundingBox{ transform->position + box.min * transform->scale, transform->position + box.max * transform->scale }))
+		{
+			glm::mat4 model = transform->get_mat4();
+			if (m_showBoundingBox)
+			{
+				glm::vec3 scale = (mesh->boundingBox.max - mesh->boundingBox.min) * transform->scale * 0.5f;
+				DebugDraw::draw_box(glm::translate(glm::mat4(1.0f), transform->position) * glm::scale(glm::mat4(1.0f), scale));
+			}
 
-		if(m_showBoundingBox)
-			DebugDraw::draw_box(glm::translate(glm::mat4(1.0f), transform->position) * glm::scale(glm::mat4(1.0f), scale));
-
-		context->set_buffer(mesh->vb->buffer, mesh->vb->offset);
-		context->set_buffer(mesh->ib->buffer, mesh->ib->offset);
-		context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
-		context->draw_indexed(mesh->get_indices_count());
+			context->set_buffer(mesh->vb->buffer, mesh->vb->offset);
+			context->set_buffer(mesh->ib->buffer, mesh->ib->offset);
+			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
+			context->draw_indexed(mesh->get_indices_count());
+		}
 	}
 
 }

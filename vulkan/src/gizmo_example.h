@@ -27,7 +27,7 @@ public:
 		pipelineDesc.shaderStages = shaderDescription;
 		pipelineDesc.renderPass = m_context->get_global_renderpass();
 		pipelineDesc.rasterizationState.enableDepthTest = true;
-		pipelineDesc.rasterizationState.polygonMode = PolygonMode::Line;
+		pipelineDesc.rasterizationState.polygonMode = PolygonMode::Fill;
 		pipelineDesc.rasterizationState.faceCulling = FaceCulling::None;
 		pipelineDesc.blendState.enable = false;
 		pipeline = Device::create_pipeline(pipelineDesc);

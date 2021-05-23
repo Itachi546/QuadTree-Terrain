@@ -1,5 +1,7 @@
 #include "terrain.h"
 #include "terrain_stream.h"
+#include "terrain_quadtree.h"
+#include "terrain_chunkmanager.h"
 
 #include "renderer/buffer.h"
 #include "renderer/pipeline.h"
@@ -7,15 +9,15 @@
 #include "scene/mesh.h"
 #include "common/common.h"
 #include "renderer/context.h"
+#include "scene/camera.h"
 
-
-float Terrain::get_height(int x, int y)
+float sample_height(Ref<TerrainStream> stream, int x, int y)
 {
-	const float heightScale = 180.0f;
-	return (m_stream->get(x, y)) * heightScale;
+	const float heightScale = 480.0f;
+	return (stream->get(x, y)) * heightScale;
 }
 
-Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
+Terrain::Terrain(Context* context, Ref<TerrainStream> stream): m_stream(stream)
 {
 	std::string vertexCode = load_file("spirv/terrain.vert.spv");
 	ASSERT(vertexCode.size() % 4 == 0);
@@ -38,97 +40,55 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream) : m_stream(stream)
 	desc.rasterizationState.polygonMode = PolygonMode::Fill;
 	m_pipeline = Device::create_pipeline(desc);
 
-	m_mesh = CreateRef<Mesh>();
+	uint32_t terrainSize = stream->get_width();;
+	uint32_t depth = static_cast<int>(std::log2(terrainSize / minchunkSize));
+	m_maxLod = depth;
 
-	// Terrain Width and height
-	int w = 512;
-	int h = 512;
+	m_quadTree = CreateRef<QuadTree>(depth, terrainSize);
 
-	int sw = m_stream->get_width();
-	int sh = m_stream->get_height();
-	std::vector<Vertex> vertices;
-	for (int z = 0; z <= h; ++z)
-	{
-		float fz = float(z) / float(h);
-		for (int x = 0; x <= w; ++x)
-		{
-		
-			float fx = float(x) / float(w);
-			int ix = static_cast<int>(fx * (sw - 2) + 1);
-			int iz = static_cast<int>(fz * (sh - 2) + 1);
+	m_chunkManager = CreateRef<TerrainChunkManager>();
+	m_chunkManager->init(stream, glm::ivec2(terrainSize));
+}
 
-			float h = get_height(ix, iz);
-			float a = get_height(ix + 1, iz);
-			float b = get_height(ix - 1, iz);
-			float c = get_height(ix, iz + 1);
-			float d = get_height(ix, iz - 1);
+float Terrain::get_height(glm::vec3 position)
+{
+	int x = static_cast<int>(glm::floor(position.x));
+	int y = static_cast<int>(glm::abs(glm::floor(position.z)));
 
-			Vertex vertex;
-			vertex.position = glm::vec3(x - w * 0.5f, h, z - h * 0.5f);
-			vertex.normal = glm::normalize(glm::vec3(a - b, 1.0f, d - c));
-			vertices.push_back(vertex);
-		}
-	}
+	float h1 = sample_height(m_stream, x, y);
+	float a = sample_height(m_stream, x + 1, y);
+	float b = sample_height(m_stream, x -1, y);
+	float c = sample_height(m_stream, x, y + 1);	
+	float d = sample_height(m_stream, x, y - 1);
+	return (h1 + a + b + c + d) / 5.0f;
+}
 
-	/*************/
-	/*i0*****i1**/
-	/*i2*****i3**/
-	/*************/
-	std::vector<unsigned int> indices;
-	for (int z = 0; z < h; ++z)
-	{
-		for (int x = 0; x < w; ++x)
-		{
-			uint32_t i0 = z * (w + 1) + x;
-			uint32_t i1 = i0 + 1;
-			uint32_t i2 = i0 + (w + 1);
-			uint32_t i3 = i2 + 1;
-			/*
-			glm::vec3 n0 = vertices[i0].normal;
-			glm::vec3 n1 = vertices[i1].normal;
-			glm::vec3 n2 = vertices[i2].normal;
-			glm::vec3 n3 = vertices[i3].normal;
+void Terrain::update(Context* context, Ref<Camera> camera)
+{
+	m_quadTree->insert(camera->get_position());
+	//m_quadTree->insert(glm::vec3(0.0f));
+	//m_quadTree->debug();
+	m_chunkManager->update(context, camera, m_quadTree->leafNodes, m_maxLod);
+}
 
-			glm::vec3 new_n1 = (n0 + n1 + n2) / 3.0f;
-			glm::vec3 new_n2 = (n1 + n2 + n3) / 3.0f;
-
-			vertices[i0].normal = glm::normalize(new_n1);
-			vertices[i1].normal = glm::normalize((new_n1 + new_n2) * 0.5f);
-			vertices[i2].normal = glm::normalize((new_n1 + new_n2) * 0.5f);
-			vertices[i3].normal = glm::normalize(new_n2);
-			*/
-			indices.push_back(i2);
-			indices.push_back(i1);
-			indices.push_back(i0);
-
-			indices.push_back(i3);
-			indices.push_back(i2);
-			indices.push_back(i1);
-		}
-	}
-	m_mesh->vertices = vertices;
-	m_mesh->indices = indices;
-
-	m_mesh->finalize(context);
+void Terrain::update(glm::vec3 position)
+{
+	m_quadTree->insert(position);
+	//m_quadTree->debug();
 }
 
 void Terrain::render(Context* context, ShaderBindings** uniformBindings, int count)
 {
 	context->set_graphics_pipeline(m_pipeline);
 	context->set_shader_bindings(uniformBindings, count);
+
 	glm::mat4 model = glm::mat4(1.0f);
 	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);
-	VertexBufferView* vb = m_mesh->get_vb();
-	context->set_buffer(vb->buffer, vb->offset);
 
-	IndexBufferView* ib = m_mesh->get_ib();
-	context->set_buffer(ib->buffer, ib->offset);
-	context->draw_indexed(m_mesh->indices_count);
+	m_chunkManager->render(context);
 }
 
 void Terrain::destroy()
 {
 	Device::destroy_pipeline(m_pipeline);
-	if(m_stream)
-		m_stream->destroy();
 }

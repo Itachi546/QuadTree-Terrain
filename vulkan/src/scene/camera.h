@@ -1,9 +1,11 @@
 #pragma once
 
 #include "core/math.h"
+#include "core/base.h"
 #include "core/ray.h"
 #include <array>
 
+class Frustum;
 
 class Camera
 {
@@ -20,6 +22,10 @@ public:
 		m_targetPosition = p;
 	}
 
+	void set_height(float h)
+	{
+		m_targetPosition.y = h;
+	}
 	void set_aspect(float aspect) 
 	{
 		m_aspect = aspect;
@@ -50,9 +56,9 @@ public:
 		m_targetPosition += m_speed * dt * m_up;
 	}
 
-	std::array<glm::vec3, 8> get_frustum_corner()
+	Ref<Frustum> get_frustum()
 	{
-		return m_frustumPoints;
+		return m_frustum;
 	}
 
 	void rotate(float dx, float dy, float dt)
@@ -64,7 +70,7 @@ public:
 		constexpr float maxAngle = glm::radians(89.99f);
 		m_targetRotation.x = glm::clamp(m_targetRotation.x, -maxAngle, maxAngle);
 	}
-
+	glm::vec3 get_forward() { return m_forward; }
 	glm::vec3 get_position() const { return m_position; }
 private:
 	glm::vec3 m_position;
@@ -87,7 +93,7 @@ private:
 	float m_speed;
 	float m_sensitivity;
 
-	std::array<glm::vec3, 8> m_frustumPoints;
+	Ref<Frustum> m_frustum;
 
 	void calculate_projection();
 	void calculate_view();

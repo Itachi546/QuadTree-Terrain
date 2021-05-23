@@ -168,6 +168,9 @@
     <ClCompile Include="src\renderer\vulkan\vulkan_buffer.cpp" />
     <ClCompile Include="src\scene\scene.cpp" />
     <ClCompile Include="src\terrain\terrain.cpp" />
+    <ClCompile Include="src\terrain\terrain_chunk.cpp" />
+    <ClCompile Include="src\terrain\terrain_chunkmanager.cpp" />
+    <ClCompile Include="src\terrain\terrain_quadtree.cpp" />
     <ClCompile Include="src\terrain\terrain_stream.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -182,7 +185,9 @@
     <ClInclude Include="src\common\spirv.h" />
     <ClInclude Include="src\common\spirv_reflect.h" />
     <ClInclude Include="src\core\base.h" />
+    <ClInclude Include="src\core\frustum.h" />
     <ClInclude Include="src\core\math.h" />
+    <ClInclude Include="src\core\plane.h" />
     <ClInclude Include="src\core\ray.h" />
     <ClInclude Include="src\cube_example.h" />
     <ClInclude Include="src\debug\gizmo.h" />
@@ -237,6 +242,9 @@
     <ClInclude Include="src\scene\scene.h" />
     <ClInclude Include="src\terrain\perlin_noise.h" />
     <ClInclude Include="src\terrain\terrain.h" />
+    <ClInclude Include="src\terrain\terrain_chunk.h" />
+    <ClInclude Include="src\terrain\terrain_chunkmanager.h" />
+    <ClInclude Include="src\terrain\terrain_quadtree.h" />
     <ClInclude Include="src\terrain_example.h" />
     <ClInclude Include="src\terrain\terrain_stream.h" />
   </ItemGroup>

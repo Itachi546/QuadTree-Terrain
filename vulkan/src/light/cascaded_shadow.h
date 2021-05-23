@@ -51,7 +51,7 @@ private:
 	Framebuffer* m_cascadeFramebuffer[CASCADE_COUNT];
 
 
-	const float cascadeSplitLambda = 0.75f;
+	const float cascadeSplitLambda = 0.95f;
 	glm::vec3 m_direction;
 
 	ShaderBindings* m_bindings;

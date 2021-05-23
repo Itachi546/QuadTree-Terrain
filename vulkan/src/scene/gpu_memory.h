@@ -5,9 +5,6 @@
 #include "renderer/buffer.h"
 #include "renderer/device.h"
 
-// not allocated
-// allocated and not enough
-// allocated and enough
 struct VertexBufferView
 {
 	VertexBuffer* buffer;

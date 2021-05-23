@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "core/frustum.h"
 
 Camera::Camera()
 {
@@ -8,12 +9,13 @@ Camera::Camera()
 	m_fov = glm::radians(60.0f);
 	m_aspect = 4.0f / 3.0f;
 	m_nearPlane = 0.01f;
-	m_farPlane = 500.0f;
+	m_farPlane = 1000.0f;
 
 	m_target = glm::vec3(0.0f, 0.0f, 1.0f);
 	m_speed = 2.0f;
 	m_sensitivity = 0.8f;
 
+	m_frustum = CreateRef<Frustum>();
 	calculate_projection();
 	calculate_view();
 }
@@ -21,7 +23,9 @@ Camera::Camera()
 void Camera::update(float dt)
 {
 #if 1
-	m_position += (m_targetPosition - m_position) * 0.99f * dt * 2.0f;
+	m_position.x += (m_targetPosition.x - m_position.x) * 0.99f * dt * 2.0f;
+	m_position.y += (m_targetPosition.y - m_position.y) * 0.99f * dt * 4.0f;
+	m_position.z += (m_targetPosition.z - m_position.z) * 0.99f * dt * 2.0f;
 	m_rotation += (m_targetRotation - m_rotation) * 0.99f * dt * 2.0f;
 
 	if (glm::length2(m_targetPosition - m_position) < 0.00001f)
@@ -51,11 +55,15 @@ void Camera::update(float dt)
 	// Project frustum corners into world space
 	// inv(view) * inv(projection) * p
 	// inv(A) * inv(B) = inv(BA)
+	std::array<glm::vec3, 8> frustumPoints = {};
 	glm::mat4 invCam = glm::inverse(m_projection * m_view);
-	for (uint32_t i = 0; i < 8; i++) {
+	for (uint32_t i = 0; i < 8; i++) 
+	{
 		glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
-		m_frustumPoints[i] = invCorner / invCorner.w;
+		frustumPoints[i] = invCorner / invCorner.w;
 	}
+
+	m_frustum->set_points(frustumPoints);
 }
 
 void Camera::calculate_projection()

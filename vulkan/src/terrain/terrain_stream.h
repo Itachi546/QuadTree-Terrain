@@ -21,6 +21,8 @@ public:
 	// Load from heightmap
 	TerrainStream(const char* filename);
 	TerrainStream(const PerlinGenerator& generator);
+	TerrainStream(float* data, uint32_t xsize, uint32_t ysize);
+
 	float get(int x, int y)
 	{
 		ASSERT(x >= 0 && x <= m_xsize);
@@ -31,6 +33,7 @@ public:
 	int get_width() { return m_xsize; }
 	int get_height() { return m_ysize; }
 
+	void serialize(const char* filename);
 	void destroy();
 private:
 	int m_xsize;

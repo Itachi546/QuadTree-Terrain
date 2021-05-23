@@ -28,4 +28,12 @@ struct BoundingBox
 	{
 		return BoundingBox{ box.min, box.max };
 	}
+
+	BoundingBox transform(glm::mat4 transform)
+	{
+		BoundingBox box;
+		box.min = transform * glm::vec4(min, 1.0f);
+		box.max = transform * glm::vec4(max, 1.0f);
+		return box;
+	}
 };

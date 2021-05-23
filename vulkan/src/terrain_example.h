@@ -5,7 +5,6 @@
 #include "terrain/terrain_stream.h"
 #include "terrain/terrain.h"
 
-
 class TerrainExample : public ExampleBase
 {
 public:
@@ -34,37 +33,47 @@ public:
 		pipeline = Device::create_pipeline(pipelineDesc);
 
 		scene = std::make_shared<Scene>("Hello World", m_context);
-		camera = CreateRef<Camera>();
-		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
-		camera->set_position(glm::vec3(0.0f, 50.0f, 0.0f));
-		scene->set_camera(camera);
-		
-		Entity* cube = scene->create_cube();
-		cube->transform->scale *= 1.0f;
-		cube->transform->position.z += 50.0f;
-		cube->transform->position.y += 20.0f;
 
-		PerlinGenerator generator = {};
-		generator.frequency = 0.008f;
-		generator.exponent = 4.0f;
-		generator.octaves = 6;
-		Ref<TerrainStream> stream = CreateRef<TerrainStream>(generator);
+		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
+		int size[2];
+		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
+		inFile.seekg(sizeof(int) * 2);
+
+		uint32_t bufferSize = size[0] * size[1];
+		float* buffer = new float[bufferSize];
+		inFile.read(reinterpret_cast<char*>(buffer), bufferSize * sizeof(float));
+		Ref<TerrainStream> stream = CreateRef<TerrainStream>(buffer, size[0], size[1]);
+
 		terrain = CreateRef<Terrain>(m_context, stream);
 		scene->set_terrain(terrain);
+
+		uint32_t width = stream->get_width();
+		uint32_t height = stream->get_height();
+		cube = scene->create_cube();
+		cube->transform->position += glm::vec3(width * 0.5f, 50.0f, height * 0.5f);
+		cube->transform->scale *= glm::vec3(5.0f, 25.0f, 5.0f);
+		camera = CreateRef<Camera>();
+		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
+		camera->set_position(glm::vec3(width * 0.4f, 0.0f, height * 0.4f));
+		scene->set_camera(camera);
 	}
 
 	void update(float dt) override
 	{
 		handle_input(dt);
+		glm::vec3 pos = camera->get_position();
+		float height = terrain->get_height(pos) + 5.0f;
+		camera->set_height(height);
 		scene->update(m_context, dt);
+		terrain->update(m_context,camera);
 	}
 
 	void render() override
 	{
+
 		m_context->begin();
 		scene->prepass(m_context);
-
-		m_context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+		m_context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		m_context->set_graphics_pipeline(pipeline);
@@ -77,6 +86,8 @@ public:
 	void handle_input(float dt)
 	{
 		const float speed = 20.0f;
+		const float playerSpeed = 10.0f;
+
 		auto keyboard = m_window->get_keyboard();
 		if (keyboard->is_down(KeyCode::W))
 			camera->walk(-dt * speed);
@@ -90,6 +101,17 @@ public:
 			camera->lift(dt * speed);
 		else if (keyboard->is_down(KeyCode::E))
 			camera->lift(-dt * speed);
+
+
+		if (keyboard->is_down(KeyCode::Left))
+			cube->transform->position.x += playerSpeed * dt;
+		else if (keyboard->is_down(KeyCode::Right))
+			cube->transform->position.x -= playerSpeed * dt;
+
+		if (keyboard->is_down(KeyCode::Up))
+			cube->transform->position.z += playerSpeed * dt;
+		else if (keyboard->is_down(KeyCode::Down))
+			cube->transform->position.z -= playerSpeed * dt;
 
 		auto mouse = m_window->get_mouse();
 		float x, y;

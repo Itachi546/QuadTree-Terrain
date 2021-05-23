@@ -3,6 +3,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#include <fstream>
 
 TerrainStream::TerrainStream(const char* filename)
 {
@@ -10,15 +11,16 @@ TerrainStream::TerrainStream(const char* filename)
 	uint8_t* buffer = stbi_load(filename, &m_xsize, &m_ysize, &nChannel, 1);
 	ASSERT(buffer != nullptr);
 
-	m_buffer = new float[m_xsize * m_ysize];
+	m_buffer = new float[(m_xsize + 1) * (m_ysize + 1)];
 
 	float m = 1.0f / 255.0f;
-	for (int y = 0; y < m_ysize; ++y)
+	const float frequency = 10.0f;
+	for (int y = 0; y <= m_ysize; ++y)
 	{
-		for (int x = 0; x < m_xsize; ++x)
+		for (int x = 0; x <= m_xsize; ++x)
 		{
 			uint32_t index = y * m_xsize + x;
-			m_buffer[index] = buffer[index] * m;
+			m_buffer[index] = (buffer[index] * m);
 		}
 	}
 	stbi_image_free(buffer);
@@ -39,16 +41,15 @@ float fbm(siv::PerlinNoise* noise, int x, int y, const PerlinGenerator& generato
 		a *= generator.gain;
 		f *= generator.lacunarity;
 	}
-
 	total /= normalization;
-	//total = total * 2.0f - 1.0f;
+	total = abs(total);
 
 	return static_cast<float>(std::pow(total, generator.exponent));
 }
 
 TerrainStream::TerrainStream(const PerlinGenerator& generator) : m_xsize(generator.width), m_ysize(generator.height)
 {
-	m_buffer = new float[generator.width * generator.height];
+	m_buffer = new float[(generator.width + 1) * (generator.height + 1)];
 	siv::PerlinNoise* noise = new siv::PerlinNoise(generator.seed);
 
 	for (uint32_t y = 0; y < generator.height; ++y)
@@ -58,6 +59,21 @@ TerrainStream::TerrainStream(const PerlinGenerator& generator) : m_xsize(generat
 			m_buffer[y * generator.width + x] = fbm(noise, x, y, generator);
 		}
 	}
+}
+
+TerrainStream::TerrainStream(float* data, uint32_t xsize, uint32_t ysize)
+{
+	m_xsize = xsize;
+	m_ysize = ysize;
+	m_buffer = data;
+}
+
+void TerrainStream::serialize(const char* filename)
+{
+	std::ofstream outfile(filename, std::ios::binary);
+	int size[] = { m_xsize, m_ysize };
+	outfile.write(reinterpret_cast<char*>(size), sizeof(int) * 2);
+	outfile.write(reinterpret_cast<char*>(m_buffer), m_xsize * m_ysize * sizeof(float));
 }
 
 void TerrainStream::destroy()

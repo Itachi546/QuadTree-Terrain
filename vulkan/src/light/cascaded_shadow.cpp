@@ -12,6 +12,7 @@
 #include "renderer/buffer.h"
 #include "scene/entity.h"
 #include "terrain/terrain.h"
+#include "core/frustum.h"
 
 ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction)
 {
@@ -102,7 +103,7 @@ void ShadowCascade::update(Ref<Camera> camera)
 	}
 
 	// Calculate orthographic projection matrix for each cascade
-	const std::array<glm::vec3, 8> cameraFrustum = camera->get_frustum_corner();
+	const std::array<glm::vec3, 8>& cameraFrustum = camera->get_frustum()->get_points();
 	float lastSplitDist = 0.0;
 	for (uint32_t i = 0; i < CASCADE_COUNT; i++) {
 		float splitDist = m_cascadeSplits[i];
@@ -131,7 +132,6 @@ void ShadowCascade::update(Ref<Camera> camera)
 		// Either calculate orthographic projection by transforming the 
 		// view frustum or calculate view matrix
 		glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter + m_direction * radius, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-
 		glm::mat4 lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, 0.0f, 2.0f * radius);
 
 		// Store split distance and matrix in cascade

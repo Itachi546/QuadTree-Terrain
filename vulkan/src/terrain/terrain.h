@@ -1,13 +1,18 @@
 #pragma once
 
 #include "core/base.h"
+#include "core/math.h"
+#include <vector>
 #include <stdint.h>
 
-class TerrainStream;
 class Pipeline;
 class Mesh;
 class Context;
 class ShaderBindings;
+class QuadTree;
+class Camera;
+class TerrainChunkManager;
+class TerrainStream;
 
 class Terrain
 {
@@ -15,15 +20,17 @@ class Terrain
 public:
 	Terrain(Context* context, Ref<TerrainStream> stream);
 
+	float get_height(glm::vec3 position);
+	void update(Context* context, Ref<Camera> camera);
+	void update(glm::vec3 position);
 	void render(Context* context, ShaderBindings** uniformBindings, int count);
-
-	Ref<Mesh> get_mesh() { return m_mesh; }
-
 	void destroy();
-	// between x (0, 1), y(0, 1)
-	float get_height(int x, int y);
 private:
-	Ref<TerrainStream> m_stream;
-	Ref<Mesh> m_mesh;
 	Pipeline* m_pipeline;
+	Ref<TerrainChunkManager> m_chunkManager;
+	Ref<TerrainStream> m_stream;
+	uint32_t minchunkSize = 64;
+	uint32_t m_maxLod;
+
+	Ref<QuadTree> m_quadTree;
 };
