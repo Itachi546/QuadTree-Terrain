@@ -113,7 +113,9 @@ private:
 		RayHit hit = {};
 		if (!gizmo->is_active() && mouse->is_down(Button::Left))
 		{
-			if (scene->cast_ray(gizmo->get_ray(), hit))
+			glm::vec2 mousePos;
+			mouse->get_mouse_position(&mousePos.x, &mousePos.y);
+			if (scene->cast_ray(camera->generate_ray(mousePos, glm::vec2(m_window->get_width(), m_window->get_height())), hit))
 			{
 				gizmo->set_active(hit.entity);
 			}

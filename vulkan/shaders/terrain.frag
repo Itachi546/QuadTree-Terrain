@@ -7,6 +7,7 @@
 layout(location = 0) in vec3 vnormal;
 layout(location = 1) in vec3 worldSpacePosition;
 layout(location = 2) in vec3 viewSpacePosition;
+layout(location = 3) in vec4 intersectionPoint;
 
 layout(location = 0) out vec4 fragColor;
 
@@ -57,6 +58,15 @@ void main()
 
 	float fog = 1.0f - exp(-length(viewSpacePosition) * 0.005);
 	col = mix(col, vec3(0.5, 0.7, 1.0), fog);
+
+	if(intersectionPoint.w > 0.5f)
+	{
+	   const float radius = 10.0f;
+	   float d = length(worldSpacePosition - intersectionPoint.xyz);
+	   d = smoothstep(d, radius - 0.5f, radius);
+	   col = mix(vec3(1.0f), col, d);
+	}
+
     col /= (1.0 + col);
     fragColor = vec4(col, 1.0f);
 }

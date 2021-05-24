@@ -6,7 +6,7 @@
 float get_height(Ref<TerrainStream> stream, int x, int y)
 {
 	const float heightScale = 480.0f;
-	return (stream->get(x, y)) * heightScale;
+	return (stream->get(x, y) * 2.0f - 1.0f) * heightScale * 0.5f;
 }
 
 void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, const glm::ivec2& max, const ivec2& terrainSize, uint32_t lod_level)

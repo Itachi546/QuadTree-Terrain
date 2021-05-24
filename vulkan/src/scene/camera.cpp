@@ -66,9 +66,25 @@ void Camera::update(float dt)
 	m_frustum->set_points(frustumPoints);
 }
 
+Ray Camera::generate_ray(const glm::vec2& mouse, const glm::vec2& windowSize)
+{
+	// clip space direction
+	glm::vec4 d = glm::vec4((mouse.x / windowSize.x) * 2.0f - 1.0f, 1.0f - 2.0f * (mouse.y / windowSize.y), 0.0f, 0.0f);
+
+	// camera space direction
+	d = m_invProjection * d;
+	d.z = -1.0f;
+	d.w = 0.0f;
+
+	// world space direction
+	glm::vec3 worldSpace = glm::vec3(m_invView * d);
+	return Ray{ m_position, glm::normalize(worldSpace) };
+}
+
 void Camera::calculate_projection()
 {
 	m_projection = glm::perspective(m_fov, m_aspect, m_nearPlane, m_farPlane);
+	m_invProjection = glm::inverse(m_projection);
 }
 
 void Camera::calculate_view()
@@ -77,6 +93,7 @@ void Camera::calculate_view()
 	glm::vec3 up = glm::normalize(rotate * vec3(0.0f, 1.0f, 0.0f));
 	glm::vec3 forward = glm::normalize(rotate * vec3(0.0f, 0.0f, 1.0f));
 	m_view = glm::lookAt(m_position, m_position + forward , up);
+	m_invView = glm::inverse(m_view);
 
 	m_right   = glm::vec3(m_view[0][0], m_view[1][0], m_view[2][0]);
 	m_up      = glm::vec3(m_view[0][1], m_view[1][1], m_view[2][1]);

@@ -19,6 +19,9 @@ public:
 	void render(Context* context);
 	bool is_loaded() { return m_loaded; }
 
+	glm::ivec2 get_min() { return m_min; }
+	glm::ivec2 get_max() { return m_max; }
+
 	glm::ivec2 get_center() { return (m_min + m_max) / 2; }
 	void destroy();
 private:

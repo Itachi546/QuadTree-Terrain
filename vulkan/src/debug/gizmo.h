@@ -39,7 +39,6 @@ public:
 	void set_active(Entity* entity) { active = entity; }
 	void destroy();
 
-	Ray get_ray() { return m_ray; }
 private:
 	uint32_t m_width;
 	uint32_t m_height;

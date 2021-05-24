@@ -4,6 +4,8 @@
 #include "terrain_chunk.h"
 #include "terrain_stream.h"
 #include "scene/camera.h"
+#include "core/frustum.h"
+#include "debug/debug_draw.h"
 #include <set>
 #include <algorithm>
 
@@ -51,8 +53,15 @@ void TerrainChunkManager::update(Context* context, Ref<Camera> camera, std::vect
 	frameIndex++;
 
 	m_visibleList.clear();
+	Ref<Frustum> frustum = camera->get_frustum();
+	BoundingBox box = {};
 	for (const auto& node : visibleChunks)
 	{
+		box.min = glm::vec3(node.min.x,  -240.0f, node.min.y);
+		box.max = glm::vec3(node.max.x,   240.0f, node.max.y);
+		if (!frustum->intersect_box(box))
+			continue;
+
 		glm::ivec2 center = (node.min + node.max) / 2;
 		uint32_t id = node.id;
 		m_visibleList.push_back(id);
@@ -77,7 +86,6 @@ void TerrainChunkManager::update(Context* context, Ref<Camera> camera, std::vect
 			break;
 		}
 	}
-
 }
 
 void TerrainChunkManager::render(Context* context)
@@ -152,9 +160,16 @@ void TerrainChunkManager::render(Context* context)
 		if (chunk != nullptr && chunk->is_loaded())
 			renderList.insert(chunk);
 	}
-
+	//Debug_Log("Total Chunk: %ld", renderList.size());
 	for (TerrainChunk* chunk : renderList)
 	{
+		/*
+		glm::ivec2 min = chunk->get_min();
+		glm::ivec2 scale = chunk->get_max() - min;
+		glm::ivec2 center = scale / 2;
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(min.x + center.x, 0.0f, min.y + center.y)) * glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, 150.0f, scale.y));
+		DebugDraw::draw_box(model);
+		*/
 		chunk->render(context);
 	}
 }

@@ -72,6 +72,8 @@ public:
 	}
 	glm::vec3 get_forward() { return m_forward; }
 	glm::vec3 get_position() const { return m_position; }
+
+	Ray generate_ray(const glm::vec2& mouse, const glm::vec2& windowSize);
 private:
 	glm::vec3 m_position;
 	glm::vec3 m_rotation;
@@ -79,13 +81,13 @@ private:
 	glm::vec3 m_targetPosition;
 	glm::vec3 m_targetRotation;
 
-	glm::mat4 m_projection;
+	glm::mat4 m_projection, m_invProjection;
 	float m_fov;
 	float m_aspect;
 	float m_nearPlane;
 	float m_farPlane;
 
-	glm::mat4 m_view;
+	glm::mat4 m_view, m_invView;
 	glm::vec3 m_target;
 	glm::vec3 m_right;
 	glm::vec3 m_up;

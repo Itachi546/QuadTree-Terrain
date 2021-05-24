@@ -25,9 +25,19 @@ public:
 
 	float get(int x, int y)
 	{
-		ASSERT(x >= 0 && x <= m_xsize);
-		ASSERT(y >= 0 && y <= m_ysize);
+		if (x < 0.0f || x >= m_xsize || y < 0.0f || y >= m_ysize)
+			return 0.0f;
+		//ASSERT(x >= 0 && x <= m_xsize);
+		//ASSERT(y >= 0 && y <= m_ysize);
 		return m_buffer[y * m_xsize + x];
+	}
+
+	void set(int x, int y, float v)
+	{
+		if (x < 0.0f || x > m_xsize || y < 0.0f || y > m_ysize)
+			return;
+
+		m_buffer[y * m_xsize + y] = v;
 	}
 
 	int get_width() { return m_xsize; }

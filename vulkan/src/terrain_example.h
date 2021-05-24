@@ -50,11 +50,13 @@ public:
 		uint32_t width = stream->get_width();
 		uint32_t height = stream->get_height();
 		cube = scene->create_cube();
-		cube->transform->position += glm::vec3(width * 0.5f, 50.0f, height * 0.5f);
-		cube->transform->scale *= glm::vec3(5.0f, 25.0f, 5.0f);
+
+		float h = 50.0f + terrain->get_height(glm::vec3(width * 0.5f, 0.0f, height * 0.5f));
+		cube->transform->position += glm::vec3(width * 0.5f, h, height * 0.5f);
+		cube->transform->scale *= glm::vec3(5.0f, 50.0f, 5.0f);
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
-		camera->set_position(glm::vec3(width * 0.4f, 0.0f, height * 0.4f));
+		camera->set_position(glm::vec3(856.0f, -200.0f, 1522.0f));
 		scene->set_camera(camera);
 	}
 
@@ -62,10 +64,20 @@ public:
 	{
 		handle_input(dt);
 		glm::vec3 pos = camera->get_position();
-		float height = terrain->get_height(pos) + 5.0f;
-		camera->set_height(height);
+		float height = terrain->get_height(pos);
+		if((pos.y - height) < 5.0f)
+			camera->set_height(height + 5.0f);
+
 		scene->update(m_context, dt);
 		terrain->update(m_context,camera);
+
+		glm::vec2 mousePos = {};
+		mouse->get_mouse_position(&mousePos.x, &mousePos.y);
+		glm::vec2 size = { m_window->get_width(), m_window->get_height() };
+
+		glm::vec3 intersection = glm::vec3(0.0f);
+
+		//terrain->ray_cast(camera->generate_ray(mousePos, size), intersection);
 	}
 
 	void render() override
