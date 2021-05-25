@@ -47,6 +47,7 @@ void main()
     vec3 normal = normalize(vnormal);
     vec3 col = vec3(0.0f);
 	float shadow = 1.0f;
+
 	if(castShadow > 0.5f)
 	  shadow = calculateShadowFactor(worldSpacePosition, length(viewSpacePosition), enablePCF);
 
@@ -56,7 +57,8 @@ void main()
 	if(castShadow > 0.5f && enableShadowDebug)
 	  col *= debugCascade();
 
-	float fog = 1.0f - exp(-length(viewSpacePosition) * 0.005);
+
+	float fog = 1.0f - exp(-length(viewSpacePosition)	* 0.0008);
 	col = mix(col, vec3(0.5, 0.7, 1.0), fog);
 
 	if(intersectionPoint.w > 0.5f)

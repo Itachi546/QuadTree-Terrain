@@ -32,7 +32,8 @@ void main()
     col += max(dot(normal, lightDirection), 0.0) * lightColor * lightIntensity * shadow;
 	col	+= (normal.y * 0.5 + 0.5) *	vec3(0.16, 0.20, 0.28);
 
-	float fog = 1.0f - exp(-length(viewSpacePosition) * 0.005);
+	
+	float fog = 1.0f - exp(-length(viewSpacePosition) * 0.0008);
 	col = mix(col, vec3(0.5, 0.7, 1.0), fog);
 
 	if(castShadow > 0.5f && enableShadowDebug)

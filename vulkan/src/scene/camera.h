@@ -61,6 +61,9 @@ public:
 		return m_frustum;
 	}
 
+	std::array<glm::vec3, 8> get_frustum_point(float nearPlane, float farPlane);
+
+
 	void rotate(float dx, float dy, float dt)
 	{
 		float m = m_sensitivity * dt;

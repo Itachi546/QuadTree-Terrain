@@ -51,9 +51,9 @@ public:
 		uint32_t height = stream->get_height();
 		cube = scene->create_cube();
 
-		float h = 50.0f + terrain->get_height(glm::vec3(width * 0.5f, 0.0f, height * 0.5f));
+		float h = 5.0f + terrain->get_height(glm::vec3(width * 0.5f, 0.0f, height * 0.5f));
 		cube->transform->position += glm::vec3(width * 0.5f, h, height * 0.5f);
-		cube->transform->scale *= glm::vec3(5.0f, 50.0f, 5.0f);
+		cube->transform->scale *= glm::vec3(5.0f, 5.0f, 5.0f);
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 		camera->set_position(glm::vec3(856.0f, -200.0f, 1522.0f));

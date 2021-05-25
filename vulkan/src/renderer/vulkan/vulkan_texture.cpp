@@ -59,6 +59,7 @@ VulkanTexture::VulkanTexture(std::shared_ptr<VulkanAPI> api, const TextureDescri
 	if (desc.sampler != nullptr)
 		usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
 
+	ASSERT(desc.type != TextureType::Color3D);
 	VkImageType imageType = VK_IMAGE_TYPE_2D;
 	VkFormat format = VkTypeConverter::from(desc.format);
 	create_image(device, memoryProps, usage, imageType, format, desc.width, desc.height);
@@ -105,7 +106,7 @@ void VulkanTexture::create_sampler(VkDevice device, SamplerDescription* desc)
 	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 	createInfo.minLod = 0.0f;
 	createInfo.maxLod = 0.0f;
-	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+	createInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 	createInfo.unnormalizedCoordinates = VK_FALSE;
 
 	vkCreateSampler(device, &createInfo, 0, &m_sampler);

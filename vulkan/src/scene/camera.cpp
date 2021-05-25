@@ -66,6 +66,30 @@ void Camera::update(float dt)
 	m_frustum->set_points(frustumPoints);
 }
 
+std::array<glm::vec3, 8> Camera::get_frustum_point(float nearPlane, float farPlane)
+{
+	glm::vec3 nearPoint = m_position + nearPlane * m_forward;
+	glm::vec3 farPoint = m_position + farPlane * m_forward;
+
+	//Calculate point in near Plane
+	float hH = tan(m_fov * 0.5f) * nearPlane;
+	float hW = m_aspect * hH;
+
+	std::array<glm::vec3, 8> frustumPoints;
+	frustumPoints[0] = nearPoint - hW * m_right + hH * m_up; //ntl
+	frustumPoints[1] = nearPoint + hW * m_right + hH * m_up; //ntr
+	frustumPoints[2] = nearPoint + hW * m_right - hH * m_up; // nbr
+	frustumPoints[3] = nearPoint - hW * m_right - hH * m_up; // nbl
+
+	hH = tan(m_fov * 0.5f) * farPlane;
+	hW = m_aspect * hH;
+	frustumPoints[4] = farPoint - hW * m_right + hH * m_up; //ftl
+	frustumPoints[5] = farPoint + hW * m_right + hH * m_up; //ftr
+	frustumPoints[6] = farPoint + hW * m_right - hH * m_up; //fbr
+	frustumPoints[7] = farPoint - hW * m_right - hH * m_up; //fbl
+	return frustumPoints;
+}
+
 Ray Camera::generate_ray(const glm::vec2& mouse, const glm::vec2& windowSize)
 {
 	// clip space direction

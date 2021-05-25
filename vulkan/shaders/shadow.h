@@ -29,11 +29,20 @@ layout(set = 0, binding = 6) uniform shadowMapData
 
 const float bias = 0.001f;
 const float scale = 0.75f;
+
+float get_shadow(sampler2D depthTexture, vec4 projectedCoord, vec2 duv)
+{
+	vec2 uv = vec2(projectedCoord.x + duv.x, (1.0f - projectedCoord.y) + duv.y);
+	float depth = texture(depthTexture, uv).r;
+	return (depth >= projectedCoord.z - bias) ? 1.0 : 0.0;
+}
+
 float getSplitShadowValue(sampler2D depthTexture, int index, vec3 p, bool enablePCF)
 {
 	vec4 projectedCoord = (cascades[index].lightViewProjection) * vec4(p, 1.0f);
 	projectedCoord.xy = projectedCoord.xy * 0.5 + 0.5;
 	projectedCoord.xyz /= projectedCoord.w;
+
 	float shadow = 0.0;
 	if (enablePCF)
 	{
@@ -46,9 +55,7 @@ float getSplitShadowValue(sampler2D depthTexture, int index, vec3 p, bool enable
 		{
 			for (int j = -range; j <= range; ++j)
 			{
-				vec2 uv = vec2(projectedCoord.x + dx * float(i), 1.0f - projectedCoord.y + dy * float(j));
-				float depth = texture(depthTexture, uv).r;
-				shadow += (depth > projectedCoord.z - bias) ? 1.0 : 0.0;
+				shadow += get_shadow(depthTexture, projectedCoord, vec2(i * dx, j * dy));
 				count++;
 			}
 		}
@@ -56,9 +63,7 @@ float getSplitShadowValue(sampler2D depthTexture, int index, vec3 p, bool enable
 	}
 	else
 	{
-		vec2 uv = vec2(projectedCoord.x, 1.0f - projectedCoord.y);
-		float	depth = texture(depthTexture, uv).r;
-		shadow += (depth > projectedCoord.z - bias) ? 1.0 : 0.0;
+		shadow += get_shadow(depthTexture, projectedCoord, vec2(0.0));
 	}
 	return shadow;
 }
@@ -67,11 +72,10 @@ int cascadeIndex = 0;
 float calculateShadowFactor(vec3 p, float distanceFromCamera, bool enablePCF)
 {
 	cascadeIndex = 0;
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 4; ++i) {
 		if (distanceFromCamera > cascades[i].splitDepth.x)
 			cascadeIndex = i + 1;
 	}
-
 	switch (cascadeIndex)
 	{
 	case 0:

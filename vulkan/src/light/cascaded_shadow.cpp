@@ -53,11 +53,11 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		desc.type = TextureType::DepthStencil;
 
 		SamplerDescription sampler = SamplerDescription::Initialize();
-		sampler.minFilter = TextureFilter::Linear;
-		sampler.magFilter = TextureFilter::Linear;
-		sampler.wrapU = WrapMode::ClampToEdge;
-		sampler.wrapV = WrapMode::ClampToEdge;
-		sampler.wrapW = WrapMode::ClampToEdge;
+		sampler.minFilter = TextureFilter::Nearest;
+		sampler.magFilter = TextureFilter::Nearest;
+		sampler.wrapU = WrapMode::ClampToBorder;
+		sampler.wrapV = WrapMode::ClampToBorder;
+		sampler.wrapW = WrapMode::ClampToBorder;
 		desc.sampler = &sampler;
 
 		FramebufferDescription fbDesc = {};
@@ -85,7 +85,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 void ShadowCascade::update(Ref<Camera> camera)
 {
 	float nearClip = camera->get_near_plane();
-	float farClip = camera->get_far_plane();
+	float farClip = shadowDistance;
 	float clipRange = farClip - nearClip;
 
 	float minZ = nearClip;
@@ -99,17 +99,19 @@ void ShadowCascade::update(Ref<Camera> camera)
 		float log = minZ * std::pow(ratio, p);
 		float uniform = minZ + range * p;
 		float d = cascadeSplitLambda * (log - uniform) + uniform;
-		m_cascadeSplits[i] = (d - nearClip) / clipRange;
+		m_cascadeSplits[i] = (d - nearClip);
 	}
 
 	// Calculate orthographic projection matrix for each cascade
 	const std::array<glm::vec3, 8>& cameraFrustum = camera->get_frustum()->get_points();
 	float lastSplitDist = 0.0;
-	for (uint32_t i = 0; i < CASCADE_COUNT; i++) {
-		float splitDist = m_cascadeSplits[i];
+	for (uint32_t j = 0; j < CASCADE_COUNT; j++) 
+	{
+		float splitDist = m_cascadeSplits[j];
 		glm::vec3 frustumCorners[8] = {};
+
 		for (uint32_t i = 0; i < 4; i++) {
-			glm::vec3 dist = cameraFrustum[i + 4] - cameraFrustum[i];
+			glm::vec3 dist = glm::normalize(cameraFrustum[i + 4] - cameraFrustum[i]);
 			frustumCorners[i + 4] = cameraFrustum[i] + (dist * splitDist);
 			frustumCorners[i] = cameraFrustum[i] + (dist * lastSplitDist);
 		}
@@ -135,9 +137,9 @@ void ShadowCascade::update(Ref<Camera> camera)
 		glm::mat4 lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, 0.0f, 2.0f * radius);
 
 		// Store split distance and matrix in cascade
-		m_cascades[i].splitDepth = glm::vec4((camera->get_near_plane() + splitDist * clipRange));
-		m_cascades[i].VP = lightOrthoMatrix * lightViewMatrix;
-		lastSplitDist = m_cascadeSplits[i];
+		m_cascades[j].splitDepth = glm::vec4(nearClip + splitDist);
+		m_cascades[j].VP = lightOrthoMatrix * lightViewMatrix;
+		lastSplitDist = m_cascadeSplits[j];
 	}
 }
 
