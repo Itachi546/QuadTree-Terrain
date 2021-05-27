@@ -58,7 +58,7 @@ void main()
 	  col *= debugCascade();
 
 
-	float fog = 1.0f - exp(-length(viewSpacePosition)	* 0.0008);
+	float fog = 1.0f - exp(-length(viewSpacePosition) * 0.002);
 	col = mix(col, vec3(0.5, 0.7, 1.0), fog);
 
 	if(intersectionPoint.w > 0.5f)

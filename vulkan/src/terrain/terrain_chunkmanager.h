@@ -5,39 +5,25 @@
 #include <unordered_map>
 #include <vector>
 #include <stack>
+#include <queue>
 
-class Mesh;
-class TerrainStream;
 class TerrainChunk;
-struct Node;
 class Context;
-class Camera;
-
+class TerrainStream;
 class TerrainChunkManager
 {
 public:
-	void init(Ref<TerrainStream> stream, glm::ivec2 terrainSize);
-	void update(Context* context, Ref<Camera> camera, std::vector<Node>& visibleChunks, uint32_t maxLod);
-	void render(Context* context);
+	TerrainChunkManager(uint32_t poolSize);
+	TerrainChunk* get_free_chunk();
+	void add_to_cache(TerrainChunk* chunk);
+
+	void update(Context* context, Ref<TerrainStream> stream, glm::ivec3 terrainSize);
 	void destroy();
-
 private:
-	struct ChunkData
-	{
-		uint64_t lastFrameIndex = 0;
-		TerrainChunk* chunk;
-	};
-	static const uint32_t POOL_SIZE = 200;
-	glm::ivec2 m_terrainSize;
+	uint32_t POOL_SIZE = 200;
 	// Chunk Cache
-	std::unordered_map<uint32_t, ChunkData> m_chunkCache;
 	std::vector<TerrainChunk*> m_chunkPool;
-	std::stack<TerrainChunk*> m_availableList;
+	std::stack<uint32_t> m_availableList;
 
-	std::vector<uint32_t> m_visibleList;
-
-	Ref<TerrainStream> m_stream;
-	TerrainChunk* get_free_chunk(Ref<Camera> camera);
-
-	uint64_t frameIndex = 0;
+	std::queue<TerrainChunk*> m_chunkToBeLoaded;
 };

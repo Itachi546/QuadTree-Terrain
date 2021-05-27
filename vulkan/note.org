@@ -79,3 +79,13 @@
 ** Draw scene
 ** Draw fullscreen quad with the image
 
+
+* Heightmap Terrain
+*** ChunkManager (Pool of Chunk, finding new available chunk)
+*** QuadTree (get the chunk, fill the chunk(possibly), render the chunk)
+*** How to unload chunk?
+    Give each chunk and id, binary encoded id generated for quadtree, 
+    Node are stored in array based on the id
+    Give age to each chunk
+    When age is old remove it and set the node value to node in array as nullptrx
+

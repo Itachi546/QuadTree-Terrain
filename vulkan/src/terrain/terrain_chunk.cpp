@@ -3,42 +3,65 @@
 #include "scene/mesh.h"
 #include "renderer/context.h"
 
-float get_height(Ref<TerrainStream> stream, int x, int y)
+float get_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 {
-	const float heightScale = 480.0f;
-	return (stream->get(x, y) * 2.0f - 1.0f) * heightScale * 0.5f;
+	int ix = static_cast<int>(x);
+	int iy = static_cast<int>(y);
+
+	float a = stream->get(ix, iy);
+	float b = stream->get(ix + 1, iy);
+	float c = stream->get(ix, iy + 1);
+	float d = stream->get(ix + 1, iy + 1);
+
+	float fx = x - ix;
+	float fy = y - iy;
+
+	float h0 = glm::mix(a, b, fx);
+	float h1 = glm::mix(c, d, fx);
+	
+	float h = glm::mix(h0, h1, fy) * 2.0f - 1.0f;
+	return  h * maxHeight;
 }
 
-void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, const glm::ivec2& max, const ivec2& terrainSize, uint32_t lod_level)
+void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, const glm::ivec2& max, const ivec3& terrainSize, uint32_t lod_level)
 {
 	// Terrain Width and height
+	static const uint32_t VERTEX_COUNT = 128;
 
-	uint32_t inc = static_cast<uint32_t>(std::pow(2, lod_level));
-	std::vector<Vertex> vertices;
 	uint32_t width = stream->get_width();
 	uint32_t height = stream->get_height();
 
 	float mX = 1.0f / float(terrainSize.x);
-	float mZ = 1.0f / float(terrainSize.y);
+	float mZ = 1.0f / float(terrainSize.z);
 
-	for (int z = min.y; z <= max.y; z += inc)
+	float rangeZ = float(max.y - min.y);
+	float rangeX = float(max.x - min.x);
+	float maxHeight = float(terrainSize.y);
+
+	std::vector<Vertex> vertices;
+	for (int z = 0; z <= VERTEX_COUNT; ++z)
 	{
-		float fz = float(z) * mZ;
-		for (int x = min.x; x <= max.x; x += inc)
+		float fz = float(z) / float(VERTEX_COUNT);
+		fz = (min.y + fz * rangeZ);
+		for (int x = 0; x <= VERTEX_COUNT; ++x)
 		{
-			float fx = float(x) * mX;
+			float fx = float(x) / float(VERTEX_COUNT);
+			fx = (min.x + fx * rangeX);
 
-			int ix = static_cast<int>(fx * (width - 3)) + 1;
-			int iz = static_cast<int>(fz * (height - 3)) + 1;
+			float uvx = fx * mX * (width - 3) + 1.0f;
+			float uvz = fz * mZ * (height - 3) + 1.0f;
 
-			float h = get_height(stream, ix, iz);
-			float a = get_height(stream, ix + 1, iz);
-			float b = get_height(stream, ix - 1, iz);
-			float c = get_height(stream, ix, iz + 1);
-			float d = get_height(stream, ix, iz - 1);
+			int ix = static_cast<int>(uvx);
+			int iz = static_cast<int>(uvz);
+
+			float h = get_height(stream, uvx, uvz, maxHeight);
+			float a = get_height(stream, uvx + 1.0f, uvz, maxHeight);
+			float b = get_height(stream, uvx - 1.0f, uvz, maxHeight);
+			float c = get_height(stream, uvx, uvz + 1.0f, maxHeight);
+			float d = get_height(stream, uvx, uvz - 1.0f, maxHeight);
 
 			Vertex vertex;
-			vertex.position = glm::vec3(x, h, z);
+			vertex.position = glm::vec3(fx, h, fz);
 			vertex.normal = glm::normalize(glm::vec3(a - b, 1.0f, d - c));
 			vertices.push_back(vertex);
 		}
@@ -48,38 +71,22 @@ void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, c
 	/*i0*****i1**/
 	/*i2*****i3**/
 	/*************/
-	uint32_t wx = (max.x - min.x) / inc;
-	uint32_t wz = (max.y - min.y) / inc;
-
 	std::vector<unsigned int> indices;
-	for (uint32_t z = 0; z < wz; ++z)
+	for (uint32_t z = 0; z < VERTEX_COUNT; ++z)
 	{
-		for (uint32_t x = 0; x < wx; ++x)
+		for (uint32_t x = 0; x < VERTEX_COUNT; ++x)
 		{
-			uint32_t i0 = z * (wx + 1) + x;
+			uint32_t i0 = z * (VERTEX_COUNT + 1) + x;
 			uint32_t i1 = i0 + 1;
-			uint32_t i2 = i0 + (wx + 1);
+			uint32_t i2 = i0 + (VERTEX_COUNT + 1);
 			uint32_t i3 = i2 + 1;
-			/*
-			glm::vec3 n0 = vertices[i0].normal;
-			glm::vec3 n1 = vertices[i1].normal;
-			glm::vec3 n2 = vertices[i2].normal;
-			glm::vec3 n3 = vertices[i3].normal;
 
-			glm::vec3 new_n1 = (n0 + n1 + n2) / 3.0f;
-			glm::vec3 new_n2 = (n1 + n2 + n3) / 3.0f;
-
-			vertices[i0].normal = glm::normalize(new_n1);
-			vertices[i1].normal = glm::normalize((new_n1 + new_n2) * 0.5f);
-			vertices[i2].normal = glm::normalize((new_n1 + new_n2) * 0.5f);
-			vertices[i3].normal = glm::normalize(new_n2);
-			*/
 			indices.push_back(i2);
 			indices.push_back(i1);
 			indices.push_back(i0);
 
-			indices.push_back(i3);
 			indices.push_back(i2);
+			indices.push_back(i3);
 			indices.push_back(i1);
 		}
 	}
@@ -90,17 +97,21 @@ void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, c
 TerrainChunk::TerrainChunk()
 {
 	m_mesh = new Mesh();
+	m_id = UINT32_MAX;
+	m_lastFrameIndex = 0;
 }
 
-void TerrainChunk::initialize(const glm::ivec2& min, const glm::ivec2& max, uint32_t lod_level)
+void TerrainChunk::initialize(const glm::ivec2& min, const glm::ivec2& max, uint32_t lod_level, uint32_t id, uint64_t lastFrameIndex)
 {
 	m_min = min;
 	m_max = max;
 	m_lodLevel = lod_level;
 	m_loaded = false;
+	m_id = id;
+	m_lastFrameIndex = lastFrameIndex;
 }
 
-void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec2& terrainSize)
+void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec3& terrainSize)
 {
 	create_mesh(m_mesh, stream, m_min, m_max, terrainSize, m_lodLevel);
 	m_mesh->finalize(context, true);

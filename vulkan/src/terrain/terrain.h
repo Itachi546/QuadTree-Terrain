@@ -10,9 +10,10 @@ class Pipeline;
 class Mesh;
 class Context;
 class ShaderBindings;
+
 class QuadTree;
 class Camera;
-class TerrainChunkManager;
+class TerrainChunk;
 class TerrainStream;
 
 class Terrain
@@ -28,18 +29,17 @@ public:
 
 	float get_height(glm::vec3 position);
 	void update(Context* context, Ref<Camera> camera);
-	void update(glm::vec3 position);
-	void render(Context* context, ShaderBindings** uniformBindings, int count);
+
+	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count);
 	void destroy();
 private:
 	Pipeline* m_pipeline;
-	Ref<TerrainChunkManager> m_chunkManager;
 	Ref<TerrainStream> m_stream;
 
 	uint32_t minchunkSize = 64;
 	const float m_maxRayCastDistance = 500.0f;
 	int m_influenceRadius = 10;
-
+	const int maxHeight = 150;
 	uint32_t m_maxLod;
 
 	Ref<QuadTree> m_quadTree;

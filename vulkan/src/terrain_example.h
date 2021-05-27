@@ -34,6 +34,7 @@ public:
 
 		scene = std::make_shared<Scene>("Hello World", m_context);
 
+		/*
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
@@ -43,6 +44,8 @@ public:
 		float* buffer = new float[bufferSize];
 		inFile.read(reinterpret_cast<char*>(buffer), bufferSize * sizeof(float));
 		Ref<TerrainStream> stream = CreateRef<TerrainStream>(buffer, size[0], size[1]);
+		*/
+		Ref<TerrainStream> stream = CreateRef<TerrainStream>("assets/heightmap.png");
 
 		terrain = CreateRef<Terrain>(m_context, stream);
 		scene->set_terrain(terrain);
@@ -51,12 +54,13 @@ public:
 		uint32_t height = stream->get_height();
 		cube = scene->create_cube();
 
-		float h = 5.0f + terrain->get_height(glm::vec3(width * 0.5f, 0.0f, height * 0.5f));
-		cube->transform->position += glm::vec3(width * 0.5f, h, height * 0.5f);
-		cube->transform->scale *= glm::vec3(5.0f, 5.0f, 5.0f);
+		float h = 5.0f + terrain->get_height(glm::vec3(width * 0.75f, 0.0f, height * 0.75f));
+		cube->transform->position = glm::vec3(width * 0.65f, h, height * 0.65f);
+		cube->transform->scale *= glm::vec3(5.0f, 10.0f, 5.0f);
+
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
-		camera->set_position(glm::vec3(856.0f, -200.0f, 1522.0f));
+		camera->set_position(glm::vec3(width * 0.65f, 50.0f, height * 0.65f));
 		scene->set_camera(camera);
 	}
 
@@ -65,11 +69,11 @@ public:
 		handle_input(dt);
 		glm::vec3 pos = camera->get_position();
 		float height = terrain->get_height(pos);
-		if((pos.y - height) < 5.0f)
+		if ((pos.y - height) < 5.0f)
 			camera->set_height(height + 5.0f);
 
 		scene->update(m_context, dt);
-		terrain->update(m_context,camera);
+		terrain->update(m_context, camera);
 
 		glm::vec2 mousePos = {};
 		mouse->get_mouse_position(&mousePos.x, &mousePos.y);
@@ -113,17 +117,6 @@ public:
 			camera->lift(dt * speed);
 		else if (keyboard->is_down(KeyCode::E))
 			camera->lift(-dt * speed);
-
-
-		if (keyboard->is_down(KeyCode::Left))
-			cube->transform->position.x += playerSpeed * dt;
-		else if (keyboard->is_down(KeyCode::Right))
-			cube->transform->position.x -= playerSpeed * dt;
-
-		if (keyboard->is_down(KeyCode::Up))
-			cube->transform->position.z += playerSpeed * dt;
-		else if (keyboard->is_down(KeyCode::Down))
-			cube->transform->position.z -= playerSpeed * dt;
 
 		auto mouse = m_window->get_mouse();
 		float x, y;

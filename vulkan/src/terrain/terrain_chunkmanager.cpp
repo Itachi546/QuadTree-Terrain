@@ -4,173 +4,50 @@
 #include "terrain_chunk.h"
 #include "terrain_stream.h"
 #include "scene/camera.h"
-#include "core/frustum.h"
-#include "debug/debug_draw.h"
-#include <set>
 #include <algorithm>
 
-TerrainChunk* TerrainChunkManager::get_free_chunk(Ref<Camera> camera)
+TerrainChunk* TerrainChunkManager::get_free_chunk()
 {
 	if (m_availableList.size() > 0)
 	{
-		TerrainChunk* chunk = m_availableList.top();
+		uint32_t availableIndex = m_availableList.top();
 		m_availableList.pop();
-		return chunk;
+		return m_chunkPool[availableIndex];
 	}
 	else
 	{
-		auto found = std::min_element(m_chunkCache.begin(), m_chunkCache.end(), [](const std::pair<uint32_t, ChunkData>& lhs, const std::pair<uint32_t, ChunkData>& rhs) {
-			return lhs.second.lastFrameIndex < rhs.second.lastFrameIndex;
+		auto found = std::min_element(m_chunkPool.begin(), m_chunkPool.end(), [](const TerrainChunk* lhs, const TerrainChunk* rhs) {
+			return lhs->get_last_frame_index() < rhs->get_last_frame_index();
 			});
-		ASSERT(found != m_chunkCache.end());
-		TerrainChunk* chunk = found->second.chunk;
-		m_chunkCache.erase(found);
-		return chunk;
+		ASSERT(found != m_chunkPool.end());
+		return *found;
 	}
 }
 
-void TerrainChunkManager::init(Ref<TerrainStream> stream, glm::ivec2 terrainSize)
+TerrainChunkManager::TerrainChunkManager(uint32_t poolSize) 
 {
-	m_terrainSize = terrainSize;
-	m_stream = stream;
 	m_chunkPool.resize(POOL_SIZE);
-
-	for (int i = 0; i < POOL_SIZE; ++i)
+	for (uint32_t i = 0; i < POOL_SIZE; ++i)
 	{
 		m_chunkPool[i] = new TerrainChunk();
-		m_availableList.push(m_chunkPool[i]);
+		m_availableList.push(i);
 	}
 }
 
-void TerrainChunkManager::update(Context* context, Ref<Camera> camera, std::vector<Node>& visibleChunks, uint32_t maxLod)
+void TerrainChunkManager::add_to_cache(TerrainChunk* chunk)
 {
-	glm::vec3 camPos = camera->get_position();
-	std::sort(visibleChunks.begin(), visibleChunks.end(), [&](const Node& lhs, const Node& rhs) {
-		float d1 = glm::length2(camPos - glm::vec3(lhs.get_center()));
-		float d2 = glm::length2(camPos - glm::vec3(rhs.get_center()));
-		return d1 < d2;
-		});
-	frameIndex++;
-
-	m_visibleList.clear();
-	Ref<Frustum> frustum = camera->get_frustum();
-	BoundingBox box = {};
-	for (const auto& node : visibleChunks)
-	{
-		box.min = glm::vec3(node.min.x,  -240.0f, node.min.y);
-		box.max = glm::vec3(node.max.x,   240.0f, node.max.y);
-		if (!frustum->intersect_box(box))
-			continue;
-
-		glm::ivec2 center = (node.min + node.max) / 2;
-		uint32_t id = node.id;
-		m_visibleList.push_back(id);
-
-		auto found = m_chunkCache.find(id);
-		if (found == m_chunkCache.end())
-		{
-			TerrainChunk* chunk = get_free_chunk(camera); 
-			ASSERT(chunk != nullptr);
-			chunk->initialize(node.min, node.max, maxLod - node.depth);
-			m_chunkCache[id] = ChunkData{ frameIndex, chunk };
-		}
-	}
-
-
-	for (auto& chunk_key_val : m_chunkCache)
-	{
-		TerrainChunk* chunk = chunk_key_val.second.chunk;
-		if (!chunk->is_loaded())
-		{
-			chunk->build(context, m_stream, m_terrainSize);
-			break;
-		}
-	}
+	if (!chunk->is_loaded())
+		m_chunkToBeLoaded.push(chunk);
 }
 
-void TerrainChunkManager::render(Context* context)
+void TerrainChunkManager::update(Context* context, Ref<TerrainStream> stream, glm::ivec3 terrainSize)
 {
-
-	std::set<TerrainChunk*> renderList;
-
-	for (auto& id : m_visibleList)
+	while (m_chunkToBeLoaded.size() > 0)
 	{
-		// Get parent id of current chunk
-		// This is used to generate all the sibling
-		auto parent_id = (id >> 2);
-		bool sib_loaded = true;
-
-		for (int i = 0; i < 4; ++i)
-		{
-			uint32_t sib_id = (parent_id << 2) | i;
-			auto sib = m_chunkCache.find(sib_id);
-
-			// Check if any of the child of chunk sibling exists
-			// if sibling is not loaded or any of child of sibling is not present
-			// we don't render it
-			bool sib_child_exists = false;
-			for (int j = 0; j < 4; ++j)
-			{
-				auto sib_child = m_chunkCache.find((sib_id << 2) | j);
-				if (sib_child != m_chunkCache.end())
-				{
-					sib_child_exists = true;
-					break;
-				}
-			}
-
-			if (sib == m_chunkCache.end())
-			{
-				if (!sib_child_exists)
-				{
-					sib_loaded = false;
-					break;
-				}
-			}
-			else
-			{
-				if (!sib->second.chunk->is_loaded())
-				{
-					sib_loaded = false;
-					break;
-				}
-			}
-		}
-
-		TerrainChunk* chunk = nullptr;
-		if (sib_loaded)
-		{
-			auto found = m_chunkCache.find(id);
-			if (found != m_chunkCache.end())
-			{
-				found->second.lastFrameIndex = frameIndex;
-				chunk = found->second.chunk;
-			}
-		}
-		else
-		{
-			auto found = m_chunkCache.find(parent_id);
-			if (found != m_chunkCache.end())
-			{
-				found->second.lastFrameIndex = frameIndex;
-				chunk = found->second.chunk;
-			}
-		}
-
-		if (chunk != nullptr && chunk->is_loaded())
-			renderList.insert(chunk);
-	}
-	//Debug_Log("Total Chunk: %ld", renderList.size());
-	for (TerrainChunk* chunk : renderList)
-	{
-		/*
-		glm::ivec2 min = chunk->get_min();
-		glm::ivec2 scale = chunk->get_max() - min;
-		glm::ivec2 center = scale / 2;
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(min.x + center.x, 0.0f, min.y + center.y)) * glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, 150.0f, scale.y));
-		DebugDraw::draw_box(model);
-		*/
-		chunk->render(context);
+		TerrainChunk* chunk = m_chunkToBeLoaded.front();
+		m_chunkToBeLoaded.pop();
+		chunk->build(context, stream, terrainSize);
+		break;
 	}
 }
 
@@ -181,9 +58,6 @@ void TerrainChunkManager::destroy()
 		pool->destroy();
 		delete pool;
 	}
-
-	if (m_stream)
-		m_stream->destroy();
 
 	m_chunkPool.clear();
 }
