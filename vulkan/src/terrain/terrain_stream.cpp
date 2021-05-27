@@ -8,19 +8,18 @@
 TerrainStream::TerrainStream(const char* filename)
 {
 	int nChannel = 0;
-	uint8_t* buffer = stbi_load(filename, &m_xsize, &m_ysize, &nChannel, 1);
+	unsigned short* buffer = stbi_load_16(filename, &m_xsize, &m_ysize, &nChannel, 0);
 	ASSERT(buffer != nullptr);
+	m_buffer = new float[m_xsize * m_ysize];
 
-	m_buffer = new float[(m_xsize + 1) * (m_ysize + 1)];
-
-	float m = 1.0f / 255.0f;
+	float m = 1.0f / 65536.0f;
 	const float frequency = 10.0f;
-	for (int y = 0; y <= m_ysize; ++y)
+	for (int y = 0; y < m_ysize; ++y)
 	{
-		for (int x = 0; x <= m_xsize; ++x)
+		for (int x = 0; x < m_xsize; ++x)
 		{
 			uint32_t index = y * m_xsize + x;
-			m_buffer[index] = (buffer[index] * m);
+			m_buffer[index] = float(buffer[index]) * m;
 		}
 	}
 	stbi_image_free(buffer);

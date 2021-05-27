@@ -89,7 +89,7 @@ void Scene::render(Context* context)
 	_render(context);
 
 	if (m_terrain)
-		m_terrain->render(context, bindings, ARRAYSIZE(bindings));
+		m_terrain->render(context, m_camera, bindings, ARRAYSIZE(bindings));
 
 }
 

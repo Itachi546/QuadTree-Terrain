@@ -56,7 +56,8 @@ VulkanGraphicsWindow::VulkanGraphicsWindow(int width, int height, const char* ti
 	glfwSetKeyCallback(m_window, key_callback);
 	glfwSetMouseButtonCallback(m_window, mouse_callback);
 	ASSERT_MSG(m_window != nullptr, "Failed to create Vulkan Window!");
-
+	
+	//glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	graphicsAPI = std::make_shared<VulkanAPI>(m_window); 
 }
 
