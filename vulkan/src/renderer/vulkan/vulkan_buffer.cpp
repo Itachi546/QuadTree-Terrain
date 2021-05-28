@@ -77,7 +77,7 @@ void VulkanBuffer::copy(void* data, uint32_t offsetInByte, uint32_t sizeInByte)
 {
 	ASSERT_MSG((offsetInByte + sizeInByte) <= size, "Insufficient Memory to Copy Data");
 	ASSERT(pointer != nullptr);
-	memcpy((uint8_t*)(pointer) + offsetInByte, (uint8_t*)data, sizeInByte);
+	memcpy(reinterpret_cast<uint8_t*>(pointer) + offsetInByte, (uint8_t*)data, sizeInByte);
 }
 
 VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanAPI> api, BufferUsageHint usage, uint32_t sizeInByte) : m_usage(usage)

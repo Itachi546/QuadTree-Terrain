@@ -15,6 +15,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{82b0ab00-a250-4069-a368-e377d82c3c4c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SpirvReflect">
+      <UniqueIdentifier>{c74b287c-09f0-4656-b2de-820f750b4647}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\renderer\device.cpp">
@@ -24,51 +27,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\vulkan\vulkan_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\context.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\egl_context.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\init.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\input.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\monitor.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\osmesa_context.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\vulkan.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\wgl_context.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\win32_init.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\win32_joystick.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\win32_monitor.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\win32_thread.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\win32_time.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\win32_window.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="external\GLFW\src\window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\vulkan\vulkan_swapchain.cpp">
@@ -87,9 +45,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\vulkan\vulkan_buffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\common\spirv_reflect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\debug\debug_draw.cpp">
@@ -142,6 +97,54 @@
     </ClCompile>
     <ClCompile Include="src\terrain\terrain_chunk.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\egl_context.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\init.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\input.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\monitor.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\osmesa_context.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\window.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\win32_window.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\wgl_context.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\win32_init.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\win32_joystick.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\win32_monitor.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\win32_thread.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\win32_time.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\vulkan.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="external\GLFW\src\context.c">
+      <Filter>GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\spirv_reflect.c">
+      <Filter>SpirvReflect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -366,18 +369,44 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shaders\main.frag" />
-    <CustomBuild Include="shaders\main.vert" />
-    <CustomBuild Include="shaders\line.frag" />
-    <CustomBuild Include="shaders\line.vert" />
-    <CustomBuild Include="shaders\outline.frag" />
-    <CustomBuild Include="shaders\outline.vert" />
-    <CustomBuild Include="shaders\image2D.vert" />
-    <CustomBuild Include="shaders\edge_detection.frag" />
-    <CustomBuild Include="shaders\image2D.frag" />
-    <CustomBuild Include="shaders\terrain.vert" />
-    <CustomBuild Include="shaders\terrain.frag" />
-    <CustomBuild Include="shaders\shadow.vert" />
-    <CustomBuild Include="shaders\shadow.frag" />
+    <CustomBuild Include="shaders\edge_detection.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\image2D.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\image2D.vert">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\line.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\line.vert">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\main.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\main.vert">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\outline.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\outline.vert">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\shadow.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\shadow.vert">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\terrain.frag">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\terrain.vert">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

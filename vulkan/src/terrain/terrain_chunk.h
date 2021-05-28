@@ -36,4 +36,7 @@ private:
 
 	Mesh* m_mesh;
 	bool m_loaded = false;
+
+	void create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize);
+
 };

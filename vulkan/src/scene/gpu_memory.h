@@ -5,20 +5,6 @@
 #include "renderer/buffer.h"
 #include "renderer/device.h"
 
-struct VertexBufferView
-{
-	VertexBuffer* buffer;
-	uint32_t size;
-	uint32_t offset;
-};
-
-struct IndexBufferView
-{
-	IndexBuffer* buffer;
-	uint32_t size;
-	uint32_t offset;
-};
-
 namespace GPU_MEMORY_POOL
 {
 	class GpuMemory

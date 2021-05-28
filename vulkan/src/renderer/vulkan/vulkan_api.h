@@ -34,6 +34,12 @@ public:
 
 	VkDevice get_device() { return m_Device; }
 	VkPhysicalDeviceMemoryProperties get_memory_properties() { return m_MemoryProps; }
+
+	VkInstance get_instance() { return m_Instance; }
+	VkPhysicalDevice get_physical_device() { return m_PhysicalDevice; }
+	QueueFamilyIndices get_queue_family_indices() { return m_QueueFamilyIndices; }
+	VkQueue get_queue() { return m_GraphicsQueue; }
+
 	void destroy() override;
 private:
 	VkInstance m_Instance;

@@ -28,3 +28,18 @@ public:
 	virtual ~UniformBuffer() {}
 private:
 };
+
+
+struct VertexBufferView
+{
+	VertexBuffer* buffer;
+	uint32_t size;
+	uint32_t offset;
+};
+
+struct IndexBufferView
+{
+	IndexBuffer* buffer;
+	uint32_t size;
+	uint32_t offset;
+};

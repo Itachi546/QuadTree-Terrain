@@ -6,7 +6,7 @@
 #define ENABLE_VALIDATION_LAYERS 1
 #endif
 
-#define USE_DISCRETE_GPU 0
+#define USE_DISCRETE_GPU 1
 
 /*
  *  This causes crash in release build

@@ -23,7 +23,7 @@ float get_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 	return  h * maxHeight;
 }
 
-void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, const glm::ivec2& max, const ivec3& terrainSize, uint32_t lod_level)
+void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize)
 {
 	// Terrain Width and height
 	static const uint32_t VERTEX_COUNT = 128;
@@ -34,19 +34,19 @@ void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, c
 	float mX = 1.0f / float(terrainSize.x);
 	float mZ = 1.0f / float(terrainSize.z);
 
-	float rangeZ = float(max.y - min.y);
-	float rangeX = float(max.x - min.x);
+	float rangeZ = float(m_max.y - m_min.y);
+	float rangeX = float(m_max.x - m_min.x);
 	float maxHeight = float(terrainSize.y);
 
 	std::vector<Vertex> vertices;
 	for (int z = 0; z <= VERTEX_COUNT; ++z)
 	{
 		float fz = float(z) / float(VERTEX_COUNT);
-		fz = (min.y + fz * rangeZ);
+		fz = (m_min.y + fz * rangeZ);
 		for (int x = 0; x <= VERTEX_COUNT; ++x)
 		{
 			float fx = float(x) / float(VERTEX_COUNT);
-			fx = (min.x + fx * rangeX);
+			fx = (m_min.x + fx * rangeX);
 
 			float uvx = fx * mX * (width - 3) + 1.0f;
 			float uvz = fz * mZ * (height - 3) + 1.0f;
@@ -90,8 +90,9 @@ void create_mesh(Mesh* mesh, Ref<TerrainStream> stream, const glm::ivec2& min, c
 			indices.push_back(i1);
 		}
 	}
-	mesh->vertices = vertices;
-	mesh->indices = indices;
+
+	m_mesh->vertices = vertices;
+	m_mesh->indices = indices;
 }
 
 TerrainChunk::TerrainChunk()
@@ -113,7 +114,7 @@ void TerrainChunk::initialize(const glm::ivec2& min, const glm::ivec2& max, uint
 
 void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec3& terrainSize)
 {
-	create_mesh(m_mesh, stream, m_min, m_max, terrainSize, m_lodLevel);
+	create_mesh(stream, terrainSize);
 	m_mesh->finalize(context, true);
 	m_loaded = true;
 }
