@@ -4,8 +4,6 @@
 #include "vulkan_common.h"
 #include <vector>
 
-extern PFN_vkCmdPushDescriptorSetKHR vulkanCmdPushDescriptorSetKHR;
-
 struct SwapchainInfo
 {
 	VkSwapchainKHR swapchain;
@@ -40,6 +38,8 @@ public:
 	QueueFamilyIndices get_queue_family_indices() { return m_QueueFamilyIndices; }
 	VkQueue get_queue() { return m_GraphicsQueue; }
 
+	VkDescriptorPool get_descriptor_pool() { return m_DescriptorPool; }
+
 	void destroy() override;
 private:
 	VkInstance m_Instance;
@@ -49,9 +49,13 @@ private:
 	VkQueue m_GraphicsQueue;
 	QueueFamilyIndices m_QueueFamilyIndices;
 	VkPhysicalDeviceMemoryProperties m_MemoryProps;
+	VkPhysicalDeviceProperties m_physicalDeviceProperties;
+	VkDescriptorPool m_DescriptorPool;
 
 	VkInstance create_instance(GLFWwindow* window);
 	VkDebugUtilsMessengerEXT create_debug_messenger(VkInstance instance);
 	VkDevice create_device(VkInstance instance, VkPhysicalDevice physicalDevice, QueueFamilyIndices queueFamilyIndices);
+
+	VkDescriptorPool create_descriptor_pool(VkDevice device);
 
 };

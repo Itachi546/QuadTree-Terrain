@@ -418,6 +418,8 @@ VkPipelineLayout VulkanPipeline::create_pipeline_layout(VkDevice device, const s
 }
 VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanAPI> m_api, const PipelineDescription& desc)
 {
+	VkDevice device = m_api->get_device();
+
 	std::vector<Shader> shaders(desc.shaderStageCount);
 	std::vector<VkPushConstantRange> pushConstantRanges;
 
@@ -425,21 +427,24 @@ VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanAPI> m_api, const PipelineD
 	for (std::size_t i = 0; i < desc.shaderStageCount; ++i)
 	{
 		const ShaderDescription& shaderDesc = desc.shaderStages[i];
-		create_shader(shaders[i], m_api->m_Device, shaderDesc.code.c_str(), shaderDesc.sizeInByte, bindings, pushConstantRanges);
+		create_shader(shaders[i], device, shaderDesc.code.c_str(), shaderDesc.sizeInByte, bindings, pushConstantRanges);
 	}
 
 	VkDescriptorSetLayoutCreateInfo layoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-	layoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR;
 	layoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutCreateInfo.pBindings = bindings.data();
 
 	VkDescriptorSetLayout setLayout = 0;
-	VK_CHECK(vkCreateDescriptorSetLayout(m_api->get_device(), &layoutCreateInfo, 0, &setLayout));
+	VK_CHECK(vkCreateDescriptorSetLayout(device, &layoutCreateInfo, 0, &setLayout));
 	m_descSetLayouts.push_back(setLayout);
 
-	m_bindPoint = (desc.shaderStages[0].shaderStage == ShaderStage::Compute) ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
-	VkDevice device = m_api->m_Device;
+	VkDescriptorSetAllocateInfo allocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+	allocateInfo.descriptorPool = m_api->get_descriptor_pool();
+	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_descSetLayouts.size());
+	allocateInfo.pSetLayouts = m_descSetLayouts.data();
+	vkAllocateDescriptorSets(device, &allocateInfo, &m_descriptorSet);
 
+	m_bindPoint = (desc.shaderStages[0].shaderStage == ShaderStage::Compute) ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	m_layout = create_pipeline_layout(device, m_descSetLayouts, pushConstantRanges);
 
 	ASSERT_MSG(desc.renderPass != nullptr, "Undefined RenderPass in pipeline");

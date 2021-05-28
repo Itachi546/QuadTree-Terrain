@@ -103,7 +103,8 @@ enum WrapMode
 
 enum class DescriptorType
 {
-	UniformBuffer
+	UniformBuffer,
+	ImageSampler
 };
 
 enum class BlendOp

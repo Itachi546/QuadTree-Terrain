@@ -140,7 +140,31 @@ VkDevice VulkanAPI::create_device(VkInstance instance, VkPhysicalDevice physical
 	return device;
 }
 
+VkDescriptorPool VulkanAPI::create_descriptor_pool(VkDevice device)
+{
+	VkDescriptorPoolSize poolSizes[] =
+	{
+		{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+	};
+	VkDescriptorPoolCreateInfo createInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+	createInfo.maxSets = 1000 * ARRAYSIZE(poolSizes);
+	createInfo.poolSizeCount = ARRAYSIZE(poolSizes);
+	createInfo.pPoolSizes = poolSizes;
 
+	VkDescriptorPool descriptorPool = 0;
+	VK_CHECK(vkCreateDescriptorPool(device, &createInfo, 0, &descriptorPool));
+	return descriptorPool;
+}
 
 VulkanAPI::VulkanAPI(GLFWwindow* window)
 {
@@ -159,15 +183,17 @@ VulkanAPI::VulkanAPI(GLFWwindow* window)
 
 	m_QueueFamilyIndices = find_queue_families_indices(m_PhysicalDevice);
 	m_Device = create_device(m_Instance, m_PhysicalDevice, m_QueueFamilyIndices);
+	m_DescriptorPool = create_descriptor_pool(m_Device);
 
 	vkGetDeviceQueue(m_Device, m_QueueFamilyIndices.graphicsFamily, 0, &m_GraphicsQueue);
-	vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProps);
 
-	vulkanCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(m_Device, "vkCmdPushDescriptorSetKHR");
+	vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProps);
+	vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_physicalDeviceProperties);
 }
 
 void VulkanAPI::destroy()
 {
+	vkDestroyDescriptorPool(m_Device, m_DescriptorPool, 0);
 	vkDestroyDevice(m_Device, 0);
 #if ENABLE_VALIDATION_LAYERS
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_Instance, "vkDestroyDebugUtilsMessengerEXT");

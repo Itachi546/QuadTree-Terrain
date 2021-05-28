@@ -213,7 +213,6 @@ void VulkanContext::copy(UniformBuffer* buffer, void* data, uint32_t offsetInByt
 	vkBuffer->copy(m_api, m_tempCommandBuffer, data, offsetInByte, sizeInByte);
 }
 
-extern PFN_vkCmdPushDescriptorSetKHR vulkanCmdPushDescriptorSetKHR = nullptr;
 void VulkanContext::set_shader_bindings(ShaderBindings** shaderBindings, uint32_t count)
 {
 	if (shaderBindings == nullptr)
@@ -227,11 +226,13 @@ void VulkanContext::set_shader_bindings(ShaderBindings** shaderBindings, uint32_
 		writeSetsTotal.insert(writeSetsTotal.end(), writeSets.begin(), writeSets.end());
 	}
 
-	vulkanCmdPushDescriptorSetKHR(m_commandBuffer, m_activePipeline->get_bind_point(),
-		m_activePipeline->get_layout(),
-		0,
-		static_cast<uint32_t>(writeSetsTotal.size()),
-		writeSetsTotal.data());
+	VkDescriptorSet descriptorSet = m_activePipeline->get_descriptor_set();
+	for (auto& writeSets : writeSetsTotal)
+		writeSets.dstSet = descriptorSet;
+
+	vkUpdateDescriptorSets(m_api->get_device(), static_cast<uint32_t>(writeSetsTotal.size()), writeSetsTotal.data(), 0, nullptr);
+
+	vkCmdBindDescriptorSets(m_commandBuffer, m_activePipeline->get_bind_point(), m_activePipeline->get_layout(), 0, 1, &descriptorSet, 0, 0);
 }
 
 void VulkanContext::set_buffer(VertexBuffer* buffer, uint32_t offsetInByte)

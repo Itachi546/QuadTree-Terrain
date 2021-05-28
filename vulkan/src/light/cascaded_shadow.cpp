@@ -78,8 +78,6 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		m_bindings->set_texture(m_cascadeFramebuffer[i]->get_depth_attachment(), i + 2);
 	}
 	m_bindings->set_buffer(m_ubo,  2 + CASCADE_COUNT);
-
-
 }
 
 void ShadowCascade::update(Ref<Camera> camera)
@@ -183,6 +181,7 @@ void ShadowCascade::render(Context* context, Scene* scene)
 		}
 		*/
 		context->end_renderpass();
+		context->transition_layout_for_shader_read(m_cascadeFramebuffer[i]->get_depth_attachment(), true);
 	}
 }
 

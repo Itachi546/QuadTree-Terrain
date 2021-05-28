@@ -14,7 +14,7 @@ public:
 	VkPipelineLayout get_layout() { return m_layout; }
 
 	VkPipelineBindPoint get_bind_point() { return m_bindPoint; }
-
+	VkDescriptorSet get_descriptor_set() { return m_descriptorSet; }
 	void destroy(std::shared_ptr<VulkanAPI> m_api);
 private:
 	VkPipelineLayout create_pipeline_layout(VkDevice device, const std::vector<VkDescriptorSetLayout>& setLayouts, const std::vector<VkPushConstantRange> pushConstatRanges);
@@ -24,4 +24,5 @@ private:
 	VkPipeline m_pipeline;
 	VkPipelineBindPoint m_bindPoint;
 	std::vector<VkDescriptorSetLayout> m_descSetLayouts;
+	VkDescriptorSet m_descriptorSet;
 };
