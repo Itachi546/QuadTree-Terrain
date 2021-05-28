@@ -35,14 +35,14 @@ public:
 private:
 	Pipeline* m_pipeline;
 	Ref<TerrainStream> m_stream;
-
-	uint32_t minchunkSize = 64;
-	const float m_maxRayCastDistance = 500.0f;
-	int m_influenceRadius = 10;
-	const int maxHeight = 150;
-	uint32_t m_maxLod;
-
 	Ref<QuadTree> m_quadTree;
+
+	uint32_t m_minchunkSize = 64;
+	uint32_t m_maxLod;
+	int m_influenceRadius = 10;
+	
+	const float m_maxRayCastDistance = 500.0f;
+	const int m_maxHeight = 150;
 
 	glm::vec4 m_terrainIntersection = glm::vec4(0.0f);
 	bool binary_search(const glm::vec3& p0, const glm::vec3& p1, float minThreshold, glm::vec3& p_out);

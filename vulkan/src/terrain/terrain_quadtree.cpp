@@ -31,7 +31,7 @@ bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Cam
 	if (camera->get_frustum()->intersect_box(box))
 	{
 		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camera->get_position());
-		if (distance < size.x * 4.0f)
+		if (distance < size.x * 2.0f)
 			return true;
 		return false;
 	}
