@@ -55,10 +55,10 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream): m_stream(stream)
 	m_pipeline = Device::create_pipeline(desc);
 
 	uint32_t terrainSize = stream->get_width();;
-	uint32_t depth = static_cast<int>(std::log2(terrainSize / minchunkSize));
+	uint32_t depth = static_cast<int>(std::log2(terrainSize / m_minchunkSize));
 	m_maxLod = depth;
 
-	m_quadTree = CreateRef<QuadTree>(stream, depth, terrainSize, maxHeight);
+	m_quadTree = CreateRef<QuadTree>(stream, depth, terrainSize, m_maxHeight);
 }
 
 bool Terrain::ray_cast(const Ray& ray, glm::vec3& p_out)
@@ -83,7 +83,7 @@ float Terrain::get_height(glm::vec3 position)
 {
 	float x = position.x;
 	float y = position.z;
-	return sample_height(m_stream, x, y, float(maxHeight));
+	return sample_height(m_stream, x, y, float(m_maxHeight));
 }
 
 void Terrain::update(Context* context, Ref<Camera> camera)

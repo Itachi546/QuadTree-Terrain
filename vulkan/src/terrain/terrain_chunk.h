@@ -30,9 +30,10 @@ public:
 private:
 	uint64_t m_lastFrameIndex;
 	uint32_t m_id;
-	Mesh* m_mesh;
-	bool m_loaded = false;
 	glm::ivec2 m_min;
 	glm::ivec2 m_max;
 	uint32_t m_lodLevel;
+
+	Mesh* m_mesh;
+	bool m_loaded = false;
 };
