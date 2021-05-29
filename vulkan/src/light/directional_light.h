@@ -4,6 +4,7 @@
 
 class DirectionalLight : public Light
 {
+	friend class Scene;
 public:
 	DirectionalLight(const glm::vec3& direction) : m_direction(direction), Light(LightType::Directional){}
 	void set_direction(const glm::vec3& direction) { m_direction = direction; }

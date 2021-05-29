@@ -91,14 +91,17 @@ void Terrain::update(Context* context, Ref<Camera> camera)
 	m_quadTree->update(context, camera);
 }
 
-void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count)
+void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, bool depthPass)
 {
-	context->set_graphics_pipeline(m_pipeline);
-	context->set_shader_bindings(uniformBindings, count);
+	if (!depthPass)
+	{
+		context->set_graphics_pipeline(m_pipeline);
+		context->set_shader_bindings(uniformBindings, count);
 
-	glm::mat4 model = glm::mat4(1.0f);
-	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);
-	context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4), sizeof(glm::vec4), &m_terrainIntersection[0]);
+		glm::mat4 model = glm::mat4(1.0f);
+		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);
+		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4), sizeof(glm::vec4), &m_terrainIntersection[0]);
+	}
 	m_quadTree->render(context, camera);
 }
 

@@ -145,6 +145,14 @@
     <ClCompile Include="external\GLFW\src\win32_time.c" />
     <ClCompile Include="external\GLFW\src\win32_window.c" />
     <ClCompile Include="external\GLFW\src\window.c" />
+    <ClCompile Include="external\imgui\imgui.cpp" />
+    <ClCompile Include="external\imgui\imgui_demo.cpp" />
+    <ClCompile Include="external\imgui\imgui_draw.cpp" />
+    <ClCompile Include="external\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="external\imgui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="external\imgui\imgui_tables.cpp" />
+    <ClCompile Include="external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\renderer\vulkan\imgui_yeti3D_vulkan_impl.cpp" />
     <ClCompile Include="src\common\spirv_reflect.c" />
     <ClCompile Include="src\debug\gizmo.cpp" />
     <ClCompile Include="src\fx\outlinefx.cpp" />
@@ -181,6 +189,14 @@
     <ClInclude Include="external\GLFW\src\wgl_context.h" />
     <ClInclude Include="external\GLFW\src\win32_joystick.h" />
     <ClInclude Include="external\GLFW\src\win32_platform.h" />
+    <ClInclude Include="external\imgui\imconfig.h" />
+    <ClInclude Include="external\imgui\imgui.h" />
+    <ClInclude Include="external\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="external\imgui\imgui_impl_vulkan.h" />
+    <ClInclude Include="external\imgui\imgui_internal.h" />
+    <ClInclude Include="external\imgui\imstb_rectpack.h" />
+    <ClInclude Include="external\imgui\imstb_textedit.h" />
+    <ClInclude Include="external\imgui\imstb_truetype.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\spirv.h" />
     <ClInclude Include="src\common\spirv_reflect.h" />
@@ -316,6 +332,9 @@
     <CustomBuild Include="shaders\shadow.vert">
       <FileType>Document</FileType>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

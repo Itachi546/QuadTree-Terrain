@@ -98,16 +98,29 @@ void draw_quad(const glm::ivec2& min_size, const glm::ivec2& max_size)
 void QuadTree::render(Context* context, Ref<Camera> camera)
 {
 	m_totalChunkRendered = 0;
-	_render(context, camera, glm::ivec2(m_size / 2), 0, 0);
+	std::vector<TerrainChunk*> chunks;
+	_get_visible_list(camera, glm::ivec2(m_size / 2), 0, 0, chunks);
+
+	// Sort from front to back
+	glm::vec3 camPos = camera->get_position();
+	std::sort(chunks.begin(), chunks.end(), [&](const TerrainChunk* lhs, const TerrainChunk* rhs) 
+		{
+			glm::ivec2 c1 = lhs->get_center();
+			glm::ivec2 c2 = rhs->get_center();
+			return glm::distance2(glm::vec3(c1.x, 0.0f, c1.y), camPos) < glm::distance2(glm::vec3(c2.x, 0.0f, c2.y), camPos);
+		});
+
+	for (auto chunk : chunks)
+		chunk->render(context);
 }
 
-void QuadTree::_render(Context* context, Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth)
+void QuadTree::_get_visible_list(Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth, std::vector<TerrainChunk*>& chunks)
 {
 	glm::ivec2 halfDim = glm::ivec2(m_size / static_cast<int>(std::pow(2, depth + 1)));
 
 	if (depth == m_depth)
 	{
-		m_nodes[parent].chunk->render(context);
+		chunks.push_back(m_nodes[parent].chunk);
 		m_totalChunkRendered++;
 		return;
 	}
@@ -134,14 +147,14 @@ void QuadTree::_render(Context* context, Ref<Camera> camera, const glm::ivec2& c
 		};
 
 		for (int i = 0; i < 4; ++i)
-			_render(context, camera, childs[i], parent * 4 + 1 + i, depth + 1);
+			_get_visible_list(camera, childs[i], parent * 4 + 1 + i, depth + 1, chunks);
 	}
 	else
 	{
 		TerrainChunk* chunk = m_nodes[parent].chunk;
 		if (chunk != nullptr && chunk->is_loaded())
 		{
-			chunk->render(context);
+			chunks.push_back(chunk);
 			m_totalChunkRendered++;
 		}
 	}

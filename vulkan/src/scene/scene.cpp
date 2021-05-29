@@ -8,6 +8,8 @@
 #include "terrain/terrain.h"
 #include "core/frustum.h"
 
+#include "imgui/imgui.h"
+
 struct LightData
 {
 	glm::vec3 lightDirection;
@@ -16,7 +18,7 @@ struct LightData
 	float castShadow;
 };
 
-Scene::Scene(std::string name, Context* context)
+Scene::Scene(std::string name, Context* context) : m_name(name)
 {
 	m_uniformBuffer = Device::create_uniformbuffer(BufferUsageHint::DynamicDraw, sizeof(GlobalState));
 
@@ -62,6 +64,7 @@ void Scene::destroy_entity(Entity* entity)
 void Scene::update(Context* context, float dt)
 {
 	m_camera->update(dt);
+	render_ui();
 
 	if (m_sun->cast_shadow())
 		m_sunLightShadowCascade->update(m_camera);
@@ -76,7 +79,8 @@ void Scene::update(Context* context, float dt)
 
 void Scene::prepass(Context* context)
 {
-	m_sunLightShadowCascade->render(context, this);
+	if(m_sun->cast_shadow())
+		m_sunLightShadowCascade->render(context, this);
 }
 
 void Scene::render(Context* context)
@@ -322,5 +326,20 @@ void Scene::initialize_sphere_mesh(Context* context)
 	m_sphereMesh->boundingBox.min = glm::vec3(-1.0f);
 	m_sphereMesh->boundingBox.max = glm::vec3( 1.0f);
 	m_sphereMesh->finalize(context);
+}
+
+void Scene::render_ui()
+{
+	if (ImGui::CollapsingHeader(m_name.c_str()))
+	{
+		ImGui::Text("Total Entities: %d", m_entities.size());
+		ImGui::Checkbox("Show BoundingBox", &m_showBoundingBox);
+		if (ImGui::SliderFloat3("Sun Direction", &m_sun->m_direction[0], -1.0f, 1.0f))
+			m_sunLightShadowCascade->set_light_direction(m_sun->get_direction());
+
+		ImGui::SliderFloat("Sun Intensity", &m_sun->m_intensity, 1.0f, 10.0f);
+		ImGui::ColorPicker3("Sun Color", &m_sun->m_lightColor[0]);
+		ImGui::Checkbox("Cast Shadow ", &m_sun->m_castShadow);
+	}
 }
 

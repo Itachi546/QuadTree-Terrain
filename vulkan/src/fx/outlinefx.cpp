@@ -121,6 +121,7 @@ void OutlineFX::render(Context* context, std::vector<Entity*> entities, ShaderBi
 	context->set_shader_bindings(&m_bindings, 1);
 	context->draw(6);
 	context->end_renderpass();
+	context->transition_layout_for_shader_read(m_outlineAttachment->get_color_attachment(0), false);
 }
 
 void OutlineFX::destroy()

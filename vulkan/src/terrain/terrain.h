@@ -30,7 +30,7 @@ public:
 	float get_height(glm::vec3 position);
 	void update(Context* context, Ref<Camera> camera);
 
-	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count);
+	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, bool depthPass = false);
 	void destroy();
 private:
 	Pipeline* m_pipeline;

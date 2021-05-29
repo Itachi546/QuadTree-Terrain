@@ -51,15 +51,17 @@ private:
 	Framebuffer* m_cascadeFramebuffer[CASCADE_COUNT];
 
 
-	const float cascadeSplitLambda = 0.85f;
-	const float shadowDistance = 300.0f;
+	float cascadeSplitLambda = 0.85f;
+	float shadowDistance = 150.0f;
+	float nearDistance = 0.01f;
 
 	glm::vec3 m_direction;
 
 	ShaderBindings* m_bindings;
 	Pipeline* m_pipeline;
 	RenderPass* m_renderPass;
-
-
 	UniformBuffer* m_ubo;
+
+	void render_ui();
+	void calculate_split_distance();
 };

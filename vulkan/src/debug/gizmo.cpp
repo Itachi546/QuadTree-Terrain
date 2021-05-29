@@ -6,6 +6,7 @@
 #include "renderer/device.h"
 #include "scene/entity.h"
 #include "fx/outlinefx.h"
+#include "imgui/imgui.h"
 
 #include <algorithm>
 
@@ -68,8 +69,10 @@ static float closest_distance(const Ray& ray, glm::vec3 normal, glm::vec3 center
 
 void Gizmo::prepass(Context* context, ShaderBindings* globalBindings)
 {
-	if(active != nullptr)
+	if (active != nullptr)
+	{
 		m_outlineFX->render(context, { active }, globalBindings);
+	}
 }
 
 void Gizmo::init(Context* context, int width, int height)
@@ -115,9 +118,9 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 	this->invProjection = glm::inverse(projection);
 	this->invView = glm::inverse(view);
 
-	Ray ray = generate_ray(invView, invProjection, mouseX, mouseY, float(m_width), float(m_height));
-	m_ray = ray;
-	if (active == nullptr)
+	render_ui();
+
+	if (active == nullptr || !m_enableGizmo)
 		return;
 
 	if (button == false)
@@ -125,6 +128,7 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 
 
 
+	Ray ray = generate_ray(invView, invProjection, mouseX, mouseY, float(m_width), float(m_height));
 	switch (operation)
 	{
 
@@ -147,8 +151,20 @@ void Gizmo::manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float
 
 void Gizmo::render(Context* context)
 {
-	if(active != nullptr)
+	if(active != nullptr && m_enableGizmo)
 		DebugDraw::immediate_draw_textured_quad(context, m_outlineFX->get_output_image_bindings());
+}
+
+void Gizmo::render_ui()
+{
+	if (ImGui::CollapsingHeader("Gizmo", 0, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Checkbox("Enabled", &m_enableGizmo);
+		const char* items[] = { "Translate", "Rotate", "Scale" };
+		static int currentItem = (int)operation;
+		if (ImGui::Combo("Operation", &currentItem, items, IM_ARRAYSIZE(items)))
+			operation = Operation(currentItem);
+	}
 }
 
 void Gizmo::destroy()

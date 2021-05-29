@@ -52,6 +52,7 @@ public:
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 		scene->set_camera(camera);
 		scene->show_bounding_box(true);
+
 	}
 
 	void update(float dt) override
@@ -65,7 +66,7 @@ public:
 		m_context->begin();
 		scene->prepass(m_context);
 
-		m_context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+		m_context->set_clear_color(0.5f, 0.7f, 0.9f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		m_context->set_graphics_pipeline(pipeline);
@@ -94,7 +95,8 @@ public:
 		auto mouse = m_window->get_mouse();
 		float x, y;
 		mouse->get_mouse_position(&x, &y);
-		if (mouse->is_down(Button::Left))
+		bool isUIActive = ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() || ImGui::IsAnyItemHovered();
+		if (mouse->is_down(Button::Left) && !isUIActive)
 		{
 			float dx = x - mouseX;
 			float dy = y - mouseY;

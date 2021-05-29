@@ -115,12 +115,14 @@ void TerrainChunk::initialize(const glm::ivec2& min, const glm::ivec2& max, uint
 void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec3& terrainSize)
 {
 	create_mesh(stream, terrainSize);
-	m_mesh->finalize(context, true);
+	m_mesh->finalize(context);
 	m_loaded = true;
 }
 
 void TerrainChunk::render(Context* context)
 {
+	// @TODO use vkCmdDrawIndexedIndirect
+	// @TODO use uint16_t if possible
 	VertexBufferView* vb = m_mesh->get_vb();
 	context->set_buffer(vb->buffer, vb->offset);
 	IndexBufferView* ib = m_mesh->get_ib();

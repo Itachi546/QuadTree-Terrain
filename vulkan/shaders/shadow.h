@@ -27,7 +27,7 @@ layout(set = 0, binding = 6) uniform shadowMapData
 // @TODO Better Shadow Quality
 // https://developer.nvidia.com/gpugems/gpugems2/part-ii-shading-lighting-and-shadows/chapter-17-efficient-soft-edged-shadows-using
 
-const float bias = 0.001f;
+const float bias = 0.01f;
 const float scale = 0.75f;
 
 float get_shadow(sampler2D depthTexture, vec4 projectedCoord, vec2 duv)

@@ -14,6 +14,8 @@
 #include "terrain/terrain.h"
 #include "core/frustum.h"
 
+#include "imgui/imgui.h"
+
 ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction)
 {
 	{
@@ -68,6 +70,8 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 
 		for (int i = 0; i < CASCADE_COUNT; ++i)
 			m_cascadeFramebuffer[i] = Device::create_framebuffer(fbDesc, m_renderPass);
+
+		calculate_split_distance();
 	}
 
 	// Create uniform buffer
@@ -82,25 +86,8 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 
 void ShadowCascade::update(Ref<Camera> camera)
 {
-	float nearClip = camera->get_near_plane();
-	float farClip = shadowDistance;
-	float clipRange = farClip - nearClip;
-
-	float minZ = nearClip;
-	float maxZ = nearClip + clipRange;
-
-	float range = maxZ - minZ;
-	float ratio = maxZ / minZ;
-
-	for (uint32_t i = 0; i < CASCADE_COUNT; i++) {
-		float p = (i + 1) / static_cast<float>(CASCADE_COUNT);
-		float log = minZ * std::pow(ratio, p);
-		float uniform = minZ + range * p;
-		float d = cascadeSplitLambda * (log - uniform) + uniform;
-		m_cascadeSplits[i] = (d - nearClip);
-	}
-
 	// Calculate orthographic projection matrix for each cascade
+	float nearClip = nearDistance;
 	const std::array<glm::vec3, 8>& cameraFrustum = camera->get_frustum()->get_points();
 	float lastSplitDist = 0.0;
 	for (uint32_t j = 0; j < CASCADE_COUNT; j++) 
@@ -143,6 +130,9 @@ void ShadowCascade::update(Ref<Camera> camera)
 
 void ShadowCascade::render(Context* context, Scene* scene)
 {
+	render_ui();
+
+
 	context->copy(m_ubo, m_cascades.data(), 0, sizeof(Cascade) * CASCADE_COUNT);
 	context->set_graphics_pipeline(m_pipeline);
 	
@@ -166,20 +156,14 @@ void ShadowCascade::render(Context* context, Scene* scene)
 			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
 			context->draw_indexed(mesh->get_indices_count());
 		}
-		/*
+
+#if 0
+		glm::mat4 model = glm::mat4(1.0f);
+		context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
 		Ref<Terrain> terrain = scene->get_terrain();
 		if (terrain)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			Ref<Mesh> mesh = terrain->get_mesh();
-			VertexBufferView* vb = mesh->get_vb();
-			IndexBufferView* ib = mesh->get_ib();
-			context->set_buffer(vb->buffer, vb->offset);
-			context->set_buffer(ib->buffer, ib->offset);
-			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
-			context->draw_indexed(mesh->get_indices_count());
-		}
-		*/
+			terrain->render(context, scene->get_camera(), &m_bindings, 1, true);
+#endif
 		context->end_renderpass();
 		context->transition_layout_for_shader_read(m_cascadeFramebuffer[i]->get_depth_attachment(), true);
 	}
@@ -192,4 +176,36 @@ void ShadowCascade::destroy()
 	Device::destroy_buffer(m_ubo);
 	for (int i = 0; i < CASCADE_COUNT; ++i)
 		Device::destroy_framebuffer(m_cascadeFramebuffer[i]);
+}
+
+void ShadowCascade::render_ui()
+{
+	if (ImGui::CollapsingHeader("Shadow Cascade"))
+	{
+		bool changed = false;
+		changed |= ImGui::SliderFloat("Split Lambda", &cascadeSplitLambda, 0.0f, 1.0f);
+		changed |= ImGui::SliderFloat("Shadow Distance", &shadowDistance, 10.0f, 1000.0f);
+		changed |= ImGui::SliderFloat("Near Plane", &nearDistance, 0.01f, 5.0f);
+
+		if (changed)
+			calculate_split_distance();
+	}
+}
+
+void ShadowCascade::calculate_split_distance()
+{
+	float clipRange = shadowDistance - nearDistance;
+	float minZ = nearDistance;
+	float maxZ = nearDistance + clipRange;
+
+	float range = maxZ - minZ;
+	float ratio = maxZ / minZ;
+
+	for (uint32_t i = 0; i < CASCADE_COUNT; i++) {
+		float p = (i + 1) / static_cast<float>(CASCADE_COUNT);
+		float log = minZ * std::pow(ratio, p);
+		float uniform = minZ + range * p;
+		float d = cascadeSplitLambda * (log - uniform) + uniform;
+		m_cascadeSplits[i] = (d - nearDistance);
+	}
 }

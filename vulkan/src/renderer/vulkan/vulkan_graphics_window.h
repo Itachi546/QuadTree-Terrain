@@ -4,6 +4,8 @@
 #include "input/keyboard.h"
 #include <chrono>
 
+#include "vulkan_includes.h"
+
 struct GLFWwindow;
 class GraphicsAPI;
 class VulkanSwapchain;
@@ -15,6 +17,9 @@ struct UserData
 	int width = 800, height = 600;
 	bool resized = false;
 };
+
+struct ImGui_ImplVulkan_InitInfo;
+
 class VulkanGraphicsWindow : public GraphicsWindow
 {
 public:
@@ -39,6 +44,10 @@ public:
 	float get_frame_time() override { return m_frameTimer; };
 
 	GLFWwindow* get_window() { return m_window; }
+	
+	void init_imgui(ImGui_ImplVulkan_InitInfo* initInfo, VkRenderPass rp, VkCommandBuffer commandBuffer, VkCommandPool commandPool);
+	void render_imgui_frame(VkCommandBuffer commandBuffer);
+	void destroy_imgui();
 private:
 	GLFWwindow* m_window = nullptr;
 	UserData m_userdata;
@@ -50,4 +59,8 @@ private:
 	float m_timerSpeed = 0.25f;
 	uint32_t m_frameCounter = 0;
 	uint32_t m_lastFPS = 0;
+
+	void imgui_new_frame();
+
+
 };

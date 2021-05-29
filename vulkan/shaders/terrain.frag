@@ -51,7 +51,7 @@ void main()
 	if(castShadow > 0.5f)
 	  shadow = calculateShadowFactor(worldSpacePosition, length(viewSpacePosition), enablePCF);
 
-    col += max(dot(normal, lightDirection), 0.0) * lightColor * lightIntensity * shadow * calculateColor(normal);
+    col += max(dot(normal, normalize(lightDirection)), 0.0) * lightColor * lightIntensity * shadow * calculateColor(normal);
 	col	+= (normal.y * 0.5 + 0.5) *	vec3(0.16, 0.20, 0.28) * 0.5f;
 
 	if(castShadow > 0.5f && enableShadowDebug)

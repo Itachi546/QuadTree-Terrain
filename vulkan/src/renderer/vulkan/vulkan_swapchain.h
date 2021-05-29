@@ -26,6 +26,9 @@ public:
 	{
 		return m_surfaceFormat.format;
 	}
+
+	uint32_t get_min_image_count() { return m_minImageCount; }
+	uint32_t get_image_count() { return m_imageCount; }
 private:
 
 	std::shared_ptr<VulkanAPI> m_api;
@@ -42,6 +45,8 @@ private:
 	VkExtent2D m_extent;
 	uint32_t m_currentImageIndex = 0;
 
+	uint32_t m_minImageCount;
+	uint32_t m_imageCount;
 	const uint32_t MAX_FRAME_IN_FLIGHT = 2;
 	uint32_t m_currentFrame = 0;
 

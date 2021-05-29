@@ -24,7 +24,7 @@ TerrainChunk* TerrainChunkManager::get_free_chunk()
 	}
 }
 
-TerrainChunkManager::TerrainChunkManager(uint32_t poolSize) 
+TerrainChunkManager::TerrainChunkManager(uint32_t poolSize)  : POOL_SIZE(poolSize)
 {
 	m_chunkPool.resize(POOL_SIZE);
 	for (uint32_t i = 0; i < POOL_SIZE; ++i)

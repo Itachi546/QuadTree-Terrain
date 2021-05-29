@@ -1,6 +1,9 @@
 #include "vulkan_graphics_window.h"
 #include "vulkan_api.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_vulkan.h"
 #include <GLFW/glfw3.h>
+
 
 static void resize_callback(GLFWwindow* window, int width, int height)
 {
@@ -58,7 +61,8 @@ VulkanGraphicsWindow::VulkanGraphicsWindow(int width, int height, const char* ti
 	ASSERT_MSG(m_window != nullptr, "Failed to create Vulkan Window!");
 	
 	//glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-	graphicsAPI = std::make_shared<VulkanAPI>(m_window); 
+	std::shared_ptr<VulkanAPI> api = std::make_shared<VulkanAPI>(m_window);
+	graphicsAPI = api;
 }
 
 void VulkanGraphicsWindow::run(double frameRate)
@@ -67,6 +71,9 @@ void VulkanGraphicsWindow::run(double frameRate)
 	while (!glfwWindowShouldClose(m_window))
 	{
 		glfwPollEvents();
+
+		imgui_new_frame();
+
 		double x = 0.0, y = 0.0;
 		glfwGetCursorPos(m_window, &x, &y);
 		m_userdata.mouse->set_mouse_position(float(x), float(y));
@@ -91,9 +98,6 @@ void VulkanGraphicsWindow::run(double frameRate)
 		{
 			m_lastFPS = static_cast<uint32_t>((float)m_frameCounter * (1000.0f / fpsTimer));
 			m_frameCounter = 0;
-			char title[64];
-			sprintf(title, "FPS: %d frameTime: %.3fms", m_lastFPS, m_frameTimer * 1000.0f);
-			glfwSetWindowTitle(m_window, title);
 			m_lastTimestamp = end;
 		}
 
@@ -116,4 +120,59 @@ void VulkanGraphicsWindow::wait_for_event()
 {
 	while(m_userdata.width == 0 || m_userdata.height == 0)
 		glfwWaitEvents();
+}
+
+void VulkanGraphicsWindow::init_imgui(ImGui_ImplVulkan_InitInfo* initInfo, VkRenderPass rp, VkCommandBuffer commandBuffer, VkCommandPool commandPool)
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForVulkan(m_window, true);
+	ImGui_ImplVulkan_Init(initInfo, rp);
+
+	VkDevice device = initInfo->Device;
+	{
+		VkCommandPool command_pool = commandPool;
+		VkCommandBuffer command_buffer = commandBuffer;
+
+		VK_CHECK(vkResetCommandPool(device, command_pool, 0));
+
+		VkCommandBufferBeginInfo begin_info = {};
+		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		VK_CHECK(vkBeginCommandBuffer(command_buffer, &begin_info));
+
+		ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
+
+		VkSubmitInfo end_info = {};
+		end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		end_info.commandBufferCount = 1;
+		end_info.pCommandBuffers = &command_buffer;
+		VK_CHECK(vkEndCommandBuffer(command_buffer));
+		VK_CHECK(vkQueueSubmit(initInfo->Queue, 1, &end_info, VK_NULL_HANDLE));
+
+		VK_CHECK(vkDeviceWaitIdle(device));
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+	}
+}
+
+void VulkanGraphicsWindow::destroy_imgui()
+{
+	ImGui_ImplVulkan_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+}
+
+void VulkanGraphicsWindow::imgui_new_frame()
+{
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+}
+
+void VulkanGraphicsWindow::render_imgui_frame(VkCommandBuffer commandBuffer)
+{
+	ImGui::Render();
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 }

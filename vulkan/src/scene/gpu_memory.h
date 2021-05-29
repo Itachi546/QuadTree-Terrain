@@ -20,6 +20,7 @@ namespace GPU_MEMORY_POOL
 		{
 			if (activeVB.buffer == nullptr || (size > activeVB.size - activeVB.offset))
 			{
+				wastedMemory += (activeVB.size - activeVB.offset);
 				uint32_t allocationSize = size > defaultAllocationSize ? size : defaultAllocationSize;
 				activeVB.buffer = Device::create_vertexbuffer(BufferUsageHint::StaticDraw, allocationSize);
 				activeVB.size = allocationSize;
@@ -86,5 +87,6 @@ namespace GPU_MEMORY_POOL
 
 		// default allocation size 10MB
 		const uint32_t defaultAllocationSize = 1024 * 1024 * 10;
+		uint32_t wastedMemory = 0;
 	};
 };

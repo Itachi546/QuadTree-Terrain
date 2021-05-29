@@ -24,9 +24,9 @@ void Mesh::calculate_bounding_box()
 	boundingBox.max = max;
 }
 
-void Mesh::finalize(Context* context, bool reuse)
+void Mesh::finalize(Context* context)
 {
-	if (!reuse || vb == nullptr || ib == nullptr)
+	if (vb == nullptr || ib == nullptr)
 	{
 		GpuMemory* memory = GpuMemory::get_instance();
 		vb = memory->allocate_vb(sizeof(Vertex) * static_cast<uint32_t>(vertices.size()));

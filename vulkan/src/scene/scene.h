@@ -42,6 +42,7 @@ public:
 	Ref<Terrain> get_terrain() { return m_terrain; }
 
 	ShaderBindings* get_uniform_binding() { return m_uniformBindings; }
+	Ref<DirectionalLight> get_directional_light() { return m_sun; }
 
 	Entity* create_cube();
 	Entity* create_plane();
@@ -78,6 +79,8 @@ private:
 	void initialize_cube_mesh(Context* context);
 	void initialize_plane_mesh(Context* context);
 	void initialize_sphere_mesh(Context* context);
+
+	void render_ui();
 
 	void _render(Context* context);
 };

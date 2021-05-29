@@ -95,6 +95,9 @@ void VulkanSwapchain::create_swapchain(std::shared_ptr<VulkanAPI> api, uint32_t 
 
 	VkDevice device = api->m_Device;
 	VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, 0, &m_swapchain));
+
+	m_minImageCount = caps.surfaceCapabilities.minImageCount + 1;
+	m_imageCount = std::min(caps.surfaceCapabilities.minImageCount + 1, caps.surfaceCapabilities.maxImageCount);;
 }
 
 void VulkanSwapchain::resize_swapchain(std::shared_ptr<VulkanAPI> api, VkRenderPass renderPass, uint32_t width, uint32_t height)

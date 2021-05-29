@@ -7,6 +7,7 @@
 #include "core/math.h"
 #include "common/common.h"
 #include "physics/physics_system.h"
+#include "imgui/imgui.h"
 #include <vector>
 
 class ExampleBase
@@ -50,6 +51,16 @@ protected:
 	virtual void _update() 
 	{
 		float dt = m_window->get_frame_time();
+		if (ImGui::Begin("Statistics", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse))
+		{
+			ImGui::Text("frametime: %.3fms", dt * 1000.0f);
+			ImGui::Text("framerate: %.3f", 1.0f / m_window->get_frame_time());
+
+			float gpuMemory = float(Device::get_total_memory_allocated()) / (1024.0f * 1024.0f);
+			ImGui::Text("GPU Memory: %.1fMB", gpuMemory);
+			ImGui::End();
+		}
+
 		physicsSystem->step(dt);
 		update(dt); 
 	}

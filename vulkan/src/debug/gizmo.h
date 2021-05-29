@@ -35,6 +35,9 @@ public:
 
 	void manipulate(glm::mat4 projection, glm::mat4 view, float mouseX, float mouseY, bool button);
 	void render(Context* context);
+
+	void render_ui();
+
 	bool is_active() { return activeAxis != Axis::None; }
 	void set_active(Entity* entity) { active = entity; }
 	void destroy();
@@ -50,6 +53,7 @@ private:
 	{
 		X = 0, Y, Z, None
 	};
+
 	Axis activeAxis = Axis::None;
 
 	Operation operation = Operation::Translate;
@@ -70,11 +74,12 @@ private:
 		glm::vec3(0.0f, 0.0f,  1.0f),
 	};
 
+	bool m_enableGizmo = true;
 	const float fixedFactor = 0.12f;
 	Entity* active = nullptr;
 	Ref<OutlineFX> m_outlineFX;
 	glm::vec3 previous_intersect = glm::vec3(0.0f);
-	Ray m_ray;
+
 	//float prev_angle = 0.0f;
 
 	bool prev_frame_button_state = false;

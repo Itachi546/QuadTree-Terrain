@@ -121,7 +121,9 @@ public:
 		auto mouse = m_window->get_mouse();
 		float x, y;
 		mouse->get_mouse_position(&x, &y);
-		if (mouse->is_down(Button::Left))
+
+		bool isUIActive = ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() || ImGui::IsAnyItemHovered();
+		if (mouse->is_down(Button::Left) && !isUIActive)
 		{
 			float dx = x - mouseX;
 			float dy = y - mouseY;

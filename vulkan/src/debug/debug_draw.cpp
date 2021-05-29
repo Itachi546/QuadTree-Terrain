@@ -193,8 +193,6 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 				uint32_t lineDataSize = sizeof(Line) * totalLines;
 				context->copy(s_DebugData.buffer, lines.data(), offset, lineDataSize);
 				context->set_buffer(s_DebugData.buffer, offset);
-				ShaderBindings* bindingArr[] = { globalBindings };
-				context->set_shader_bindings(bindingArr, 1);
 				context->set_line_width(float(width));
 				context->draw(totalLines * 2);
 				offset += lineDataSize;

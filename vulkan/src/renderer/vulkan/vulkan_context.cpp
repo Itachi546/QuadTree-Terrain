@@ -8,6 +8,17 @@
 #include "vulkan_shaderbidings.h"
 #include "vulkan_framebuffer.h"
 
+#include "imgui/imgui_impl_vulkan.h"
+
+static void check_vk_result(VkResult err)
+{
+	if (err == 0)
+		return;
+	fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+	if (err < 0)
+		abort();
+}
+
 VkCommandPool VulkanContext::create_command_pool(VkDevice device, uint32_t familyIndex)
 {
 	VkCommandPoolCreateInfo createInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
@@ -109,17 +120,34 @@ VulkanContext::VulkanContext(std::shared_ptr<VulkanAPI> api, VulkanGraphicsWindo
 	allocateInfo.commandPool = m_tempCommandPool;
 	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	VK_CHECK(vkAllocateCommandBuffers(api->m_Device, &allocateInfo, &m_tempCommandBuffer));
+
+	{
+		ImGui_ImplVulkan_InitInfo initInfo = {};
+		initInfo.Instance = m_api->get_instance();
+		initInfo.PhysicalDevice = m_api->get_physical_device();
+		initInfo.Device = device;
+		initInfo.QueueFamily = m_api->get_queue_family_indices().graphicsFamily;
+		initInfo.Queue = m_api->get_queue();
+		initInfo.PipelineCache = 0;
+		initInfo.DescriptorPool = m_api->get_descriptor_pool();
+		initInfo.Allocator = 0;
+		initInfo.MinImageCount = m_swapchain->get_min_image_count();
+		initInfo.ImageCount = m_swapchain->get_image_count();
+		initInfo.CheckVkResultFn = check_vk_result;
+		m_window->init_imgui(&initInfo, m_globalRenderPass->get_renderpass(), m_tempCommandBuffer, m_tempCommandPool);
+	}
 }
 
 void VulkanContext::begin()
 {
 	m_totalDrawCalls = 0;
 	VkResult result = m_swapchain->acquire_next_image(m_api->m_Device);
+
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 	{
-		m_window->wait_for_event();
 		uint32_t width = m_window->get_width();
 		uint32_t height = m_window->get_height();
+		m_window->wait_for_event();
 		m_swapchain->resize_swapchain(m_api, m_globalRenderPass->get_renderpass(), width, height);
 		m_globalRenderPass->set_width(m_swapchain->m_extent.width);
 		m_globalRenderPass->set_height(m_swapchain->m_extent.height);
@@ -184,6 +212,9 @@ void VulkanContext::begin_renderpass(RenderPass* rp, Framebuffer* framebuffer)
 
 void VulkanContext::end_renderpass()
 {
+	if (m_activeRenderPass == m_globalRenderPass)
+		m_window->render_imgui_frame(m_commandBuffer);
+
 	vkCmdEndRenderPass(m_commandBuffer);
 }
 
@@ -294,23 +325,23 @@ void VulkanContext::end()
 	VkQueue queue = m_api->m_GraphicsQueue;
 	vkEndCommandBuffer(m_commandBuffer);
 
-	uint32_t width = m_window->get_width();
-	uint32_t height = m_window->get_height();
 	VkResult result = m_swapchain->present(m_commandBuffer, queue);
-
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 	{
+		uint32_t width = m_window->get_width();
+		uint32_t height = m_window->get_height();
+
 		m_window->wait_for_event();
 		m_swapchain->resize_swapchain(m_api, m_globalRenderPass->get_renderpass(), width, height);
 		m_globalRenderPass->set_width(width);
 		m_globalRenderPass->set_height(height);
 	}
-
 	vkDeviceWaitIdle(m_api->m_Device);
 }
 
 void VulkanContext::destroy()
 {
+	m_window->destroy_imgui();
 	vkFreeCommandBuffers(m_api->m_Device, m_commandPool, 1, &m_commandBuffer);
 	vkDestroyCommandPool(m_api->m_Device, m_commandPool, 0);
 
