@@ -23,7 +23,7 @@ int main()
 	Register("GizmoExample", CreateGizmoExampleFn);
 	Register("TerrainExample", CreateTerrainExampleFn);
 
-	ExampleBase* example = GetExample("CubeExample");
+	ExampleBase* example = GetExample("TerrainExample");
 	if (example)
 	{
 		example->run();

@@ -4,15 +4,17 @@
 #include "terrain_chunk.h"
 #include "scene/camera.h"
 #include "core/frustum.h"
+#include "renderer/context.h"
+#include "renderer/buffer.h"
 
-QuadTree::QuadTree(Ref<TerrainStream> stream, uint32_t depth, uint32_t maxSize, int maxHeight) : m_depth(depth), m_size(maxSize), m_maxHeight(maxHeight), m_stream(stream)
+QuadTree::QuadTree(Context* context, Ref<TerrainStream> stream, uint32_t depth, uint32_t maxSize, int maxHeight) : m_depth(depth), m_size(maxSize), m_maxHeight(maxHeight), m_stream(stream)
 {
 	// given a depth d, no of node is given by
 	// n = (4 ^ (d + 1) / 3)
 
 	int n = static_cast<int>(std::pow(4, depth + 1)) / 3;
 	m_nodes.resize(n);
-	manager = CreateRef<TerrainChunkManager>(100);
+	manager = CreateRef<TerrainChunkManager>(context, 100);
 }
 
 void QuadTree::update(Context* context, Ref<Camera> camera)
@@ -110,8 +112,20 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 			return glm::distance2(glm::vec3(c1.x, 0.0f, c1.y), camPos) < glm::distance2(glm::vec3(c2.x, 0.0f, c2.y), camPos);
 		});
 
+
+	uint32_t indexCount = manager->indexCount;
+	context->set_buffer(manager->ib, 0);
 	for (auto chunk : chunks)
-		chunk->render(context);
+	{
+		Ref<VertexBufferView> vb = chunk->vb;
+		context->set_buffer(vb->buffer, vb->offset);
+		context->draw_indexed(indexCount);
+	}
+}
+
+void QuadTree::destroy()
+{
+	manager->destroy();
 }
 
 void QuadTree::_get_visible_list(Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth, std::vector<TerrainChunk*>& chunks)

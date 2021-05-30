@@ -68,6 +68,27 @@ float getSplitShadowValue(sampler2D depthTexture, int index, vec3 p, bool enable
 	return shadow;
 }
 
+const float blendDistance = 0.9f;
+float getBlendedShadowValue(sampler2D depthTexture, sampler2D nextDepthTexture, float distanceFromCamera, int cascadeIndex, vec3 p, bool enablePCF)
+{
+	float start = blendDistance * cascades[cascadeIndex].splitDepth.x;
+	float blendDistance = cascades[cascadeIndex].splitDepth.x - start;
+	if (distanceFromCamera > start)
+	{
+		//transition region
+		float blendFactor = (distanceFromCamera - start) / blendDistance;
+		float s1 = getSplitShadowValue(depthTexture, cascadeIndex, p, enablePCF);
+		float s2 = 1.0f;
+
+		if (cascadeIndex < 3)
+			s2 = getSplitShadowValue(nextDepthTexture, cascadeIndex + 1, p, enablePCF);
+		return mix(s1, s2, blendFactor);
+	}
+	else
+		return getSplitShadowValue(depthTexture, cascadeIndex, p, enablePCF);
+
+}
+
 int cascadeIndex = 0;
 float calculateShadowFactor(vec3 p, float distanceFromCamera, bool enablePCF)
 {
@@ -76,6 +97,21 @@ float calculateShadowFactor(vec3 p, float distanceFromCamera, bool enablePCF)
 		if (distanceFromCamera > cascades[i].splitDepth.x)
 			cascadeIndex = i + 1;
 	}
+	switch (cascadeIndex)
+	{
+	case 0:
+		return getBlendedShadowValue(depthMap0, depthMap1, distanceFromCamera, cascadeIndex, p, enablePCF);
+	case 1:
+		return getBlendedShadowValue(depthMap1, depthMap2, distanceFromCamera, cascadeIndex, p, enablePCF);
+	case 2:
+		return getBlendedShadowValue(depthMap2, depthMap3, distanceFromCamera, cascadeIndex, p, enablePCF);
+	case 3:
+		return getBlendedShadowValue(depthMap3, depthMap3, distanceFromCamera, cascadeIndex, p, enablePCF);
+	default:
+		return 1.0;
+	}
+
+	/*
 	switch (cascadeIndex)
 	{
 	case 0:
@@ -89,6 +125,7 @@ float calculateShadowFactor(vec3 p, float distanceFromCamera, bool enablePCF)
 	default:
 		return 1.0;
 	}
+	*/
 	return 1.0;
 }
 

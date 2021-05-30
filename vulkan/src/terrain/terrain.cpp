@@ -58,7 +58,7 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream): m_stream(stream)
 	uint32_t depth = static_cast<int>(std::log2(terrainSize / m_minchunkSize));
 	m_maxLod = depth;
 
-	m_quadTree = CreateRef<QuadTree>(stream, depth, terrainSize, m_maxHeight);
+	m_quadTree = CreateRef<QuadTree>(context, stream, depth, terrainSize, m_maxHeight);
 }
 
 bool Terrain::ray_cast(const Ray& ray, glm::vec3& p_out)
@@ -107,6 +107,7 @@ void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** unif
 
 void Terrain::destroy()
 {
+	m_quadTree->destroy();
 	m_stream->destroy();
 	Device::destroy_pipeline(m_pipeline);
 }

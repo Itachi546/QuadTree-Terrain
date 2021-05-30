@@ -23,10 +23,10 @@ float get_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 	return  h * maxHeight;
 }
 
-void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize)
+void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<Vertex>& vertices)
 {
 	// Terrain Width and height
-	static const uint32_t VERTEX_COUNT = 128;
+	int VERTEX_COUNT = vertexCount;
 
 	uint32_t width = stream->get_width();
 	uint32_t height = stream->get_height();
@@ -38,7 +38,6 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 	float rangeX = float(m_max.x - m_min.x);
 	float maxHeight = float(terrainSize.y);
 
-	std::vector<Vertex> vertices;
 	for (int z = 0; z <= VERTEX_COUNT; ++z)
 	{
 		float fz = float(z) / float(VERTEX_COUNT);
@@ -66,38 +65,11 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 			vertices.push_back(vertex);
 		}
 	}
-
-	/*************/
-	/*i0*****i1**/
-	/*i2*****i3**/
-	/*************/
-	std::vector<unsigned int> indices;
-	for (uint32_t z = 0; z < VERTEX_COUNT; ++z)
-	{
-		for (uint32_t x = 0; x < VERTEX_COUNT; ++x)
-		{
-			uint32_t i0 = z * (VERTEX_COUNT + 1) + x;
-			uint32_t i1 = i0 + 1;
-			uint32_t i2 = i0 + (VERTEX_COUNT + 1);
-			uint32_t i3 = i2 + 1;
-
-			indices.push_back(i2);
-			indices.push_back(i1);
-			indices.push_back(i0);
-
-			indices.push_back(i2);
-			indices.push_back(i3);
-			indices.push_back(i1);
-		}
-	}
-
-	m_mesh->vertices = vertices;
-	m_mesh->indices = indices;
 }
 
-TerrainChunk::TerrainChunk()
+TerrainChunk::TerrainChunk(Ref<VertexBufferView> vb) : vb(vb)
 {
-	m_mesh = new Mesh();
+	//m_mesh = new Mesh();
 	m_id = UINT32_MAX;
 	m_lastFrameIndex = 0;
 }
@@ -112,25 +84,12 @@ void TerrainChunk::initialize(const glm::ivec2& min, const glm::ivec2& max, uint
 	m_lastFrameIndex = lastFrameIndex;
 }
 
-void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec3& terrainSize)
+void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec3& terrainSize, uint32_t vertexCount)
 {
-	create_mesh(stream, terrainSize);
-	m_mesh->finalize(context);
+	std::vector<Vertex> vertices;
+	create_mesh(stream, terrainSize, vertexCount, vertices);
+	//m_mesh->finalize(context);
+	ASSERT(vertices.size() * sizeof(Vertex) == vb->size);
+	context->copy(vb->buffer, vertices.data(), vb->offset, vb->size);
 	m_loaded = true;
-}
-
-void TerrainChunk::render(Context* context)
-{
-	// @TODO use vkCmdDrawIndexedIndirect
-	// @TODO use uint16_t if possible
-	VertexBufferView* vb = m_mesh->get_vb();
-	context->set_buffer(vb->buffer, vb->offset);
-	IndexBufferView* ib = m_mesh->get_ib();
-	context->set_buffer(ib->buffer, ib->offset);
-	context->draw_indexed(m_mesh->indices_count);
-}
-
-void TerrainChunk::destroy()
-{
-	delete m_mesh;
 }

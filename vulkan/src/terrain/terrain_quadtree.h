@@ -19,11 +19,11 @@ struct Node
 class QuadTree
 {
 public:
-	QuadTree(Ref<TerrainStream> stream, uint32_t depth, uint32_t size, int m_maxHeight);
+	QuadTree(Context* context, Ref<TerrainStream> stream, uint32_t depth, uint32_t size, int m_maxHeight);
 
 	void update(Context* context, Ref<Camera> camera);
 	void render(Context* context, Ref<Camera> camera);
-
+	void destroy();
 private:
 	std::vector<Node> m_nodes;
 	uint32_t m_depth;
