@@ -10,6 +10,7 @@
 class TerrainChunk;
 class Context;
 class TerrainStream;
+
 class TerrainChunkManager
 {
 public:

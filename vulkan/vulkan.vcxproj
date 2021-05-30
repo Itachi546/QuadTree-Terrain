@@ -152,7 +152,6 @@
     <ClCompile Include="external\imgui\imgui_impl_vulkan.cpp" />
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\renderer\vulkan\imgui_yeti3D_vulkan_impl.cpp" />
     <ClCompile Include="src\common\spirv_reflect.c" />
     <ClCompile Include="src\debug\gizmo.cpp" />
     <ClCompile Include="src\fx\outlinefx.cpp" />

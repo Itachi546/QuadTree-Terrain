@@ -47,6 +47,7 @@ enum class Format
 	R32G32Float,
 	R32G32B32Float,
 	D32Float,
+	D16UNORM,
 	Undefined
 };
 

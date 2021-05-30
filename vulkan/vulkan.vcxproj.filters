@@ -170,9 +170,6 @@
     <ClCompile Include="external\imgui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\vulkan\imgui_yeti3D_vulkan_impl.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">

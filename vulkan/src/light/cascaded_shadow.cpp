@@ -21,7 +21,8 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 	{
 		RenderPassDescription desc = {};
 		desc.attachmentCount = 1;
-		Attachment attachment = {0, Format::D32Float, TextureType::DepthStencil};
+		// @TODO 16bit float might be enough
+		Attachment attachment = {0, Format::D16UNORM, TextureType::DepthStencil};
 		desc.attachments = &attachment;
 		desc.width = SHADOW_MAP_DIMENSION;
 		desc.height = SHADOW_MAP_DIMENSION;
@@ -43,7 +44,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		desc.renderPass = m_renderPass;
 		desc.rasterizationState.enableDepthTest = true;
 		desc.rasterizationState.enableDepthWrite = true;
-		desc.rasterizationState.faceCulling = FaceCulling::None;
+		desc.rasterizationState.faceCulling = FaceCulling::Back;
 		m_pipeline = Device::create_pipeline(desc);
 	}
 
@@ -51,7 +52,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		TextureDescription desc = {};
 		desc.width = SHADOW_MAP_DIMENSION;
 		desc.height = SHADOW_MAP_DIMENSION;
-		desc.format = Format::D32Float;
+		desc.format = Format::D16UNORM;
 		desc.type = TextureType::DepthStencil;
 
 		SamplerDescription sampler = SamplerDescription::Initialize();
