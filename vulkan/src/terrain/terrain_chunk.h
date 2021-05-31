@@ -10,8 +10,13 @@ class Mesh;
 class Context;
 
 struct VertexBufferView;
-struct Vertex;
 class IndexBuffer;
+
+struct VertexP4N3_Float
+{
+	glm::vec4 position;
+	glm::vec3 normal;
+};
 
 class TerrainChunk
 {
@@ -29,7 +34,7 @@ public:
 
 	glm::ivec2 get_min() const { return m_min; }
 	glm::ivec2 get_max() const { return m_max; }
-
+	uint32_t get_lod_level() { return m_lodLevel; }
 	glm::ivec2 get_center() const { return (m_min + m_max) / 2; }
 
 	Ref<VertexBufferView> vb;
@@ -42,6 +47,6 @@ private:
 
 	bool m_loaded = false;
 
-	void create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<Vertex>& vertices);
+	void create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<VertexP4N3_Float>& vertices);
 
 };

@@ -10,6 +10,7 @@
 #include "common/common.h"
 #include "renderer/context.h"
 #include "scene/camera.h"
+#include "renderer/graphics_window.h"
 
 float sample_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 {
@@ -54,6 +55,11 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream): m_stream(stream)
 	desc.rasterizationState.polygonMode = PolygonMode::Fill;
 	m_pipeline = Device::create_pipeline(desc);
 
+	desc.rasterizationState.polygonMode = PolygonMode::Line;
+	m_wireframePipeline = Device::create_pipeline(desc);
+
+	m_activePipeline = m_pipeline;
+
 	uint32_t terrainSize = stream->get_width();;
 	uint32_t depth = static_cast<int>(std::log2(terrainSize / m_minchunkSize));
 	m_maxLod = depth;
@@ -88,6 +94,11 @@ float Terrain::get_height(glm::vec3 position)
 
 void Terrain::update(Context* context, Ref<Camera> camera)
 {
+	if (context->get_window()->get_keyboard()->is_down(Key::B))
+		m_activePipeline = m_pipeline;
+	if (context->get_window()->get_keyboard()->is_down(Key::N))
+		m_activePipeline = m_wireframePipeline;
+
 	m_quadTree->update(context, camera);
 }
 
@@ -95,7 +106,7 @@ void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** unif
 {
 	if (!depthPass)
 	{
-		context->set_graphics_pipeline(m_pipeline);
+		context->set_graphics_pipeline(m_activePipeline);
 		context->set_shader_bindings(uniformBindings, count);
 
 		glm::mat4 model = glm::mat4(1.0f);
@@ -110,6 +121,7 @@ void Terrain::destroy()
 	m_quadTree->destroy();
 	m_stream->destroy();
 	Device::destroy_pipeline(m_pipeline);
+	Device::destroy_pipeline(m_wireframePipeline);
 }
 
 bool Terrain::binary_search(const glm::vec3& p0, const glm::vec3& p1, float t, glm::vec3& p_out)

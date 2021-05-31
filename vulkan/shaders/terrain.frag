@@ -8,8 +8,17 @@ layout(location = 0) in vec3 vnormal;
 layout(location = 1) in vec3 worldSpacePosition;
 layout(location = 2) in vec3 viewSpacePosition;
 layout(location = 3) in vec4 intersectionPoint;
-
+layout(location = 4) in flat int lod;
 layout(location = 0) out vec4 fragColor;
+
+
+const vec3 lod_colors[4] = vec3[4](
+vec3(0.66, 0.0, 0.0),
+vec3(0.0, 0.66, 0.0),
+vec3(0.0, 0.0, 0.66),
+vec3(0.66, 0.66, 0.0)
+);
+
 
 const bool enablePCF = true;
 const bool enableShadowDebug = false;
@@ -68,6 +77,8 @@ void main()
 	   d = smoothstep(d, radius - 0.5f, radius);
 	   col = mix(vec3(1.0f), col, d);
 	}
+
+//	col	*= lod_colors[lod];
 
     col /= (1.0 + col);
     fragColor = vec4(col, 1.0f);

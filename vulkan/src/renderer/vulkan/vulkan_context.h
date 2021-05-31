@@ -43,6 +43,8 @@ public:
 		return reinterpret_cast<RenderPass*>(m_globalRenderPass);
 	}
 
+	GraphicsWindow* get_window() override;
+
 	void end() override;
 	void destroy();
 

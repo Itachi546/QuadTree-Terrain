@@ -64,7 +64,6 @@ void Scene::destroy_entity(Entity* entity)
 void Scene::update(Context* context, float dt)
 {
 	m_camera->update(dt);
-	render_ui();
 
 	if (m_sun->cast_shadow())
 		m_sunLightShadowCascade->update(m_camera);
@@ -85,6 +84,8 @@ void Scene::prepass(Context* context)
 
 void Scene::render(Context* context)
 {
+	render_ui();
+
 	ShaderBindings* bindings[3];
 	bindings[0] = m_uniformBindings;
 	bindings[1] = m_lightBindings;

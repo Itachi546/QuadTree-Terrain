@@ -26,13 +26,14 @@ void QuadTree::update(Context* context, Ref<Camera> camera)
 
 bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Camera> camera)
 {
+	const glm::vec3& camPos = camera->get_position();
 	glm::ivec2 min = position - size;
 	glm::ivec2 max = position + size;
 	BoundingBox box = { glm::vec3(min.x, -m_maxHeight, min.y), glm::vec3(max.x, m_maxHeight, max.y) };
 
 	if (camera->get_frustum()->intersect_box(box))
 	{
-		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camera->get_position());
+		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camPos);
 		if (distance < size.x * 2.0f)
 			return true;
 		return false;
@@ -117,6 +118,8 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 	context->set_buffer(manager->ib, 0);
 	for (auto chunk : chunks)
 	{
+		int lod_level = chunk->get_lod_level();
+		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4) + sizeof(glm::vec4), sizeof(int), &lod_level);
 		Ref<VertexBufferView> vb = chunk->vb;
 		context->set_buffer(vb->buffer, vb->offset);
 		context->draw_indexed(indexCount);
@@ -126,6 +129,14 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 void QuadTree::destroy()
 {
 	manager->destroy();
+}
+
+// Direction is N(0), S(1), E(2), W(3)
+uint32_t QuadTree::find_neighbour(uint32_t currentNode, Direction direction)
+{
+	//uint32_t parentNode = (currentNode >> 2);
+	ASSERT(0);
+	return 0u;
 }
 
 void QuadTree::_get_visible_list(Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth, std::vector<TerrainChunk*>& chunks)
@@ -145,7 +156,10 @@ void QuadTree::_get_visible_list(Ref<Camera> camera, const glm::ivec2& center, u
 	{
 		TerrainChunk* child = m_nodes[firstChild + i].chunk;
 		if (child == nullptr || !child->is_loaded())
+		{
 			childLoaded = false;
+			break;
+		}
 	}
 
 	if ((split(center, halfDim, camera) && childLoaded) || depth == 0)
@@ -168,6 +182,9 @@ void QuadTree::_get_visible_list(Ref<Camera> camera, const glm::ivec2& center, u
 		TerrainChunk* chunk = m_nodes[parent].chunk;
 		if (chunk != nullptr && chunk->is_loaded())
 		{
+			// Leaf node
+			// Check all neighbours
+			//uint32_t NW = find_neighbour(chunk->get_id(), Direction::N);
 			chunks.push_back(chunk);
 			m_totalChunkRendered++;
 		}

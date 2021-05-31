@@ -320,6 +320,11 @@ void VulkanContext::draw_indexed(uint32_t indexCount)
 	vkCmdDrawIndexed(m_commandBuffer, indexCount, 1, 0, 0, 0);
 }
 
+GraphicsWindow* VulkanContext::get_window()
+{
+	return reinterpret_cast<GraphicsWindow*>(m_window);
+}
+
 void VulkanContext::end()
 {
 	VkQueue queue = m_api->m_GraphicsQueue;

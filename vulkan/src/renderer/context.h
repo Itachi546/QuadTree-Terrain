@@ -11,9 +11,12 @@ class UniformBuffer;
 class ShaderBindings;
 class Texture;
 class Framebuffer;
+class GraphicsWindow;
+
 class Context
 {
 public:
+	virtual GraphicsWindow* get_window() = 0;
 	virtual void begin() = 0;
 	virtual void begin_renderpass(RenderPass* renderPass, Framebuffer* framebuffer) = 0;
 	virtual void end_renderpass() = 0;

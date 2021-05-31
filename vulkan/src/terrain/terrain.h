@@ -34,6 +34,9 @@ public:
 	void destroy();
 private:
 	Pipeline* m_pipeline;
+	Pipeline* m_wireframePipeline;
+	Pipeline* m_activePipeline;
+
 	Ref<TerrainStream> m_stream;
 	Ref<QuadTree> m_quadTree;
 

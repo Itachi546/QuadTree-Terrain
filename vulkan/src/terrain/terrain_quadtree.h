@@ -39,5 +39,12 @@ private:
 
 	bool split(const glm::ivec2& center, const glm::ivec2& size, Ref<Camera> camera);
 
+	enum class Direction
+	{
+		N, S, E, W
+	};
+
+	uint32_t find_neighbour(uint32_t currentNode, Direction direction);
+
 	uint32_t m_totalChunkRendered = 0;
 };

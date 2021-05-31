@@ -1,10 +1,11 @@
 #include "terrain_chunkmanager.h"
-#include "scene/mesh.h"
 #include "terrain_quadtree.h"
 #include "terrain_chunk.h"
 #include "terrain_stream.h"
 #include "scene/camera.h"
 #include "renderer/context.h"
+#include "renderer/device.h"
+#include "renderer/buffer.h"
 #include <algorithm>
 
 TerrainChunk* TerrainChunkManager::get_free_chunk()
@@ -27,14 +28,15 @@ TerrainChunk* TerrainChunkManager::get_free_chunk()
 
 void populate_index_buffer(Context* context, IndexBuffer* ib, uint32_t vertexCount, uint32_t& indexCount)
 {
+	// Skirt on each side
 	std::vector<unsigned int> indices;
-	for (uint32_t z = 0; z < vertexCount; ++z)
+	for (uint32_t z = 0; z < vertexCount + 2; ++z)
 	{
-		for (uint32_t x = 0; x < vertexCount; ++x)
+		for (uint32_t x = 0; x < vertexCount + 2; ++x)
 		{
-			uint32_t i0 = z * (vertexCount + 1) + x;
+			uint32_t i0 = z * (vertexCount + 3) + x;
 			uint32_t i1 = i0 + 1;
-			uint32_t i2 = i0 + (vertexCount + 1);
+			uint32_t i2 = i0 + (vertexCount + 3);
 			uint32_t i3 = i2 + 1;
 
 			indices.push_back(i2);
@@ -54,10 +56,10 @@ TerrainChunkManager::TerrainChunkManager(Context* context, uint32_t poolSize)  :
 {
 	m_chunkPool.resize(POOL_SIZE);
 
-	uint32_t chunkVBSize = (m_vertexCount + 1) * (m_vertexCount + 1) * sizeof(Vertex);
+	uint32_t chunkVBSize = (m_vertexCount + 3) * (m_vertexCount + 3) * sizeof(VertexP4N3_Float);
 	m_vb = Device::create_vertexbuffer(BufferUsageHint::StaticDraw, chunkVBSize * POOL_SIZE);
 
-	uint32_t chunkIndexSize = m_vertexCount * m_vertexCount * 6 * sizeof(uint32_t);
+	uint32_t chunkIndexSize = (m_vertexCount + 2) * (m_vertexCount + 2) * 6 * sizeof(uint32_t);
 	ib = Device::create_indexbuffer(BufferUsageHint::StaticDraw, IndexType::UnsignedInt, chunkIndexSize);
 	populate_index_buffer(context, ib, m_vertexCount, indexCount);
 	
