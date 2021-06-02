@@ -116,10 +116,25 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 
 	uint32_t indexCount = manager->indexCount;
 	context->set_buffer(manager->ib, 0);
+	
 	for (auto chunk : chunks)
 	{
-		int lod_level = chunk->get_lod_level();
-		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4) + sizeof(glm::vec4), sizeof(int), &lod_level);
+		glm::ivec2 center = chunk->get_center();
+		glm::ivec2 size = chunk->get_max() - chunk->get_min();
+
+		/*
+		float morphFactor = 1.0f;
+		if (chunk->get_lod_level() > 0)
+		{
+			float transitionRegionWidth = 0.2f * size.x;
+			float dist = glm::distance(camPos, glm::vec3(center.x, 0.0f, center.y)) - size.x;
+			dist = glm::min(dist, transitionRegionWidth * 2.0f) - transitionRegionWidth;
+			dist /= transitionRegionWidth;
+			morphFactor = 1.0f - glm::clamp(dist * 0.5f + 0.5f, 0.0f, 1.0f);
+		}
+		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4) + sizeof(glm::vec4), sizeof(float), &morphFactor);
+		*/
+
 		Ref<VertexBufferView> vb = chunk->vb;
 		context->set_buffer(vb->buffer, vb->offset);
 		context->draw_indexed(indexCount);

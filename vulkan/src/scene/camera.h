@@ -38,6 +38,8 @@ public:
 		calculate_projection();
 	}
 
+	float get_fov() { return m_fov; }
+
 	float get_near_plane() { return m_nearPlane; }
 	float get_far_plane() { return m_farPlane; }
 

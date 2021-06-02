@@ -60,9 +60,22 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 			float b = get_height(stream, uvx - 1.0f, uvz, maxHeight);
 			float c = get_height(stream, uvx, uvz + 1.0f, maxHeight);
 			float d = get_height(stream, uvx, uvz - 1.0f, maxHeight);
+			
+			float nextHeight = h;
+			if (m_lodLevel > 0)
+			{
+				int scale = static_cast<int>(std::pow(2.0f, m_lodLevel));
+				glm::vec2 modPos = glm::vec2{ glm::mod(float(ix / scale), 2.0f), glm::mod(float(iz / scale), 2.0f) };
+				if (glm::length(glm::vec2(modPos)) > 0.5f)
+				{
+					float h1 = get_height(stream, ix + modPos.x, iz + modPos.y, maxHeight);
+					float h2 = get_height(stream, ix - modPos.x, iz - modPos.y, maxHeight);
+					nextHeight = (h1 + h2) * 0.5f;
+				}
+			}
 
 			VertexP4N3_Float vertex;
-			vertex.position = glm::vec4(fx, h, fz, 1.0f);
+			vertex.position = glm::vec4(fx, h, fz, nextHeight);
 			vertex.normal = glm::normalize(glm::vec3(a - b, 1.0f, d - c));
 
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);

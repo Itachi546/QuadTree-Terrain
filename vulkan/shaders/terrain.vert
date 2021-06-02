@@ -9,21 +9,21 @@ layout(location = 0) out vec3 vnormal;
 layout(location = 1) out vec3 worldSpacePosition;
 layout(location = 2) out vec3 viewSpacePosition;
 layout(location = 3) out vec4 intersectionPoint;
-layout(location = 4) out flat int lod;
-
+layout(location = 4) out float vMorph;
 #include "glsl_common.h"
 
 layout(push_constant) uniform block
 {
 mat4 model;
 vec4 intersection;
-int lod_level;
+float morphFactor;
 };
 
 
 void main() 
 {
-    vec4 worldSpace = model * vec4(position.xyz, 1.0);
+    float y = position.y;
+    vec4 worldSpace = model * vec4(position.x, y, position.z, 1.0);
     vec4 camSpace = globalState.view * worldSpace;
     gl_Position = globalState.projection * camSpace;
 
@@ -31,5 +31,6 @@ void main()
     worldSpacePosition = worldSpace.xyz;
     viewSpacePosition = camSpace.xyz;
     intersectionPoint = intersection;
-    lod = lod_level;
+
+    vMorph = morphFactor;
 }
