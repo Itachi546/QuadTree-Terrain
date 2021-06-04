@@ -8,6 +8,7 @@
 #include "common/common.h"
 #include "physics/physics_system.h"
 #include "imgui/imgui.h"
+#include "renderer/context.h"
 #include <vector>
 
 class ExampleBase
@@ -47,7 +48,12 @@ public:
 	}
 
 protected:
-	void _render() { render(); };
+	void _render() 
+	{ 
+		m_context->acquire_swapchain_image();
+		render(); 
+		m_context->present();
+	};
 	virtual void _update() 
 	{
 		float dt = m_window->get_frame_time();

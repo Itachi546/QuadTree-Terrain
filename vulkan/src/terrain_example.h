@@ -32,9 +32,9 @@ public:
 		pipelineDesc.rasterizationState.topology = Topology::Triangle;
 		pipeline = Device::create_pipeline(pipelineDesc);
 
-		scene = std::make_shared<Scene>("Hello World", m_context);
+		scene = std::make_shared<Scene>("TerrainExample", m_context);
 
-		/*
+#if 0
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
@@ -44,9 +44,9 @@ public:
 		float* buffer = new float[bufferSize];
 		inFile.read(reinterpret_cast<char*>(buffer), bufferSize * sizeof(float));
 		Ref<TerrainStream> stream = CreateRef<TerrainStream>(buffer, size[0], size[1]);
-		*/
+#else	
 		Ref<TerrainStream> stream = CreateRef<TerrainStream>("assets/heightmap.png");
-
+#endif
 		terrain = CreateRef<Terrain>(m_context, stream);
 		scene->set_terrain(terrain);
 
@@ -92,7 +92,7 @@ public:
 		m_context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
-		m_context->set_graphics_pipeline(pipeline);
+		m_context->set_pipeline(pipeline);
 		scene->render(m_context);
 		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();

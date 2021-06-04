@@ -179,6 +179,7 @@
     <ClCompile Include="src\terrain\terrain_chunkmanager.cpp" />
     <ClCompile Include="src\terrain\terrain_quadtree.cpp" />
     <ClCompile Include="src\terrain\terrain_stream.cpp" />
+    <ClCompile Include="src\water\water.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\GLFW\src\egl_context.h" />
@@ -220,8 +221,8 @@
     <ClInclude Include="src\physics\rigidbody.h" />
     <ClInclude Include="src\physics\sphere_collider.h" />
     <ClInclude Include="src\gizmo_example.h" />
-    <ClInclude Include="src\renderer\texture.h" />
     <ClInclude Include="src\renderer\framebuffer.h" />
+    <ClInclude Include="src\renderer\texture.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_framebuffer.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_includes.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_texture.h" />
@@ -262,6 +263,8 @@
     <ClInclude Include="src\terrain\terrain_quadtree.h" />
     <ClInclude Include="src\terrain_example.h" />
     <ClInclude Include="src\terrain\terrain_stream.h" />
+    <ClInclude Include="src\water\water.h" />
+    <ClInclude Include="src\water_example.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\main.frag">
@@ -334,6 +337,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <CustomBuild Include="shaders\philipSpectrum.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

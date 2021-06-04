@@ -54,6 +54,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		desc.height = SHADOW_MAP_DIMENSION;
 		desc.format = Format::D16UNORM;
 		desc.type = TextureType::DepthStencil;
+		desc.flags = TextureFlag::Sampler;
 
 		SamplerDescription sampler = SamplerDescription::Initialize();
 		sampler.minFilter = TextureFilter::Nearest;
@@ -80,7 +81,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 	m_bindings = Device::create_shader_bindings();
 	for (int i = 0; i < CASCADE_COUNT; ++i)
 	{
-		m_bindings->set_texture(m_cascadeFramebuffer[i]->get_depth_attachment(), i + 2);
+		m_bindings->set_texture_sampler(m_cascadeFramebuffer[i]->get_depth_attachment(), i + 2);
 	}
 	m_bindings->set_buffer(m_ubo,  2 + CASCADE_COUNT);
 }
@@ -129,45 +130,51 @@ void ShadowCascade::update(Ref<Camera> camera)
 	}
 }
 
-void ShadowCascade::render(Context* context, Scene* scene)
+void ShadowCascade::render(Context* context, Scene* scene, bool renderShadow)
 {
 	render_ui();
 
-
-	context->copy(m_ubo, m_cascades.data(), 0, sizeof(Cascade) * CASCADE_COUNT);
-	context->set_graphics_pipeline(m_pipeline);
-	
-	EntityIterator begin, end;
-	scene->get_entity_iterator(begin, end);
-	for (int i = 0; i < CASCADE_COUNT; ++i)
+	if (renderShadow)
 	{
-		context->set_clear_depth();
-		context->begin_renderpass(m_renderPass, m_cascadeFramebuffer[i]);
-		context->set_graphics_pipeline(m_pipeline);
-		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4), sizeof(glm::mat4), &m_cascades[i].VP[0][0]);
-
-		for (EntityIterator entity = begin; entity != end; entity++)
+		context->copy(m_ubo, m_cascades.data(), 0, sizeof(Cascade) * CASCADE_COUNT);
+		EntityIterator begin, end;
+		scene->get_entity_iterator(begin, end);
+		for (int i = 0; i < CASCADE_COUNT; ++i)
 		{
-			glm::mat4 model = (*entity)->transform->get_mat4();
-			Ref<Mesh> mesh = (*entity)->mesh;
-			VertexBufferView* vb = mesh->get_vb();
-			IndexBufferView* ib = mesh->get_ib();
-			context->set_buffer(vb->buffer, vb->offset);
-			context->set_buffer(ib->buffer, ib->offset);
-			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
-			context->draw_indexed(mesh->get_indices_count());
-		}
+			context->set_clear_depth();
+			context->begin_renderpass(m_renderPass, m_cascadeFramebuffer[i]);
+			context->set_pipeline(m_pipeline);
+			context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4), sizeof(glm::mat4), &m_cascades[i].VP[0][0]);
+
+			for (EntityIterator entity = begin; entity != end; entity++)
+			{
+				glm::mat4 model = (*entity)->transform->get_mat4();
+				Ref<Mesh> mesh = (*entity)->mesh;
+				VertexBufferView* vb = mesh->get_vb();
+				IndexBufferView* ib = mesh->get_ib();
+				context->set_buffer(vb->buffer, vb->offset);
+				context->set_buffer(ib->buffer, ib->offset);
+				context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
+				context->draw_indexed(mesh->get_indices_count());
+			}
 
 #if 0
-		glm::mat4 model = glm::mat4(1.0f);
-		context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
-		Ref<Terrain> terrain = scene->get_terrain();
-		if (terrain)
-			terrain->render(context, scene->get_camera(), &m_bindings, 1, true);
+			glm::mat4 model = glm::mat4(1.0f);
+			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
+			Ref<Terrain> terrain = scene->get_terrain();
+			if (terrain)
+				terrain->render(context, scene->get_camera(), &m_bindings, 1, true);
 #endif
-		context->end_renderpass();
-		context->transition_layout_for_shader_read(m_cascadeFramebuffer[i]->get_depth_attachment(), true);
+			context->end_renderpass();
+		}
 	}
+
+	// @TODO handle it internally 
+	std::vector<Texture*> textures;
+	for (int i = 0; i < 4; ++i)
+		textures.push_back(m_cascadeFramebuffer[i]->get_depth_attachment());
+
+	context->transition_layout_for_shader_read(textures.data(), static_cast<uint32_t>(textures.size()));
 }
 
 void ShadowCascade::destroy()

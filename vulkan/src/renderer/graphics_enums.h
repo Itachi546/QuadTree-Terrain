@@ -44,8 +44,10 @@ enum class Format
 	R8G8B8_Unorm,
 	R8G8B8A8_Unorm,
 	R32Float,
+	R16Float,
 	R32G32Float,
 	R32G32B32Float,
+	R32G32B32A32Float,
 	D32Float,
 	D16UNORM,
 	Undefined

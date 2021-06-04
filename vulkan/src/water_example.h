@@ -1,13 +1,14 @@
 #pragma once
 
 #include "example_base.h"
-#include "light/cascaded_shadow.h"
 #include "core/frustum.h"
+#include "light/directional_light.h"
+#include "water/water.h"
 
-class CubeExample : public ExampleBase
+class WaterExample : public ExampleBase
 {
 public:
-	CubeExample() : ExampleBase(1920, 1055)
+	WaterExample() : ExampleBase(1920, 1055)
 	{
 		std::string vertexCode = load_file("spirv/main.vert.spv");
 		ASSERT(vertexCode.size() % 4 == 0);
@@ -31,38 +32,30 @@ public:
 		pipelineDesc.rasterizationState.topology = Topology::Triangle;
 		pipeline = Device::create_pipeline(pipelineDesc);
 
-		scene = std::make_shared<Scene>("Hello World", m_context);
-		//cube = scene->create_cube();
-		//cube->transform->scale *= 0.5f;
+		scene = std::make_shared<Scene>("WaterExample", m_context);
+		water = CreateRef<Water>(m_context);
 
 		Entity* plane = scene->create_plane();
 		plane->transform->position.y -= 0.5f;
 		plane->transform->scale = glm::vec3(10.0f);
 
-		Entity* sphere = scene->create_sphere();
-		sphere->transform->position += glm::vec3(1.0f, 0.0f, 0.0f);
-		sphere->transform->scale *= 0.5f;
-
-
-		cube = scene->create_cube();
-		cube->transform->position -= glm::vec3(-2.0f, 0.0f, 0.0f);
-		cube->transform->scale *= 0.5f;
-
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 		scene->set_camera(camera);
-		scene->show_bounding_box(true);
-
+		scene->get_directional_light()->set_cast_shadow(false);
 	}
 
 	void update(float dt) override
 	{
 		handle_input(dt);
 		scene->update(m_context, dt);
+
 	}
 
 	void render() override
 	{
+		water->render(m_context);
+
 		m_context->begin();
 		scene->prepass(m_context);
 
@@ -71,7 +64,9 @@ public:
 		m_context->begin_renderpass(nullptr, nullptr);
 		m_context->set_pipeline(pipeline);
 		scene->render(m_context);
-		DebugDraw::render(m_context, scene->get_uniform_binding());
+		
+		DebugDraw::immediate_draw_textured_quad(m_context, water->debugBindings, glm::vec4(0.9f, 0.5f, 0.1f, 0.1f));
+
 		m_context->end_renderpass();
 		m_context->end();
 	}
@@ -113,8 +108,9 @@ public:
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 	}
 
-	~CubeExample()
+	~WaterExample()
 	{
+		water->destroy();
 		scene->destroy();
 		Device::destroy_pipeline(pipeline);
 	}
@@ -125,9 +121,11 @@ private:
 	std::shared_ptr<Scene> scene;
 	Ref<Camera> camera;
 	float mouseX = 0.0f, mouseY = 0.0f;
+
+	Ref<Water> water;
 };
 
-ExampleBase* CreateCubeExampleFn()
+ExampleBase* CreateWaterExampleFn()
 {
-	return new CubeExample();
+	return new WaterExample();
 }
