@@ -73,5 +73,5 @@ void main()
 
     col /= (1.0 + col);
 	fragColor =	vec4(col, 1.0f);
-	//fragColor =	vec4(vMorph, vMorph, vMorph, 1.0f);
+//fragColor =	vec4(vMorph, vMorph, vMorph, 1.0f);
 }

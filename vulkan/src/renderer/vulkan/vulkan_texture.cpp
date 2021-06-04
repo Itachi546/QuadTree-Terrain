@@ -43,50 +43,38 @@ void VulkanTexture::create_image_view(VkDevice device, VkImageAspectFlags aspect
 	VK_CHECK(vkCreateImageView(device, &createInfo, nullptr, &m_imageView));
 }
 
-VulkanTexture::VulkanTexture(std::shared_ptr<VulkanAPI> api, const TextureDescription& desc) : m_width(desc.width), m_height(desc.height)
+VulkanTexture::VulkanTexture(std::shared_ptr<VulkanAPI> api, const TextureDescription& desc)
 {
 	VkDevice device = api->get_device();
 	VkPhysicalDeviceMemoryProperties memoryProps = api->get_memory_properties();
 
 	VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	m_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+	VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 	if (desc.type == TextureType::DepthStencil)
 	{
-		m_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+		aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 		usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	}
 
-	if (desc.flags & TextureFlag::Sampler)
+	if (desc.sampler != nullptr)
 		usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-	if (desc.flags & TextureFlag::TransferDst)
-		usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	if (desc.flags & TextureFlag::TransferSrc)
-		usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if (desc.flags & TextureFlag::StorageImage)
-		usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
 	ASSERT(desc.type != TextureType::Color3D);
 	VkImageType imageType = VK_IMAGE_TYPE_2D;
 	VkFormat format = VkTypeConverter::from(desc.format);
 	create_image(device, memoryProps, usage, imageType, format, desc.width, desc.height);
-	create_image_view(device, m_aspect, format);
+	create_image_view(device, aspect, format);
 
-	m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-	if (desc.sampler)
+	if (desc.sampler != nullptr)
 	{
 		create_sampler(device, desc.sampler);
 		m_hasSampler = true;
 
-		m_samplerInfo.sampler = m_sampler;
-		m_samplerInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		m_samplerInfo.imageView = m_imageView;
+		m_imageInfo.sampler = m_sampler;
+		m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		m_imageInfo.imageView = m_imageView;
 
-		m_storageImageInfo.sampler = m_sampler;
-		m_storageImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-		m_storageImageInfo.imageView = m_imageView;
 	}
-	
 }
 
 void VulkanTexture::destroy(std::shared_ptr<VulkanAPI> api)

@@ -18,8 +18,7 @@ public:
 	void destroy(std::shared_ptr<VulkanAPI> m_api);
 private:
 	VkPipelineLayout create_pipeline_layout(VkDevice device, const std::vector<VkDescriptorSetLayout>& setLayouts, const std::vector<VkPushConstantRange> pushConstatRanges);
-	VkPipeline create_graphics_pipeline(VkDevice device, VkPipelineLayout layout, VkRenderPass renderPass, const PipelineDescription& desc, const std::vector<Shader>& shaders);
-	VkPipeline create_compute_pipeline(VkDevice device, VkPipelineLayout layout, Shader& shader);
+	VkPipeline create_pipeline(VkDevice device, VkPipelineLayout layout, VkRenderPass renderPass, const PipelineDescription& desc, const std::vector<Shader>& shaders);
 
 	VkPipelineLayout m_layout;
 	VkPipeline m_pipeline;

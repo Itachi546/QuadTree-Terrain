@@ -29,7 +29,7 @@ public:
 		descriptorSets.push_back(descriptor);
 	}
 
-	void set_texture_sampler(Texture* texture, uint32_t binding) override
+	void set_texture(Texture* texture, uint32_t binding) override
 	{
 		VkWriteDescriptorSet descriptor = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
 		descriptor.dstSet = 0;
@@ -38,22 +38,8 @@ public:
 		descriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
 		VulkanTexture* vkTexture = reinterpret_cast<VulkanTexture*>(texture);
-		descriptor.pImageInfo = vkTexture->get_sampler_descriptor_info();
+		descriptor.pImageInfo = vkTexture->get_image_info();
 		descriptorSets.push_back(descriptor);
 	}
-
-	void set_storage_image(Texture* texture, uint32_t binding) override
-	{
-		VkWriteDescriptorSet descriptor = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-		descriptor.dstSet = 0;
-		descriptor.dstBinding = binding;
-		descriptor.descriptorCount = 1;
-		descriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-
-		VulkanTexture* vkTexture = reinterpret_cast<VulkanTexture*>(texture);
-		descriptor.pImageInfo = vkTexture->get_storage_image_descriptor_info();
-		descriptorSets.push_back(descriptor);
-	}
-
 	std::vector<VkWriteDescriptorSet> descriptorSets;
 };

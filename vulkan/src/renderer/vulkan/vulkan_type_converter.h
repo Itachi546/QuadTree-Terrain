@@ -39,15 +39,10 @@ public:
 			return VK_FORMAT_R8G8B8_UNORM;
 		case Format::R32Float:
 			return VK_FORMAT_R32_SFLOAT;
-		case Format::R16Float:
-			return VK_FORMAT_R16_SFLOAT;
 		case Format::R32G32Float:
 			return VK_FORMAT_R32G32_SFLOAT;
 		case Format::R32G32B32Float:
 			return VK_FORMAT_R32G32B32_SFLOAT;
-		case Format::R32G32B32A32Float:
-			return VK_FORMAT_R32G32B32A32_SFLOAT;
-
 		case Format::D32Float:
 			return VK_FORMAT_D32_SFLOAT;
 		case Format::D16UNORM:

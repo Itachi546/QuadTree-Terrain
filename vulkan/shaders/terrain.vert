@@ -22,7 +22,7 @@ float morphFactor;
 
 void main() 
 {
-    float y = position.y;//mix(position.y, position.w, morphFactor);
+    float y = position.y;
     vec4 worldSpace = model * vec4(position.x, y, position.z, 1.0);
     vec4 camSpace = globalState.view * worldSpace;
     gl_Position = globalState.projection * camSpace;

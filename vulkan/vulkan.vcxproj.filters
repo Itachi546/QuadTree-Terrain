@@ -170,9 +170,6 @@
     <ClCompile Include="external\imgui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\water\water.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">
@@ -340,6 +337,9 @@
     <ClInclude Include="src\fx\outlinefx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\renderer\vulkan\vulkan_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -415,15 +415,6 @@
     <ClInclude Include="external\imgui\imstb_truetype.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="src\water_example.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\water\water.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\edge_detection.frag">
@@ -465,7 +456,6 @@
     <CustomBuild Include="shaders\terrain.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\philipSpectrum.comp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

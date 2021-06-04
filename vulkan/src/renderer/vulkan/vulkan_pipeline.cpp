@@ -157,10 +157,8 @@ static VkShaderStageFlagBits get_shader_stage(SpvExecutionModel executionModel)
 		return VK_SHADER_STAGE_VERTEX_BIT;
 	case SpvExecutionModelFragment:
 		return VK_SHADER_STAGE_FRAGMENT_BIT;
-	case SpvExecutionModelGLCompute:
-		return VK_SHADER_STAGE_COMPUTE_BIT;
 	default:
-		ASSERT_MSG(0, "Undefined Shader Stage");
+		ASSERT_MSG(1, "Undefined Shader Stage");
 	}
 	return VkShaderStageFlagBits(0);
 }
@@ -266,7 +264,9 @@ static void create_shader(Shader& shader, VkDevice device, const char* code, uin
 	spvReflectDestroyShaderModule(&module);
 }
 
-VkPipeline VulkanPipeline::create_graphics_pipeline(VkDevice device, VkPipelineLayout layout, VkRenderPass renderPass, const PipelineDescription& desc, const std::vector<Shader>& shaders)
+
+
+VkPipeline VulkanPipeline::create_pipeline(VkDevice device, VkPipelineLayout layout, VkRenderPass renderPass, const PipelineDescription& desc, const std::vector<Shader>& shaders)
 {
 	assert(desc.shaderStageCount > 0);
 	VkGraphicsPipelineCreateInfo createInfo = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
@@ -416,27 +416,10 @@ VkPipelineLayout VulkanPipeline::create_pipeline_layout(VkDevice device, const s
 
 	return pipelineLayout;
 }
-VkPipeline VulkanPipeline::create_compute_pipeline(VkDevice device, VkPipelineLayout layout, Shader& shader)
-{
-	VkPipelineShaderStageCreateInfo shaderStageCreateInfo = {};
-	shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStageCreateInfo.stage = shader.shaderStage;
-	shaderStageCreateInfo.module = shader.module;
-	shaderStageCreateInfo.pName = "main";
-
-	VkComputePipelineCreateInfo createInfo = { VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
-	createInfo.stage = shaderStageCreateInfo;
-	createInfo.layout = layout;
-
-	VkPipeline pipeline = 0;
-	VK_CHECK(vkCreateComputePipelines(device, 0, 1, &createInfo, 0, &pipeline));
-	return pipeline;
-
-}
 VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanAPI> m_api, const PipelineDescription& desc)
 {
 	VkDevice device = m_api->get_device();
-	
+
 	std::vector<Shader> shaders(desc.shaderStageCount);
 	std::vector<VkPushConstantRange> pushConstantRanges;
 
@@ -461,19 +444,11 @@ VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanAPI> m_api, const PipelineD
 	allocateInfo.pSetLayouts = m_descSetLayouts.data();
 	vkAllocateDescriptorSets(device, &allocateInfo, &m_descriptorSet);
 
+	m_bindPoint = (desc.shaderStages[0].shaderStage == ShaderStage::Compute) ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	m_layout = create_pipeline_layout(device, m_descSetLayouts, pushConstantRanges);
 
-	if (desc.shaderStages[0].shaderStage == ShaderStage::Compute)
-	{
-		m_bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
-		m_pipeline = create_compute_pipeline(device, m_layout, shaders[0]);
-	}
-	else
-	{
-		ASSERT_MSG(desc.renderPass != nullptr, "Undefined RenderPass in pipeline");
-		m_bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		m_pipeline = create_graphics_pipeline(device, m_layout, reinterpret_cast<VulkanRenderPass*>(desc.renderPass)->get_renderpass(), desc, shaders);
-	}
+	ASSERT_MSG(desc.renderPass != nullptr, "Undefined RenderPass in pipeline");
+	m_pipeline = create_pipeline(device, m_layout, reinterpret_cast<VulkanRenderPass*>(desc.renderPass)->get_renderpass(), desc, shaders);
 
 	for (auto shader : shaders)
 		vkDestroyShaderModule(device, shader.module, 0);

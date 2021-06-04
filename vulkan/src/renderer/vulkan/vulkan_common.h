@@ -6,7 +6,7 @@
 #define ENABLE_VALIDATION_LAYERS 1
 #endif
 
-#define USE_DISCRETE_GPU 1
+#define USE_DISCRETE_GPU 0
 
 /*
  *  This causes crash in release build
@@ -52,5 +52,3 @@ void create_image(VulkanImage& result, VkDevice device, const VkPhysicalDeviceMe
 void destroy_image(const VulkanImage& image, VkDevice device);
 VkFramebuffer create_framebuffer(VkDevice device, VkRenderPass renderPass, int width, int height, std::vector<VkImageView> imageViews);
 VkImageMemoryBarrier image_barrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlagBits mask);
-
-

@@ -54,7 +54,7 @@ public:
 		s_DebugData.circles.push_back(DebugDrawData{ model, color });
 	}
 
-	static void immediate_draw_textured_quad(Context* context, ShaderBindings* bindings, glm::vec4 posAndSize = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	static void immediate_draw_textured_quad(Context* context, ShaderBindings* bindings);
 
 	static void render(Context* context, ShaderBindings* globalBinding);
 	static void destroy();

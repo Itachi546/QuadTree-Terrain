@@ -78,7 +78,8 @@ void Scene::update(Context* context, float dt)
 
 void Scene::prepass(Context* context)
 {
-	m_sunLightShadowCascade->render(context, this);
+	if(m_sun->cast_shadow())
+		m_sunLightShadowCascade->render(context, this);
 }
 
 void Scene::render(Context* context)

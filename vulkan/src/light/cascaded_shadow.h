@@ -21,7 +21,7 @@ public:
 	ShadowCascade(const glm::vec3& direction);
 
 	void update(Ref<Camera> camera);
-	void render(Context* context, Scene* scene, bool renderShadow = true);
+	void render(Context* context, Scene* scene);
 	void destroy();
 
 	void set_light_direction(const glm::vec3& dir)

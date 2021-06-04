@@ -12,8 +12,7 @@ QueueFamilyIndices find_queue_families_indices(VkPhysicalDevice physicalDevice)
 	QueueFamilyIndices familyIndices = {};
 	for (uint32_t i = 0; i < queueFamilyCount; ++i)
 	{
-		VkQueueFlags flag = queueFamilies[i].queueFlags;
-		if (flag & VK_QUEUE_GRAPHICS_BIT && flag & VK_QUEUE_COMPUTE_BIT)
+		if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 		{
 			familyIndices.graphicsFamily = i;
 		}

@@ -122,7 +122,7 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 		glm::ivec2 center = chunk->get_center();
 		glm::ivec2 size = chunk->get_max() - chunk->get_min();
 
-
+		/*
 		float morphFactor = 1.0f;
 		if (chunk->get_lod_level() > 0)
 		{
@@ -133,6 +133,7 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 			morphFactor = 1.0f - glm::clamp(dist * 0.5f + 0.5f, 0.0f, 1.0f);
 		}
 		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4) + sizeof(glm::vec4), sizeof(float), &morphFactor);
+		*/
 
 		Ref<VertexBufferView> vb = chunk->vb;
 		context->set_buffer(vb->buffer, vb->offset);
@@ -197,6 +198,8 @@ void QuadTree::_get_visible_list(Ref<Camera> camera, const glm::ivec2& center, u
 		if (chunk != nullptr && chunk->is_loaded())
 		{
 			// Leaf node
+			// Check all neighbours
+			//uint32_t NW = find_neighbour(chunk->get_id(), Direction::N);
 			chunks.push_back(chunk);
 			m_totalChunkRendered++;
 		}

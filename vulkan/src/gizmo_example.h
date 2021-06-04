@@ -32,7 +32,7 @@ public:
 		pipelineDesc.blendState.enable = false;
 		pipeline = Device::create_pipeline(pipelineDesc);
 
-		scene = CreateRef<Scene>("GizmoExample", m_context);
+		scene = CreateRef<Scene>("PhysicsTest", m_context);
 
 		gizmo = CreateRef<Gizmo>();
 		gizmo->init(m_context, m_window->get_width(), m_window->get_height());
@@ -103,7 +103,7 @@ private:
 		m_context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
-		m_context->set_pipeline(pipeline);
+		m_context->set_graphics_pipeline(pipeline);
 		scene->render(m_context);
 		gizmo->render(m_context);
 		DebugDraw::render(m_context, scene->get_uniform_binding());

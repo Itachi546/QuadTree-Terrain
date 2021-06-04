@@ -69,7 +69,7 @@ public:
 		m_context->set_clear_color(0.5f, 0.7f, 0.9f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
-		m_context->set_pipeline(pipeline);
+		m_context->set_graphics_pipeline(pipeline);
 		scene->render(m_context);
 		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
