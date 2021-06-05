@@ -269,6 +269,12 @@ void VulkanContext::copy(UniformBuffer* buffer, void* data, uint32_t offsetInByt
 	vkBuffer->copy(m_api, m_tempCommandBuffer, data, offsetInByte, sizeInByte);
 }
 
+void VulkanContext::copy(ShaderStorageBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte)
+{
+	VulkanShaderStorageBuffer* vkBuffer = reinterpret_cast<VulkanShaderStorageBuffer*>(buffer);
+	vkBuffer->copy(m_api, m_tempCommandBuffer, data, offsetInByte, sizeInByte);
+}
+
 void VulkanContext::copy(Texture* texture, void* data, uint32_t sizeInByte)
 {
 	VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };

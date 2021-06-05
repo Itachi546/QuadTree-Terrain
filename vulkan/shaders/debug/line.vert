@@ -3,7 +3,7 @@
 #extension GL_GOOGLE_include_directive   : require
 
 #define VERTEX_MODE_VC
-#include "glsl_common.h"
+#include "../glsl_common.h"
 
 layout(location = 0) out vec3 vcolor;
 layout(push_constant) uniform block

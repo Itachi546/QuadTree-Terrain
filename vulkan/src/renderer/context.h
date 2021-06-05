@@ -8,6 +8,8 @@ class Pipeline;
 class VertexBuffer;
 class IndexBuffer;
 class UniformBuffer;
+class ShaderStorageBuffer;
+
 class ShaderBindings;
 class Texture;
 class Framebuffer;
@@ -35,6 +37,8 @@ public:
 	virtual void copy(VertexBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
 	virtual void copy(IndexBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
 	virtual void copy(UniformBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
+	virtual void copy(ShaderStorageBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
+
 	virtual void copy(Texture* texture, void* data, uint32_t sizeInByte) = 0;
 
 	virtual void draw(uint32_t vertexCount) = 0;

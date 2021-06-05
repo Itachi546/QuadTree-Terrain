@@ -9,11 +9,11 @@ layout (binding = 1, r32f) uniform readonly image2D noiseTexture1;
 layout (binding = 2, r32f) uniform readonly image2D noiseTexture2;
 layout (binding = 3, r32f) uniform readonly image2D noiseTexture3;
 
-layout(binding = 4, rg32f) uniform image2D h0;
-layout(binding = 5, rg32f) uniform image2D h0Tilde;
+layout(binding = 4, rg32f) uniform writeonly image2D h0;
+layout(binding = 5, rg32f) uniform writeonly image2D h0Tilde;
 
-const float PI = 3.141592;
-const float PI2 = 6.283196;
+#define PI 3.1415926535897932384626433832795
+#define PI2 2.0 * PI
 
 layout(push_constant) uniform block
 {
@@ -41,6 +41,7 @@ vec2 gaussian(float r1, float r2)
 
 vec2 calculate_h0(ivec2 uv)
 {
+    //vec2 fuv = uv -	N *	0.5f;
     vec2 k = vec2((PI2 * uv.x) / L,	(PI2 * uv.y) / L);
     float k2 = k.x * k.x + k.y * k.y;
     if(k2 < 0.0001) k2 = 0.0001;

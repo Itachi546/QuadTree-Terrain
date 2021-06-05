@@ -3,7 +3,7 @@
 #extension GL_GOOGLE_include_directive   : require
 
 #define VERTEX_MODE_VN
-#include "glsl_common.h"
+#include "../glsl_common.h"
 layout(push_constant) uniform block
 {
     mat4 model;

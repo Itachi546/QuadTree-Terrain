@@ -10,7 +10,7 @@ layout(location = 1) out vec3 worldSpacePosition;
 layout(location = 2) out vec3 viewSpacePosition;
 layout(location = 3) out vec4 intersectionPoint;
 layout(location = 4) out float vMorph;
-#include "glsl_common.h"
+#include "../glsl_common.h"
 
 layout(push_constant) uniform block
 {

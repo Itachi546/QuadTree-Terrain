@@ -30,6 +30,8 @@ public:
 	void copy(VertexBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
 	void copy(IndexBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
 	void copy(UniformBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
+	void copy(ShaderStorageBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
+
 	void copy(Texture* texture, void* data, uint32_t sizeInByte);
 
 

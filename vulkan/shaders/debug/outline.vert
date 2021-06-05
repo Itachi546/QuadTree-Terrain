@@ -4,7 +4,7 @@
 
 #define USE_MODEL_MATRIX
 #define VERTEX_MODE_VN
-#include "glsl_common.h"
+#include "../glsl_common.h"
 
 void main() 
 {

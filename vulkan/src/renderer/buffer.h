@@ -29,6 +29,16 @@ public:
 private:
 };
 
+class ShaderStorageBuffer
+{
+public:
+	virtual BufferUsageHint get_usage_hint() const = 0;
+	virtual int get_size() const = 0;
+	virtual ~ShaderStorageBuffer() {}
+private:
+};
+
+
 
 struct VertexBufferView
 {

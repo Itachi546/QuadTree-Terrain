@@ -59,8 +59,8 @@ protected:
 		float dt = m_window->get_frame_time();
 		if (ImGui::Begin("Statistics", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse))
 		{
-			ImGui::Text("frametime: %.3fms", dt * 1000.0f);
-			ImGui::Text("framerate: %.3f", 1.0f / m_window->get_frame_time());
+			ImGui::Text("frametime: %.3fms", m_dt * 1000.0f);
+			ImGui::Text("framerate: %d", m_lastFPS);
 
 			float gpuMemory = float(Device::get_total_memory_allocated()) / (1024.0f * 1024.0f);
 			ImGui::Text("GPU Memory: %.1fMB", gpuMemory);
@@ -69,6 +69,17 @@ protected:
 
 		physicsSystem->step(dt);
 		update(dt); 
+
+		m_frameCount++;
+		m_elapsedTime += dt;
+		if (m_elapsedTime > 1.0f)
+		{
+			m_lastFPS = m_frameCount;
+			m_dt = m_elapsedTime / float(m_frameCount);
+			m_elapsedTime = 0.0f;
+			m_frameCount = 0;
+		}
+
 	}
 	virtual void on_resize(int width, int height){}
 
@@ -79,5 +90,10 @@ protected:
 
 	Ref<Mouse> mouse;
 	Ref<Keyboard> keyboard;
+
+	float m_elapsedTime = 0.0f;
+	float m_dt = 1.0f / 60.0f;
+	int m_frameCount = 0;
+	int m_lastFPS = 60;
 };
 

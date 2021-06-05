@@ -55,6 +55,12 @@ UniformBuffer* Device::create_uniformbuffer(BufferUsageHint usage, uint32_t size
 	return new VulkanUniformBuffer(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), usage, sizeInByte);
 }
 
+ShaderStorageBuffer* Device::create_shader_storage_buffer(BufferUsageHint usage, uint32_t sizeInByte)
+{
+	totalMemoryAllocated += sizeInByte;
+	return new VulkanShaderStorageBuffer(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), usage, sizeInByte);
+}
+
 Texture* Device::create_texture(const TextureDescription& desc)
 {
 	return new VulkanTexture(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), desc);
@@ -120,6 +126,14 @@ void Device::destroy_buffer(UniformBuffer* buffer)
 {
 	totalMemoryAllocated -= buffer->get_size();
 	VulkanUniformBuffer* vkBuffer = reinterpret_cast<VulkanUniformBuffer*>(buffer);
+	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
+	ASSERT(totalMemoryAllocated >= 0);
+}
+
+void Device::destroy_buffer(ShaderStorageBuffer* buffer)
+{
+	totalMemoryAllocated -= buffer->get_size();
+	VulkanShaderStorageBuffer* vkBuffer = reinterpret_cast<VulkanShaderStorageBuffer*>(buffer);
 	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
 	ASSERT(totalMemoryAllocated >= 0);
 }
