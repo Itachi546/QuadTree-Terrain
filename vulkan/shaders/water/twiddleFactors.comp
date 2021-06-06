@@ -1,0 +1,58 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive   : require
+
+#include "complex.h"
+
+#define PI 3.1415926535897932384626433832795
+#define PI2 2.0 * PI
+
+layout(local_size_x = 1, local_size_y = 16) in;
+
+layout(binding = 0, rgba32f) uniform writeonly image2D twiddleFactors;
+layout(std430, binding = 1) buffer indices
+{
+   int j[];
+} bit_reversed;
+
+layout(push_constant) uniform block
+{
+    int u_N;
+};
+
+void main()
+{ 
+    vec2    x  = gl_GlobalInvocationID.xy;
+    float   k  = mod(x.y * (float(u_N) / pow(2, x.x + 1)), u_N);
+    complex twiddle = complex(cos(2.0 * PI * k / float(u_N)), sin(2.0 * PI * k / float(u_N)));
+
+    int butterflyspan = int(pow(2, x.x));
+
+    int butterflywing;
+
+    if (mod(x.y, pow(2, x.x + 1)) < pow(2, x.x))
+        butterflywing = 1;
+    else
+        butterflywing = 0;
+
+    // first stage, bit reversed indices
+    if (x.x == 0)
+    {
+        // top butterfly wing
+        if (butterflywing == 1)
+            imageStore(twiddleFactors, ivec2(x), vec4(twiddle.r, twiddle.im, bit_reversed.j[int(x.y)], bit_reversed.j[int(x.y + 1)]));
+        // bot butterfly wing
+        else
+            imageStore(twiddleFactors, ivec2(x), vec4(twiddle.r, twiddle.im, bit_reversed.j[int(x.y - 1)], bit_reversed.j[int(x.y)]));
+    }
+    // second to log2(N) stage
+    else
+    {
+        // top butterfly wing
+        if (butterflywing == 1)
+            imageStore(twiddleFactors, ivec2(x), vec4(twiddle.r, twiddle.im, x.y, x.y + butterflyspan));
+        // bot butterfly wing
+        else
+            imageStore(twiddleFactors, ivec2(x), vec4(twiddle.r, twiddle.im, x.y - butterflyspan, x.y));
+    }
+}

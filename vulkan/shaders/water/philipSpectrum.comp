@@ -4,85 +4,70 @@
 #define WORKGROUP_SIZE 32
 layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE, local_size_z = 1 ) in;
 
-layout (binding = 0, r32f) uniform readonly image2D noiseTexture0;
-layout (binding = 1, r32f) uniform readonly image2D noiseTexture1;
-layout (binding = 2, r32f) uniform readonly image2D noiseTexture2;
-layout (binding = 3, r32f) uniform readonly image2D noiseTexture3;
+layout (binding = 0, r32f) uniform readonly image2D noise0;
+layout (binding = 1, r32f) uniform readonly image2D noise1;
+layout (binding = 2, r32f) uniform readonly image2D noise2;
+layout (binding = 3, r32f) uniform readonly image2D noise3;
 
-layout(binding = 4, rg32f) uniform writeonly image2D h0;
-layout(binding = 5, rg32f) uniform writeonly image2D h0Tilde;
+layout(binding = 4, rg32f) uniform writeonly image2D h0TildeK;
+layout(binding = 5, rg32f) uniform writeonly image2D h0TildeMinusK;
 
 #define PI 3.1415926535897932384626433832795
 #define PI2 2.0 * PI
+const float g = 9.81f;
 
 layout(push_constant) uniform block
 {
-   int N;
-   int L;
+   int u_N;
+   int u_L;
 
-   vec2 windDirection;
-   float windSpeed;
-   float philipAmplitude;
+   vec2 u_windDirection;
+   float u_windSpeed;
+   float u_philipAmplitude;
 };
 
-// Acceleration due to gravity
-const float g = 9.81f;
-const float invSqrt2 = 1.414213f;
 
-vec2 gaussian(float r1, float r2)
+
+float philips_power_spectrum(vec2 k, float k_mag, float k_mag_sqr, float L_philips, float suppression)
 {
-    float u2 = PI2 * r2;
-    float cosU2 = cos(u2);
-    float sinU2 = sin(u2);
-
-    float p = sqrt(-2.0 * log(r1));
-    return vec2(p * cosU2, p * sinU2);
+    return (u_philipAmplitude * (exp(-1.0 / (k_mag_sqr * L_philips * L_philips))) * pow(dot(normalize(k), u_windDirection), 2.0)) / (k_mag_sqr * k_mag_sqr);
 }
 
-vec2 calculate_h0(ivec2 uv)
+vec4 gauss_rnd()
 {
-    //vec2 fuv = uv -	N *	0.5f;
-    vec2 k = vec2((PI2 * uv.x) / L,	(PI2 * uv.y) / L);
-    float k2 = k.x * k.x + k.y * k.y;
-    if(k2 < 0.0001) k2 = 0.0001;
-    float l = (windSpeed * windSpeed) / g;
-    float l2 = l * l;
+    ivec2 texCoord = ivec2(gl_GlobalInvocationID.xy);
 
-    float kdotw = dot(k, windDirection);
-    float expComp = philipAmplitude * exp(-1.0f / (k2 * l2));
+    float noise00 = clamp(imageLoad(noise0, texCoord).r, 0.001, 1.0);
+    float noise01 = clamp(imageLoad(noise1, texCoord).r, 0.001, 1.0);
+    float noise02 = clamp(imageLoad(noise2, texCoord).r, 0.001, 1.0);
+    float noise03 = clamp(imageLoad(noise3, texCoord).r, 0.001, 1.0);
 
-    float coeff = invSqrt2 * sqrt((expComp * kdotw * kdotw) / (k2 * k2));
+    float u0 = PI2 * noise00;
+    float v0 = sqrt(-2.0 * log(noise01));
+    float u1 = PI2 * noise02;
+    float v1 = sqrt(-2.0 * log(noise03));
+    vec4 rnd = vec4(v0 * cos(u0), v0 * sin(u0), v1 * cos(u1), v1 * sin(u1));
 
-    float r1 = imageLoad(noiseTexture0, uv).r;
-    float r2 = imageLoad(noiseTexture1, uv).r;
-    return coeff * gaussian(r1, r2);
-}
-
-vec2 calculate_h0_tilde(ivec2 uv)
-{
-    vec2 k = vec2((PI2 * uv.x) / L,	(PI2 * uv.y) / L);
-    float k2 = k.x * k.x + k.y * k.y;
-
-    float l = (windSpeed * windSpeed) / g;
-    float l2 = l * l;
-
-    float kdotw = dot(-k, windDirection);
-    float expComp = philipAmplitude * exp(-1.0f / (k2 * l2));
-
-    float coeff = invSqrt2 * sqrt((expComp * kdotw * kdotw) / (k2 * k2));
-
-    float r1 = imageLoad(noiseTexture2, uv).r;
-    float r2 = imageLoad(noiseTexture3, uv).r;
-    return coeff * gaussian(r1, r2);
+    return rnd;
 }
 
 void main()
 {
-    ivec2 uv = ivec2(gl_GlobalInvocationID.xy);
+    vec2  x         = vec2(gl_GlobalInvocationID.xy) - float(u_N) / 2.0;
+    vec2  k         = vec2((2.0 * PI * float(x.x)) / float(u_L), (2.0 * PI * float(x.y)) / float(u_L));
+    float L_philips = (u_windSpeed * u_windSpeed) / g;
+    float k_mag     = length(k);
 
-	vec4 result	= min(vec4(calculate_h0(ivec2(uv.x,	uv.y)),	0.0f, 0.0f), 10000000.0f);
-    imageStore(h0, uv, result);
+    if (k_mag < 0.00001)
+        k_mag = 0.00001;
 
-    result = min(vec4(calculate_h0_tilde(ivec2(uv.x, uv.y)),	0.0f, 0.0f), 10000000.0f);
-    imageStore(h0Tilde, uv, result);
+    float k_mag_sqr   = k_mag * k_mag;
+    float suppression = 1.0f;
+
+    float h0k      = clamp(sqrt(philips_power_spectrum(k, k_mag, k_mag_sqr, L_philips, suppression)) / sqrt(2.0), -4000.0, 4000.0);
+    float h0minusk = clamp(sqrt(philips_power_spectrum(-k, k_mag, k_mag_sqr, L_philips, suppression)) / sqrt(2.0), -4000.0, 4000.0);
+
+    vec4 rnd = gauss_rnd();
+    imageStore(h0TildeK, ivec2(gl_GlobalInvocationID.xy), vec4(rnd.xy * h0k, 0.0, 1.0));
+    imageStore(h0TildeMinusK, ivec2(gl_GlobalInvocationID.xy), vec4(rnd.zw * h0minusk, 0.0, 1.0));
 }

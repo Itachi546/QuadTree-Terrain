@@ -62,7 +62,7 @@ void OutlineFX::init(uint32_t width, uint32_t height)
 	desc.renderPass = m_renderpass;
 	m_prepassPipeline = Device::create_pipeline(desc);
 
-	vertexCode = load_file("spirv/image2d.vert.spv");
+	vertexCode = load_file("spirv/edge_detection.vert.spv");
 	ASSERT(vertexCode.size() % 4 == 0);
 	fragmentCode = load_file("spirv/edge_detection.frag.spv");
 	ASSERT(fragmentCode.size() % 4 == 0);

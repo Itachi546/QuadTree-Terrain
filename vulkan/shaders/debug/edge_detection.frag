@@ -10,6 +10,7 @@ layout(push_constant) uniform block
 {
     vec2 inv_resolution;
 };
+
 const int SAMPLE_COUNT = 2;
 void main() 
 {

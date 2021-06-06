@@ -6,6 +6,7 @@
 #include "light/cascaded_shadow.h"
 #include "light/directional_light.h"
 #include "terrain/terrain.h"
+#include "water/water.h"
 #include "core/frustum.h"
 
 #include "imgui/imgui.h"
@@ -78,7 +79,7 @@ void Scene::update(Context* context, float dt)
 
 void Scene::prepass(Context* context)
 {
-	m_sunLightShadowCascade->render(context, this);
+	m_sunLightShadowCascade->render(context, this, m_sun->cast_shadow());
 }
 
 void Scene::render(Context* context)
@@ -89,11 +90,14 @@ void Scene::render(Context* context)
 	bindings[0] = m_uniformBindings;
 	bindings[1] = m_lightBindings;
 	bindings[2] = m_sunLightShadowCascade->get_depth_bindings();
-	context->set_shader_bindings(bindings, ARRAYSIZE(bindings));
+	uint32_t bindingCount = ARRAYSIZE(bindings);
+	context->set_shader_bindings(bindings, bindingCount);
 	_render(context);
 
 	if (m_terrain)
-		m_terrain->render(context, m_camera, bindings, ARRAYSIZE(bindings));
+		m_terrain->render(context, m_camera, bindings, bindingCount);
+	if (m_water)
+		m_water->render(context, bindings, bindingCount);
 
 }
 

@@ -1,0 +1,59 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive   : require
+
+#include "complex.h"
+
+#define WORKGROUP_SIZE 16
+layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE, local_size_z = 1 ) in;
+
+layout (binding = 0, rg32f) uniform readonly image2D h0TildeK;
+layout (binding = 1, rg32f) uniform readonly image2D h0TildeMinusK;
+
+layout(binding = 2, rg32f) uniform writeonly image2D tildeh0kt;
+
+#define PI 3.1415926535897932384626433832795
+#define PI2 2.0 * PI
+
+const float g = 9.8f;
+
+layout(push_constant) uniform block
+{
+    float u_T;
+    int u_L;
+};
+
+
+void main()
+{
+   vec2 uv= gl_GlobalInvocationID.xy;
+   vec2 k = vec2((PI2 * uv.x) / u_L,	(PI2 * uv.y) / u_L);
+
+   float magnitude = length(k);
+   if(magnitude < 0.000001f) magnitude = 0.000001f;
+   
+   float w = sqrt(g * magnitude);
+
+   vec2 tilde_h0k = imageLoad(h0TildeK, ivec2(uv)).rg;
+   complex fourier_cmp = complex(tilde_h0k.x, tilde_h0k.y);
+
+   vec2 tilde_h0MinusK = imageLoad(h0TildeMinusK, ivec2(uv)).rg;
+   complex fourier_cmp_cnj = conjugate(complex(tilde_h0MinusK.x, tilde_h0MinusK.y));
+
+   float coswt = cos(w * u_T);
+   float sinwt = sin(w * u_T);
+
+   complex exp_iwt = complex(coswt, sinwt);
+   complex exp_iwt_inv = complex(coswt, -sinwt);
+
+   complex hkt_dy = add(mul(fourier_cmp, exp_iwt), mul(fourier_cmp_cnj, exp_iwt_inv));
+   
+   // Choppy waves
+   //complex dx = complex(0.0, -uv.x / magnitude);
+   //complex hkt_dx = mul(dx, hkt_dy);
+
+   //complex dy = complex(0.0, -uv.y / magnitude);
+   //complex hkt_dz = mul(dy, hkt_dy);
+
+   imageStore(tildeh0kt, ivec2(uv), vec4(hkt_dy.r, hkt_dy.im, 0.0f, 1.0f));
+}

@@ -4,6 +4,7 @@
 #include "light/cascaded_shadow.h"
 #include "terrain/terrain_stream.h"
 #include "terrain/terrain.h"
+#include "water/water.h"
 
 class TerrainExample : public ExampleBase
 {
@@ -34,7 +35,7 @@ public:
 
 		scene = std::make_shared<Scene>("TerrainExample", m_context);
 
-#if 0
+#if 1
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
@@ -52,6 +53,11 @@ public:
 
 		uint32_t width = stream->get_width();
 		uint32_t height = stream->get_height();
+
+		water = CreateRef<Water>(m_context);
+		water->set_translation(glm::vec3(0.0f, -140.0f, 0));
+		scene->set_water(water);
+
 		cube = scene->create_cube();
 
 		float h = 5.0f + terrain->get_height(glm::vec3(width * 0.75f, 0.0f, height * 0.75f));
@@ -74,6 +80,7 @@ public:
 
 		scene->update(m_context, dt);
 		terrain->update(m_context, camera);
+		water->update(m_context, dt);
 
 		glm::vec2 mousePos = {};
 		mouse->get_mouse_position(&mousePos.x, &mousePos.y);
@@ -143,6 +150,7 @@ public:
 	~TerrainExample()
 	{
 		terrain->destroy();
+		water->destroy();
 		scene->destroy();
 		Device::destroy_pipeline(pipeline);
 	}
@@ -152,6 +160,7 @@ private:
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
 	Ref<Terrain> terrain;
+	Ref<Water> water;
 	Ref<Camera> camera;
 	float mouseX = 0.0f, mouseY = 0.0f;
 };

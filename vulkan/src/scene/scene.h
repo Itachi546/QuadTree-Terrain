@@ -14,6 +14,7 @@ class Camera;
 class ShadowCascade;
 class DirectionalLight;
 class Terrain;
+class Water;
 
 class Scene
 {
@@ -40,6 +41,8 @@ public:
 
 	void set_terrain(Ref<Terrain> terrain) { m_terrain = terrain; }
 	Ref<Terrain> get_terrain() { return m_terrain; }
+
+	void set_water(Ref<Water> water) { m_water = water; }
 
 	ShaderBindings* get_uniform_binding() { return m_uniformBindings; }
 	Ref<DirectionalLight> get_directional_light() { return m_sun; }
@@ -68,6 +71,7 @@ private:
 	Ref<Mesh> m_sphereMesh;
 
 	Ref<Terrain> m_terrain;
+	Ref<Water> m_water;
 
 	Ref<ShadowCascade> m_sunLightShadowCascade;
 	Ref<DirectionalLight> m_sun;

@@ -34,13 +34,15 @@ public:
 
 		scene = std::make_shared<Scene>("WaterExample", m_context);
 		water = CreateRef<Water>(m_context);
+		scene->set_water(water);
 
-		Entity* plane = scene->create_plane();
-		plane->transform->position.y -= 0.5f;
-		plane->transform->scale = glm::vec3(10.0f);
+		//Entity* plane = scene->create_plane();
+		//plane->transform->position.y -= 0.5f;
+		//plane->transform->scale = glm::vec3(10.0f);
 
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
+		camera->set_position(glm::vec3(128.0f, 20.0f, 128.0f));
 		scene->set_camera(camera);
 		scene->get_directional_light()->set_cast_shadow(false);
 	}
@@ -49,22 +51,20 @@ public:
 	{
 		handle_input(dt);
 		scene->update(m_context, dt);
-
+		water->update(m_context, dt);
 	}
 
 	void render() override
 	{
-		water->render(m_context);
-
 		m_context->begin();
 		scene->prepass(m_context);
 
-		m_context->set_clear_color(0.5f, 0.7f, 0.9f, 1.0f);
+		//m_context->set_clear_color(0.5f, 0.7f, 0.9f, 1.0f);
+		m_context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		m_context->set_pipeline(pipeline);
 		scene->render(m_context);
-		
 		DebugDraw::immediate_draw_textured_quad(m_context, water->debugBindings, glm::vec4(0.9f, 0.5f, 0.1f, 0.1f));
 
 		m_context->end_renderpass();
@@ -73,6 +73,7 @@ public:
 
 	void handle_input(float dt)
 	{
+		dt *= 10.0f;
 		auto keyboard = m_window->get_keyboard();
 		if (keyboard->is_down(KeyCode::W))
 			camera->walk(-dt);

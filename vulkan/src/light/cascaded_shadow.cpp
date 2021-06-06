@@ -81,9 +81,9 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 	m_bindings = Device::create_shader_bindings();
 	for (int i = 0; i < CASCADE_COUNT; ++i)
 	{
-		m_bindings->set_texture_sampler(m_cascadeFramebuffer[i]->get_depth_attachment(), i + 2);
+		m_bindings->set_texture_sampler(m_cascadeFramebuffer[i]->get_depth_attachment(), 16 + i);
 	}
-	m_bindings->set_buffer(m_ubo,  2 + CASCADE_COUNT);
+	m_bindings->set_buffer(m_ubo,  20);
 }
 
 void ShadowCascade::update(Ref<Camera> camera)

@@ -176,7 +176,19 @@
     <ClCompile Include="src\water\spectrum_texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\water\butterfly_texture.cpp">
+    <ClCompile Include="src\water\twiddle_factors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\butterfly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\inversion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\water_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\normal_map_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -433,7 +445,19 @@
     <ClInclude Include="src\water\spectrum_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\water\butterfly_texture.h">
+    <ClInclude Include="src\water\twiddle_factors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\butterfly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\inversion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\water_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\normal_map_generator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -478,7 +502,14 @@
       <Filter>Shaders</Filter>
     </CustomBuild>
     <CustomBuild Include="shaders\water\philipSpectrum.comp" />
-    <CustomBuild Include="shaders\water\butterfly.comp" />
+    <CustomBuild Include="shaders\water\twiddleFactors.comp" />
+    <CustomBuild Include="shaders\water\hdt.comp" />
+    <CustomBuild Include="shaders\water\butterflyOperation.comp" />
+    <CustomBuild Include="shaders\water\inversion.comp" />
+    <CustomBuild Include="shaders\water\water.frag" />
+    <CustomBuild Include="shaders\water\water.vert" />
+    <CustomBuild Include="shaders\debug\edge_detection.vert" />
+    <CustomBuild Include="shaders\water\normalmap.comp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

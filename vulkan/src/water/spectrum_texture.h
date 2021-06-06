@@ -37,22 +37,30 @@ class SpectrumTexture
 public:
 	SpectrumTexture(Context* context, Ref<WaterProperties> props);
 	void create_spectrum_texture(Context* context, Ref<WaterProperties> props);
-	void destroy_intermediate_data();
+	void create_hdt_texture(Context* context, float elapsedTime, uint32_t L);
 	void destroy();
 
-	Texture* get_h0_texture() { return m_h0; };
-	Texture* get_h0_tilde_texture() { return m_h0Tilde; }
+	Texture* get_h0_texture() { return m_h0TildeK; };
+	Texture* get_h0_tilde_texture() { return m_h0TildeMinusK; }
+	Texture* get_pingpoing_texture0() { return m_pingpongTexture0; }
+	Texture* get_pingpoing_texture1() { return m_pingpongTexture1; }
 private:
+	void destroy_intermediate_data();
 	// Generates h0 and h0Tilde texture
 	// Generated only once at the start of program
 	Pipeline* m_spectrumPipeline;
 	ShaderBindings* m_spectrumBindings;
 
+	Pipeline* m_hdtPipeline;
+	ShaderBindings* m_hdtBindings;
+
 	Texture* m_noiseTexture[4];
-	Texture* m_h0;
-	Texture* m_h0Tilde;
+	Texture* m_h0TildeK;
+	Texture* m_h0TildeMinusK;
 
+	Texture* m_pingpongTexture0;
+	Texture* m_pingpongTexture1;
+
+	uint32_t m_N;
 	// Water properties
-
-	// Time elapsed
 };

@@ -4,11 +4,11 @@ struct Cascade
 	vec4 splitDepth;
 };
 
-layout(set = 0, binding = 2) uniform sampler2D depthMap0;
-layout(set = 0, binding = 3) uniform sampler2D depthMap1;
-layout(set = 0, binding = 4) uniform sampler2D depthMap2;
-layout(set = 0, binding = 5) uniform sampler2D depthMap3;
-layout(set = 0, binding = 6) uniform shadowMapData
+layout(set = 0, binding = 16) uniform sampler2D depthMap0;
+layout(set = 0, binding = 17) uniform sampler2D depthMap1;
+layout(set = 0, binding = 18) uniform sampler2D depthMap2;
+layout(set = 0, binding = 19) uniform sampler2D depthMap3;
+layout(set = 0, binding = 20) uniform shadowMapData
 {
 	Cascade cascades[4];
 };

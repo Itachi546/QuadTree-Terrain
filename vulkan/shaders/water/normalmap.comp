@@ -1,0 +1,45 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0)   uniform sampler2D displacementMap;
+layout(binding = 1, rgba32f) uniform writeonly image2D normalMap;
+
+layout(push_constant) uniform block
+{
+   vec2 invResolution;
+};
+
+void main()
+{
+   float texelSize = invResolution.x;
+   vec2 uv = gl_GlobalInvocationID.xy * invResolution;
+   /*
+   float z0 = imageLoad(displacementMap, uv + ivec2(-texelSize, -texelSize)).r;
+   float z1 = imageLoad(displacementMap, uv + ivec2(0, -texelSize)).r;
+   float z2 = imageLoad(displacementMap, uv + ivec2(texelSize, -texelSize)).r;
+   float z3 = imageLoad(displacementMap, uv + ivec2(-texelSize, 0)).r;
+   float z4 = imageLoad(displacementMap, uv + ivec2(texelSize, 0)).r;
+   float z5 = imageLoad(displacementMap, uv + ivec2(-texelSize, texelSize)).r;
+   float z6 = imageLoad(displacementMap, uv + ivec2(0, texelSize)).r;
+   float z7 = imageLoad(displacementMap, uv + ivec2(texelSize, texelSize)).r;
+   */
+   float z0 = texture(displacementMap, uv + vec2(-texelSize, -texelSize)).r;
+   float z1 = texture(displacementMap, uv + vec2(0, -texelSize)).r;
+   float z2 = texture(displacementMap, uv + vec2(texelSize, -texelSize)).r;
+   float z3 = texture(displacementMap, uv + vec2(-texelSize, 0)).r;
+   float z4 = texture(displacementMap, uv + vec2(texelSize, 0)).r;
+   float z5 = texture(displacementMap, uv + vec2(-texelSize, texelSize)).r;
+   float z6 = texture(displacementMap, uv + vec2(0, texelSize)).r;
+   float z7 = texture(displacementMap, uv + vec2(texelSize, texelSize)).r;
+
+    vec3 normal;
+
+    // Sobel Filter
+    normal.z = z0 + 2 * z1 + z2 - z5 - 2 * z6 - z7;
+    normal.x = z0 + 2 * z3 + z5 - z2 - 2 * z4 - z7;
+    normal.y = 1.0;
+
+    imageStore(normalMap, ivec2(gl_GlobalInvocationID.xy), vec4(normal, 1.0f));
+}

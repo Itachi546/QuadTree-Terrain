@@ -41,7 +41,7 @@ float fbm(siv::PerlinNoise* noise, int x, int y, const PerlinGenerator& generato
 		f *= generator.lacunarity;
 	}
 	total /= normalization;
-	total = abs(total);
+	total = total * 2.0f - 1.0f;
 
 	return static_cast<float>(std::pow(total, generator.exponent));
 }

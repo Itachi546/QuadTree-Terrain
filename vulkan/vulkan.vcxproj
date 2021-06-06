@@ -152,6 +152,7 @@
     <ClCompile Include="external\imgui\imgui_impl_vulkan.cpp" />
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\water\normal_map_generator.cpp" />
     <ClCompile Include="src\common\spirv_reflect.c" />
     <ClCompile Include="src\debug\gizmo.cpp" />
     <ClCompile Include="src\fx\outlinefx.cpp" />
@@ -179,9 +180,12 @@
     <ClCompile Include="src\terrain\terrain_chunkmanager.cpp" />
     <ClCompile Include="src\terrain\terrain_quadtree.cpp" />
     <ClCompile Include="src\terrain\terrain_stream.cpp" />
-    <ClCompile Include="src\water\butterfly_texture.cpp" />
+    <ClCompile Include="src\water\inversion.cpp" />
+    <ClCompile Include="src\water\twiddle_factors.cpp" />
+    <ClCompile Include="src\water\butterfly.cpp" />
     <ClCompile Include="src\water\spectrum_texture.cpp" />
     <ClCompile Include="src\water\water.cpp" />
+    <ClCompile Include="src\water\water_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\GLFW\src\egl_context.h" />
@@ -199,6 +203,7 @@
     <ClInclude Include="external\imgui\imstb_rectpack.h" />
     <ClInclude Include="external\imgui\imstb_textedit.h" />
     <ClInclude Include="external\imgui\imstb_truetype.h" />
+    <ClInclude Include="src\water\normal_map_generator.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\spirv.h" />
     <ClInclude Include="src\common\spirv_reflect.h" />
@@ -265,9 +270,12 @@
     <ClInclude Include="src\terrain\terrain_quadtree.h" />
     <ClInclude Include="src\terrain_example.h" />
     <ClInclude Include="src\terrain\terrain_stream.h" />
-    <ClInclude Include="src\water\butterfly_texture.h" />
+    <ClInclude Include="src\water\inversion.h" />
+    <ClInclude Include="src\water\twiddle_factors.h" />
+    <ClInclude Include="src\water\butterfly.h" />
     <ClInclude Include="src\water\spectrum_texture.h" />
     <ClInclude Include="src\water\water.h" />
+    <ClInclude Include="src\water\water_renderer.h" />
     <ClInclude Include="src\water_example.h" />
   </ItemGroup>
   <ItemGroup>
@@ -344,7 +352,28 @@
     <CustomBuild Include="shaders\water\philipSpectrum.comp">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\water\butterfly.comp">
+    <CustomBuild Include="shaders\water\twiddleFactors.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\hdt.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\butterflyOperation.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\inversion.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\debug\edge_detection.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\normalmap.comp">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

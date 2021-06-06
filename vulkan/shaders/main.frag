@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_GOOGLE_include_directive   : require
 
-#include "shadow.h"
+#include "shadow/shadow.h"
 
 layout(location = 0) in vec3 vnormal;
 layout(location = 1) in vec3 worldSpacePosition;
