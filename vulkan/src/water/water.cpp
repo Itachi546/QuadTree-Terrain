@@ -173,31 +173,6 @@ void Water::prepass(Context* context, Scene* scene, ShaderBindings** bindings, u
 
 	Texture* textures[] = { m_reflectionFB->get_color_attachment(0), m_refractionFB->get_color_attachment(0), m_refractionFB->get_depth_attachment()};
 	context->transition_layout_for_shader_read(textures, ARRAYSIZE(textures));
-
-}
-
-void render_scene(Context* context, Scene* scene, uint32_t uniformOffset)
-{
-	EntityIterator begin, end;
-	scene->get_entity_iterator(begin, end);
-	Ref<Frustum> frustum = scene->get_camera()->get_frustum();
-	for (auto entity = begin; entity != end; ++entity)
-	{
-		Ref<Transform> transform = (*entity)->transform;
-		Ref<Mesh> mesh = (*entity)->mesh;
-
-		BoundingBox box = mesh->boundingBox;
-		//if (frustum->intersect_box(BoundingBox{ transform->position + box.min * transform->scale, transform->position + box.max * transform->scale }))
-		{
-			glm::mat4 model = transform->get_mat4();
-			VertexBufferView* vb = mesh->get_vb();
-			context->set_buffer(vb->buffer, vb->offset);
-			IndexBufferView* ib = mesh->get_ib();
-			context->set_buffer(ib->buffer, ib->offset);
-			context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(mat4), &model[0][0]);
-			context->draw_indexed(mesh->get_indices_count());
-		}
-	}
 }
 
 void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count)
@@ -211,7 +186,12 @@ void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBi
 	glm::mat3 rotate = glm::yawPitchRoll(rotation.y, -rotation.x, rotation.z);
 	glm::vec3 up = glm::normalize(rotate * vec3(0.0f, 1.0f, 0.0f));
 	glm::vec3 forward = glm::normalize(rotate * vec3(0.0f, 0.0f, 1.0f));
-	glm::mat4 view = glm::lookAt(position, position + forward, up);
+
+	Ref<Camera> newCamera = camera->clone();
+	newCamera->set_rotation(glm::vec3(-rotation.x, rotation.y, rotation.z));
+	newCamera->set_position(position);
+	newCamera->update(1.0f);
+	glm::mat4 view = newCamera->get_view();
 
 	glm::mat4 VP[] = { camera->get_projection(), view };
 	glm::vec4 waterPlane = glm::vec4(0.0f, 1.0f, 0.0f, -m_translate.y - 1.0);
@@ -219,20 +199,25 @@ void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBi
 	context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 	context->set_clear_depth(1.0f);
 	context->begin_renderpass(m_renderPass, m_reflectionFB);
-	context->set_pipeline(m_offscreenReflectionPipeline);
-	context->set_shader_bindings(bindings, count);
 
-	uint32_t uniformOffset = 0;
-	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
+	context->update_pipeline(m_offscreenReflectionPipeline, bindings, count);
+	context->set_pipeline(m_offscreenReflectionPipeline);
+
+
+	uint32_t uniformOffset = sizeof(glm::mat4);
+	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::mat4) * 2, &VP[0][0]);
 	uniformOffset += sizeof(glm::mat4) * 2;
 	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 	uniformOffset += sizeof(glm::vec4);
 
-	render_scene(context, scene, uniformOffset);
+
+	scene->render_entities(context, newCamera, 0);
+	//render_scene(context, scene, uniformOffset);
 
 	Ref<Terrain> terrain = scene->get_terrain();
 	if (scene->get_terrain())
 	{
+		context->update_pipeline(m_terrainReflectionPipeline, bindings, count);
 		context->set_pipeline(m_terrainReflectionPipeline);
 		uint32_t uniformOffset = 0;
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
@@ -240,8 +225,8 @@ void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBi
 		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 		uniformOffset += sizeof(glm::vec4);
 
-		context->set_shader_bindings(bindings, count);
-		terrain->render_no_renderpass(context, camera);
+
+		terrain->render_no_renderpass(context, newCamera);
 	}
 	context->end_renderpass();
 }
@@ -256,20 +241,22 @@ void Water::generate_refraction_texture(Context* context, Scene* scene, ShaderBi
 	context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 	context->set_clear_depth(1.0f);
 	context->begin_renderpass(m_renderPass, m_refractionFB);
+	context->update_pipeline(m_offscreenRefractionPipeline, bindings, count);
 	context->set_pipeline(m_offscreenRefractionPipeline);
-	context->set_shader_bindings(bindings, count);
 
-	uint32_t uniformOffset = 0;
-	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
+
+	uint32_t uniformOffset = sizeof(glm::mat4);
+	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::mat4) * 2, &VP[0][0]);
 	uniformOffset += sizeof(glm::mat4) * 2;
 	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 	uniformOffset += sizeof(glm::vec4);
 
-	render_scene(context, scene, uniformOffset);
+	scene->render_entities(context, camera, 0);
 
 	Ref<Terrain> terrain = scene->get_terrain();
 	if (scene->get_terrain())
 	{
+		context->update_pipeline(m_terrainRefractionPipeline, bindings, count);
 		context->set_pipeline(m_terrainRefractionPipeline);
 		uint32_t uniformOffset = 0;
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
@@ -277,7 +264,7 @@ void Water::generate_refraction_texture(Context* context, Scene* scene, ShaderBi
 		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 		uniformOffset += sizeof(glm::vec4);
 
-		context->set_shader_bindings(bindings, count);
+
 		terrain->render_no_renderpass(context, camera);
 	}
 	context->end_renderpass();

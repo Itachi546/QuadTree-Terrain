@@ -37,8 +37,9 @@ Inversion::Inversion(Context* context, unsigned int N, Texture* pingpong0, Textu
 void Inversion::update(Context* context, unsigned int N, int pingpong)
 {
 	context->transition_layout_for_compute_read(&m_heightTexture, 1);
+	context->update_pipeline(m_pipeline, &m_bindings, 1);
 	context->set_pipeline(m_pipeline);
-	context->set_shader_bindings(&m_bindings, 1);
+
 
 	int data[] = { pingpong, int(N) };
 	context->set_uniform(ShaderStage::Compute, 0, sizeof(int) * 2, &data);

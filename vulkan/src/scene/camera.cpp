@@ -20,6 +20,34 @@ Camera::Camera()
 	calculate_view();
 }
 
+Ref<Camera> Camera::clone()
+{
+	std::shared_ptr<Camera> camera = CreateRef<Camera>();
+	camera->m_position = m_position;
+	camera->m_rotation = m_rotation;
+
+	camera->m_targetPosition = m_targetPosition;
+	camera->m_targetRotation = m_targetRotation;
+
+	camera->m_projection = m_projection;
+	camera->m_invProjection = m_invProjection;
+
+	camera->m_fov = m_fov;
+	camera->m_aspect = m_aspect;
+	camera->m_nearPlane = m_nearPlane;
+	camera->m_farPlane = m_farPlane;
+
+	camera->m_target = m_target;
+	camera->m_right = m_right;
+	camera->m_up = m_up;
+	camera->m_forward = m_forward;
+	camera->m_speed = m_speed;
+	camera->m_sensitivity = m_sensitivity;
+	return camera;
+
+
+}
+
 void Camera::update(float dt)
 {
 #if 1

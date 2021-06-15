@@ -11,32 +11,10 @@ class TerrainExample : public ExampleBase
 public:
 	TerrainExample() : ExampleBase(1920, 1055)
 	{
-		std::string vertexCode = load_file("spirv/main.vert.spv");
-		ASSERT(vertexCode.size() % 4 == 0);
-		std::string fragmentCode = load_file("spirv/main.frag.spv");
-		ASSERT(fragmentCode.size() % 4 == 0);
-
-		PipelineDescription pipelineDesc = {};
-		ShaderDescription shaderDescription[2] = {};
-		shaderDescription[0].shaderStage = ShaderStage::Vertex;
-		shaderDescription[0].code = vertexCode;
-		shaderDescription[0].sizeInByte = static_cast<uint32_t>(vertexCode.size());
-		shaderDescription[1].shaderStage = ShaderStage::Fragment;
-		shaderDescription[1].code = fragmentCode;
-		shaderDescription[1].sizeInByte = static_cast<uint32_t>(fragmentCode.size());
-		pipelineDesc.shaderStageCount = 2;
-		pipelineDesc.shaderStages = shaderDescription;
-		pipelineDesc.renderPass = m_context->get_global_renderpass();
-		pipelineDesc.rasterizationState.depthTestFunction = CompareOp::LessOrEqual;
-		pipelineDesc.rasterizationState.enableDepthTest = true;
-		pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
-		pipelineDesc.rasterizationState.topology = Topology::Triangle;
-		pipeline = Device::create_pipeline(pipelineDesc);
-
 		scene = std::make_shared<Scene>("TerrainExample", m_context);
 		water = CreateRef<Water>(m_context);
 		scene->set_water(water);
-#if 0
+#if 1
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
@@ -99,7 +77,6 @@ public:
 		m_context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
-		m_context->set_pipeline(pipeline);
 		scene->render(m_context);
 		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
@@ -152,11 +129,9 @@ public:
 		terrain->destroy();
 		water->destroy();
 		scene->destroy();
-		Device::destroy_pipeline(pipeline);
 	}
 
 private:
-	Pipeline* pipeline;
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
 	Ref<Terrain> terrain;

@@ -48,9 +48,10 @@ void NormalMapGenerator::destroy()
 void NormalMapGenerator::generate(Context* context)
 {
 	context->transition_layout_for_compute_read(&m_normalTexture, 1);
+	context->update_pipeline(m_pipeline, &m_bindings, 1);
 	context->set_pipeline(m_pipeline);
 
 	context->set_uniform(ShaderStage::Compute, 0, sizeof(glm::vec2), &m_invResolution);
-	context->set_shader_bindings(&m_bindings, 1);
+
 	context->dispatch_compute(m_N / 16, m_N/ 16, 1);
 }

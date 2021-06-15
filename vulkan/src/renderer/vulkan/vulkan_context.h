@@ -35,7 +35,7 @@ public:
 	void copy(Texture* texture, void* data, uint32_t sizeInByte);
 
 
-	void set_shader_bindings(ShaderBindings** bindings, uint32_t count) override;
+	void update_pipeline(Pipeline* pipeline, ShaderBindings** bindings, uint32_t count) override;
 	void set_buffer(VertexBuffer* buffer, uint32_t offset) override;
 	void set_buffer(IndexBuffer* buffer, uint32_t offset) override;
 

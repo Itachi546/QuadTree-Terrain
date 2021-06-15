@@ -24,7 +24,12 @@ public:
 	void destroy_entity(Entity* entity);
 	void update(Context* context, float dt);
 	void prepass(Context* context);
+
 	void render(Context* context);
+
+	// modelMatrixOffset is offset to the model matrix in push constant
+	void render_entities(Context* context, Ref<Camera> camera, uint32_t modelMatrixOffset);
+
 	void destroy();
 
 	void set_camera(Ref<Camera> camera);
@@ -62,6 +67,7 @@ private:
 	ShaderBindings* m_uniformBindings = nullptr;
 	UniformBuffer* m_uniformBuffer = nullptr;
 	UniformBuffer* m_lightUniformBuffer = nullptr;
+	Pipeline* m_pipeline;
 
 	std::string m_name;
 	std::vector<Entity*> m_entities;
@@ -86,5 +92,5 @@ private:
 
 	void render_ui();
 
-	void _render(Context* context);
+
 };

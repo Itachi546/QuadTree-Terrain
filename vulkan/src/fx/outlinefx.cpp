@@ -95,9 +95,9 @@ void OutlineFX::render(Context* context, std::vector<Entity*> entities, ShaderBi
 {
 	context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 	context->begin_renderpass(m_renderpass, m_prepassAttachment);
-	context->set_pipeline(m_prepassPipeline);
 	ShaderBindings* bindingArr[] = { globalBindings };
-	context->set_shader_bindings(bindingArr, 1);
+	context->update_pipeline(m_prepassPipeline, bindingArr, 1);
+	context->set_pipeline(m_prepassPipeline);
 	for (Entity* entity : entities)
 	{
 		glm::mat4 model = entity->transform->get_mat4();
@@ -118,10 +118,12 @@ void OutlineFX::render(Context* context, std::vector<Entity*> entities, ShaderBi
 
 	context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 	context->begin_renderpass(m_renderpass, m_outlineAttachment);
+	context->update_pipeline(m_outlinePipeline, &m_bindings, 1);
+
 	context->set_pipeline(m_outlinePipeline);
 	glm::vec2 inv_resolution = glm::vec2(1.0f / float(m_width), 1.0f / float(m_height));
 	context->set_uniform(ShaderStage::Fragment, 0, sizeof(glm::vec2), &inv_resolution);
-	context->set_shader_bindings(&m_bindings, 1);
+
 	context->draw(6);
 	context->end_renderpass();
 

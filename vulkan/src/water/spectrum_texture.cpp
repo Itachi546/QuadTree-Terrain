@@ -26,8 +26,9 @@ void SpectrumTexture::create_spectrum_texture(Context* context, Ref<WaterPropert
 	context->begin_compute();
 	context->transition_layout_for_compute_read(textures.data(), static_cast<uint32_t>(textures.size()));
 
+	context->update_pipeline(m_spectrumPipeline,&m_spectrumBindings, 1);
 	context->set_pipeline(m_spectrumPipeline);
-	context->set_shader_bindings(&m_spectrumBindings, 1);
+
 	context->set_uniform(ShaderStage::Compute, 0, sizeof(WaterProperties), props.get());
 
 	int numWorkGroup = props->dimension / 32;
@@ -115,8 +116,9 @@ void SpectrumTexture::create_hdt_texture(Context* context, float elapsedTime, ui
 {
 	Texture* textures[] = { m_pingpongTexture0, m_pingpongTexture1 };
 	context->transition_layout_for_compute_read(textures, ARRAYSIZE(textures));
+	context->update_pipeline(m_hdtPipeline, &m_hdtBindings, 1);
 	context->set_pipeline(m_hdtPipeline);
-	context->set_shader_bindings(&m_hdtBindings, 1);
+
 
 	context->set_uniform(ShaderStage::Compute, 0, sizeof(float), &elapsedTime);
 	context->set_uniform(ShaderStage::Compute, sizeof(float), sizeof(int), &L);

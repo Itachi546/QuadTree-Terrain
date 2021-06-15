@@ -10,6 +10,7 @@
 #include "imgui/imgui.h"
 #include "renderer/context.h"
 #include <vector>
+#include <fstream>
 
 class ExampleBase
 {
@@ -28,6 +29,7 @@ public:
 
 		physicsSystem = CreateRef<PhysicsSystem>();
 		physicsSystem->init();
+
 	}
 
 	void run()
@@ -45,6 +47,12 @@ public:
 		DebugDraw::destroy();
 		Device::destroy_context(m_context);
 		Device::destroy_window(m_window);
+
+#ifdef _DEBUG
+		std::ofstream outfile("profile.txt", std::ios::app);
+		if (outfile)
+			outfile << "frameTime: " << m_average * 1000.0f << "\n";
+#endif
 	}
 
 protected:
@@ -78,6 +86,9 @@ protected:
 			m_dt = m_elapsedTime / float(m_frameCount);
 			m_elapsedTime = 0.0f;
 			m_frameCount = 0;
+#ifdef _DEBUG
+			m_average = (m_average + m_dt) * 0.5f;
+#endif
 		}
 
 	}
@@ -85,6 +96,7 @@ protected:
 
 	GraphicsWindow* m_window;
 	Context* m_context;
+
 	float angle = 0.0f;
 	Ref<PhysicsSystem> physicsSystem;
 
@@ -95,5 +107,7 @@ protected:
 	float m_dt = 1.0f / 60.0f;
 	int m_frameCount = 0;
 	int m_lastFPS = 60;
+
+	float m_average = 1.0f / 60.0f;
 };
 

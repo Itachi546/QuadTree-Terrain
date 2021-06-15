@@ -51,7 +51,7 @@ public:
 	virtual void transition_layout_for_shader_read(Texture** texture, uint32_t count) = 0;
 	virtual void transition_layout_for_compute_read(Texture** texture, uint32_t count) = 0;
 
-	virtual void set_shader_bindings(ShaderBindings** shaderBindings, uint32_t count) = 0;
+	virtual void update_pipeline(Pipeline* pipeline, ShaderBindings** shaderBindings, uint32_t count) = 0;
 	virtual void set_uniform(ShaderStage shaderStage, uint32_t offset, uint32_t size, void* data) = 0;
 	virtual void set_line_width(float width) = 0;
 	// Always call before set RenderPass

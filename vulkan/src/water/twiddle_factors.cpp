@@ -103,8 +103,9 @@ void TwiddleFactors::create_twiddle_texture(Context* context, Pipeline* pipeline
 {
 	context->begin_compute();
 	context->transition_layout_for_compute_read(&m_twiddleTexture, 1);
+	context->update_pipeline(pipeline, &bindings, 1);
 	context->set_pipeline(pipeline);
-	context->set_shader_bindings(&bindings, 1);
+
 	context->dispatch_compute(static_cast<int>(std::log2(N)), N / 16, 1);
 	context->end_compute();
 }

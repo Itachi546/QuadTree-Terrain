@@ -24,8 +24,9 @@ ButterflyOperation::ButterflyOperation(Context* context, unsigned int size)
 void ButterflyOperation::update(Context* context, ShaderBindings* bindings, unsigned int N)
 {
 	int stages = static_cast<int>(std::log2(N));
+	context->update_pipeline(m_pipeline, &bindings, 1);
 	context->set_pipeline(m_pipeline);
-	context->set_shader_bindings(&bindings, 1);
+
 
 	for (int stage = 0; stage < stages; ++stage)
 	{

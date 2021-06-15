@@ -10,10 +10,10 @@ layout(location = 1) out vec3 viewSpacePosition;
 
 layout(push_constant) uniform block
 {
+   mat4 model;
    mat4 P;
    mat4 V;
    vec4 clipPlane;
-   mat4 model;
 };
 
 

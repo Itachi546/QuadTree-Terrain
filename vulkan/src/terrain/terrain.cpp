@@ -106,8 +106,8 @@ void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** unif
 {
 	if (!depthPass)
 	{
+		context->update_pipeline(m_activePipeline, uniformBindings, count);
 		context->set_pipeline(m_activePipeline);
-		context->set_shader_bindings(uniformBindings, count);
 
 		glm::mat4 model = glm::mat4(1.0f);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);

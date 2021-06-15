@@ -8,6 +8,7 @@
 #include "terrain/terrain.h"
 #include "water/water.h"
 #include "core/frustum.h"
+#include "common/common.h"
 
 #include "imgui/imgui.h"
 
@@ -43,6 +44,28 @@ Scene::Scene(std::string name, Context* context) : m_name(name)
 	m_lightBindings->set_buffer(m_lightUniformBuffer, 1);
 
 	m_sunLightShadowCascade = CreateRef<ShadowCascade>(lightDir);
+
+	std::string vertexCode = load_file("spirv/main.vert.spv");
+	ASSERT(vertexCode.size() % 4 == 0);
+	std::string fragmentCode = load_file("spirv/main.frag.spv");
+	ASSERT(fragmentCode.size() % 4 == 0);
+
+	PipelineDescription pipelineDesc = {};
+	ShaderDescription shaderDescription[2] = {};
+	shaderDescription[0].shaderStage = ShaderStage::Vertex;
+	shaderDescription[0].code = vertexCode;
+	shaderDescription[0].sizeInByte = static_cast<uint32_t>(vertexCode.size());
+	shaderDescription[1].shaderStage = ShaderStage::Fragment;
+	shaderDescription[1].code = fragmentCode;
+	shaderDescription[1].sizeInByte = static_cast<uint32_t>(fragmentCode.size());
+	pipelineDesc.shaderStageCount = 2;
+	pipelineDesc.shaderStages = shaderDescription;
+	pipelineDesc.renderPass = context->get_global_renderpass();
+	pipelineDesc.rasterizationState.depthTestFunction = CompareOp::LessOrEqual;
+	pipelineDesc.rasterizationState.enableDepthTest = true;
+	pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
+	pipelineDesc.rasterizationState.topology = Topology::Triangle;
+	m_pipeline = Device::create_pipeline(pipelineDesc);
 }
 
 Entity* Scene::create_entity(std::string name)
@@ -94,8 +117,9 @@ void Scene::render(Context* context)
 	bindings[1] = m_lightBindings;
 	bindings[2] = m_sunLightShadowCascade->get_depth_bindings();
 	uint32_t bindingCount = ARRAYSIZE(bindings);
-	context->set_shader_bindings(bindings, bindingCount);
-	_render(context);
+	context->update_pipeline(m_pipeline, bindings, bindingCount);
+	context->set_pipeline(m_pipeline);
+	render_entities(context, m_camera, 0);
 
 	if (m_terrain)
 		m_terrain->render(context, m_camera, bindings, bindingCount);
@@ -104,9 +128,9 @@ void Scene::render(Context* context)
 
 }
 
-void Scene::_render(Context* context)
+void Scene::render_entities(Context* context, Ref<Camera> camera, uint32_t modelMatrixOffset)
 {
-	Ref<Frustum> frustum = m_camera->get_frustum();
+	Ref<Frustum> frustum = camera->get_frustum();
 	for (auto& entity : m_entities)
 	{
 		Ref<Transform> transform = entity->transform;
@@ -124,7 +148,7 @@ void Scene::_render(Context* context)
 
 			context->set_buffer(mesh->vb->buffer, mesh->vb->offset);
 			context->set_buffer(mesh->ib->buffer, mesh->ib->offset);
-			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
+			context->set_uniform(ShaderStage::Vertex, modelMatrixOffset, sizeof(mat4), &model[0][0]);
 			context->draw_indexed(mesh->get_indices_count());
 		}
 	}
@@ -141,6 +165,7 @@ void Scene::destroy()
 	m_entities.clear();
 	Device::destroy_buffer(m_uniformBuffer);
 	Device::destroy_buffer(m_lightUniformBuffer);
+	Device::destroy_pipeline(m_pipeline);
 }
 
 void Scene::set_camera(Ref<Camera> camera)
