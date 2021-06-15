@@ -5,8 +5,8 @@
 layout(location = 0) in vec3 position;
 
 layout(location = 0) out vec3 vnormal;
-layout(location = 1) out vec3 worldSpacePosition;
-layout(location = 2) out vec3 viewSpacePosition;
+layout(location = 1) out vec3 viewDirection;
+layout(location = 2) out vec4 clipSpacePosition;
 
 layout(set = 0, binding = 0) uniform GlobalState
 {
@@ -16,7 +16,8 @@ layout(set = 0, binding = 0) uniform GlobalState
 
 layout(push_constant) uniform block
 {
-    vec3 translate;
+    vec4 translate;
+    vec4 cameraPosition;
 };
 
 layout(binding = 2) uniform sampler2D displacementMap;
@@ -30,9 +31,9 @@ void main()
     float height = texture(displacementMap, uv).r;
     vec4 worldSpace = vec4(position.x + translate.x, height + translate.y, position.z + translate.z, 1.0);
     vec4 camSpace = globalState.view * worldSpace;
-    gl_Position = globalState.projection * camSpace;
+    clipSpacePosition = globalState.projection * camSpace;
+    gl_Position = clipSpacePosition;
 
     vnormal = texture(normalMap, uv).rgb;
-    worldSpacePosition = worldSpace.xyz;
-    viewSpacePosition = camSpace.xyz;
+    viewDirection = cameraPosition.xyz - worldSpace.xyz;
 }

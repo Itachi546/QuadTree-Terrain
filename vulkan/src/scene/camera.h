@@ -22,6 +22,11 @@ public:
 		m_targetPosition = p;
 	}
 
+	glm::vec3 get_rotation()
+	{
+		return m_rotation;
+	}
+
 	void set_height(float h)
 	{
 		m_targetPosition.y = h;

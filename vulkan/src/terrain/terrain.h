@@ -21,7 +21,6 @@ class Terrain
 
 public:
 	Terrain(Context* context, Ref<TerrainStream> stream);
-
 	// Binary search method
 	// @TODO works for now but need improvement
 	// doesn't work properly in steep slope
@@ -31,6 +30,7 @@ public:
 	void update(Context* context, Ref<Camera> camera);
 
 	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, bool depthPass = false);
+	void render_no_renderpass(Context* context, Ref<Camera> camera);
 	void destroy();
 private:
 	Pipeline* m_pipeline;

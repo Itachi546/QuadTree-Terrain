@@ -510,6 +510,10 @@
     <CustomBuild Include="shaders\water\water.vert" />
     <CustomBuild Include="shaders\debug\edge_detection.vert" />
     <CustomBuild Include="shaders\water\normalmap.comp" />
+    <CustomBuild Include="shaders\water\water_offscreen.frag" />
+    <CustomBuild Include="shaders\water\water_offscreen.vert" />
+    <CustomBuild Include="shaders\water\water_offscreen_terrain.frag" />
+    <CustomBuild Include="shaders\water\water_offscreen_terrain.vert" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

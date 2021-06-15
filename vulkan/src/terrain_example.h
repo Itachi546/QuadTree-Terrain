@@ -34,8 +34,9 @@ public:
 		pipeline = Device::create_pipeline(pipelineDesc);
 
 		scene = std::make_shared<Scene>("TerrainExample", m_context);
-
-#if 1
+		water = CreateRef<Water>(m_context);
+		scene->set_water(water);
+#if 0
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
@@ -45,23 +46,22 @@ public:
 		float* buffer = new float[bufferSize];
 		inFile.read(reinterpret_cast<char*>(buffer), bufferSize * sizeof(float));
 		Ref<TerrainStream> stream = CreateRef<TerrainStream>(buffer, size[0], size[1]);
+		uint32_t width = stream->get_width();
+		uint32_t height = stream->get_height();
+		water->set_translation(glm::vec3(width * 0.5f, -180.0f, height * 0.5f));
 #else	
 		Ref<TerrainStream> stream = CreateRef<TerrainStream>("assets/heightmap.png");
+		uint32_t width = stream->get_width();
+		uint32_t height = stream->get_height();
+		water->set_translation(glm::vec3(width * 0.5f, -50.0f, height * 0.5f));
 #endif
 		terrain = CreateRef<Terrain>(m_context, stream);
 		scene->set_terrain(terrain);
-
-		uint32_t width = stream->get_width();
-		uint32_t height = stream->get_height();
-
-		water = CreateRef<Water>(m_context);
-		water->set_translation(glm::vec3(0.0f, -140.0f, 0));
-		scene->set_water(water);
-
 		cube = scene->create_cube();
 
-		float h = 5.0f + terrain->get_height(glm::vec3(width * 0.75f, 0.0f, height * 0.75f));
-		cube->transform->position = glm::vec3(width * 0.65f, h, height * 0.65f);
+		glm::vec3 cubePosition = glm::vec3(width * 0.68f, 0.0f, height * 0.55f);
+		float h = 40.0f + terrain->get_height(cubePosition);
+		cube->transform->position = glm::vec3(cubePosition.x, h, cubePosition.z);
 		cube->transform->scale *= glm::vec3(5.0f, 10.0f, 5.0f);
 
 		camera = CreateRef<Camera>();

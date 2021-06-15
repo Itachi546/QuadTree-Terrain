@@ -12,16 +12,22 @@ class TwiddleFactors;
 class ButterflyOperation;
 class Inversion;
 class NormalMapGenerator;
+class RenderPass;
+class Framebuffer;
+class Camera;
 
 class WaterRenderer;
 struct WaterProperties;
+class Scene;
 
 class Water
 {
 public:
 	Water(Context* context);
 	void update(Context* context, float dt);
-	void render(Context* context, ShaderBindings** uniformBindings, uint32_t count);
+	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, uint32_t count);
+	void prepass(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count);
+
 
 	void set_translation(glm::vec3 translate) { m_translate = translate; }
 	void destroy();
@@ -35,10 +41,34 @@ private:
 	Ref<Inversion> m_inversion;
 	Ref<ButterflyOperation> m_fft;
 	Ref<WaterRenderer> m_renderer;
-	Ref<NormalMapGenerator> m_normaMapGenerator;
+	ShaderBindings* m_rendererBindings;
 
+	Ref<NormalMapGenerator> m_normaMapGenerator;
 	Ref<WaterProperties> m_properties;
 	ShaderBindings* m_fftBindings;
 
 	glm::vec3 m_translate = glm::vec3(0.0f);
+
+	RenderPass* m_renderPass;
+	Framebuffer* m_reflectionFB;
+	Framebuffer* m_refractionFB;
+
+	Pipeline* m_offscreenReflectionPipeline;
+	Pipeline* m_terrainReflectionPipeline;
+	// temp
+	Pipeline* m_offscreenRefractionPipeline;
+	Pipeline* m_terrainRefractionPipeline;
+
+
+	//Reflection and refraction texture size
+	const uint32_t OFFSCREEN_WIDTH = 512;
+	const uint32_t OFFSCREEN_HEIGHT = 512;
+
+	void create_renderpass(Context* context);
+	Framebuffer* create_framebuffer(Context* context);
+
+	Pipeline* create_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode);
+
+	void generate_reflection_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count);
+	void generate_refraction_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count);
 };

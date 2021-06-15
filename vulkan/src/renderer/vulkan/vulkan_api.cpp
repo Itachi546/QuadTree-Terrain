@@ -132,6 +132,7 @@ VkDevice VulkanAPI::create_device(VkInstance instance, VkPhysicalDevice physical
 
 	VkPhysicalDeviceFeatures features = {};
 	features.fillModeNonSolid = true;
+	features.shaderClipDistance = true;
 	features.wideLines = true;
 	createInfo.pEnabledFeatures = &features;
 

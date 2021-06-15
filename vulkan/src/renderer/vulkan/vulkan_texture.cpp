@@ -57,7 +57,10 @@ VulkanTexture::VulkanTexture(std::shared_ptr<VulkanAPI> api, const TextureDescri
 	}
 
 	if (desc.flags & TextureFlag::Sampler)
+	{
 		usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		ASSERT_MSG(desc.sampler != nullptr, "Failed to set sampler description");
+	}
 	if (desc.flags & TextureFlag::TransferDst)
 		usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (desc.flags & TextureFlag::TransferSrc)

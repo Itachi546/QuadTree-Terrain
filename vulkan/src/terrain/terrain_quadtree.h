@@ -24,6 +24,8 @@ public:
 	void update(Context* context, Ref<Camera> camera);
 	void render(Context* context, Ref<Camera> camera);
 	void destroy();
+
+	std::vector<TerrainChunk*>& get_visible_list() { return m_visibleList; }
 private:
 	std::vector<Node> m_nodes;
 	uint32_t m_depth;
@@ -32,6 +34,8 @@ private:
 	uint64_t m_frameIndex = 0;
 	Ref<TerrainChunkManager> manager;
 	Ref<TerrainStream> m_stream;
+
+	std::vector<TerrainChunk*> m_visibleList;
 
 	void _update(Context* context, Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth);
 	void _get_visible_list(Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth, std::vector<TerrainChunk*>& chunks);

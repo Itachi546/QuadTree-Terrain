@@ -17,11 +17,11 @@ void create_grid_mesh(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& i
 
 	for (int z = 0; z < VERTEX_COUNT; ++z)
 	{
-		float fz = z * m * height;
+		float fz = z * m * height - height * 0.5f;
 		
 		for (int x = 0; x < VERTEX_COUNT; ++x)
 		{
-			float fx = x * m * width;
+			float fx = x * m * width - width * 0.5f;
 			vertices.emplace_back(fx, 0.0f, fz);
 		}
 	}
@@ -47,7 +47,7 @@ void create_grid_mesh(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& i
 }
 	
 
-WaterRenderer::WaterRenderer(Context* context, Texture* displacementTexture, Texture* normalMapTexture)
+WaterRenderer::WaterRenderer(Context* context)
 {
 	{
 		std::string vertexCode = load_file("spirv/water.vert.spv");
@@ -71,16 +71,13 @@ WaterRenderer::WaterRenderer(Context* context, Texture* displacementTexture, Tex
 		pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
 		pipelineDesc.rasterizationState.polygonMode = PolygonMode::Fill;
 		pipelineDesc.rasterizationState.topology = Topology::Triangle;
+		pipelineDesc.blendState.enable = true;
 		m_pipeline = Device::create_pipeline(pipelineDesc);
-
-		m_bindings = Device::create_shader_bindings();
-		m_bindings->set_texture_sampler(displacementTexture, 2);
-		m_bindings->set_texture_sampler(normalMapTexture, 3);
 	}
 
 	std::vector<glm::vec3> vertices;
 	std::vector<uint32_t> indices;
-	create_grid_mesh(vertices, indices, 256, 256);
+	create_grid_mesh(vertices, indices, 2048, 2048);
 
 	uint32_t sizeofVertexData = static_cast<uint32_t>(vertices.size()) * sizeof(glm::vec3);
 	m_vbo = Device::create_vertexbuffer(BufferUsageHint::StaticDraw, sizeofVertexData);
@@ -92,16 +89,14 @@ WaterRenderer::WaterRenderer(Context* context, Texture* displacementTexture, Tex
 	m_indicesCount = static_cast<uint32_t>(indices.size());
 }
 
-void WaterRenderer::render(Context* context, ShaderBindings** uniformBindings, glm::vec3 translate, uint32_t count)
+void WaterRenderer::render(Context* context, ShaderBindings** uniformBindings, glm::vec3 cameraPos, glm::vec3 translate, uint32_t count)
 {
-	std::vector<ShaderBindings*> bindings;
-	for (uint32_t i = 0; i < count; ++i)
-		bindings.push_back(*(uniformBindings + i));
-	bindings.push_back(m_bindings);
 
 	context->set_pipeline(m_pipeline);
-	context->set_shader_bindings(bindings.data(), static_cast<uint32_t>(bindings.size()));
-	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::vec3), &translate);
+	context->set_shader_bindings(uniformBindings, count);
+	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::vec4), &translate);
+	context->set_uniform(ShaderStage::Vertex, sizeof(glm::vec4), sizeof(glm::vec3), &cameraPos);
+
 	context->set_buffer(m_vbo, 0);
 	context->set_buffer(m_ibo, 0);
 	context->draw_indexed(m_indicesCount);
@@ -112,5 +107,4 @@ void WaterRenderer::destroy()
 	Device::destroy_buffer(m_vbo);
 	Device::destroy_buffer(m_ibo);
 	Device::destroy_pipeline(m_pipeline);
-	Device::destroy_shader_bindings(m_bindings);
 }

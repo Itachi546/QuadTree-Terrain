@@ -36,9 +36,9 @@ public:
 		water = CreateRef<Water>(m_context);
 		scene->set_water(water);
 
-		//Entity* plane = scene->create_plane();
-		//plane->transform->position.y -= 0.5f;
-		//plane->transform->scale = glm::vec3(10.0f);
+		cube = scene->create_cube();
+		cube->transform->position = glm::vec3(128.0f, 8.0f, 120.0f);
+		cube->transform->scale = glm::vec3(4.0f);
 
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
@@ -49,6 +49,9 @@ public:
 
 	void update(float dt) override
 	{
+		static float angle = 0.0f;
+		angle += dt;
+		cube->transform->set_rotation(glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f)), angle);
 		handle_input(dt);
 		scene->update(m_context, dt);
 		water->update(m_context, dt);
@@ -56,6 +59,7 @@ public:
 
 	void render() override
 	{
+
 		m_context->begin();
 		scene->prepass(m_context);
 

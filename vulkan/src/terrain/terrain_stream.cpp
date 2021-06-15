@@ -25,6 +25,30 @@ TerrainStream::TerrainStream(const char* filename)
 	stbi_image_free(buffer);
 }
 
+/*
+float ridge(float h, float offset) 
+{
+	h = abs(h);
+	h = offset - h;
+	h = h * h;
+	return h;
+}
+
+float ridgedmf(vec3 p, int noctaves, float lac, float g, float off) {
+	float sum = 0;
+	float freq = 0.5, amp = .75;
+	float prev = 0.25;
+	for (int i = 0; i < noctaves; i++) {
+		float n = ridge(inoise(p * freq), off);
+		sum += n * amp * prev;
+		prev = n;
+		freq *= lac;
+		amp *= g;
+	}
+	return (sum - 0.5) * heightScale;
+}
+*/
+
 float fbm(siv::PerlinNoise* noise, int x, int y, const PerlinGenerator& generator)
 {
 	double total = 0.0;

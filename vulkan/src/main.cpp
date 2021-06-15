@@ -24,7 +24,7 @@ int main()
 	Register("GizmoExample", CreateGizmoExampleFn);
 	Register("TerrainExample", CreateTerrainExampleFn);
 	Register("WaterExample", CreateWaterExampleFn);
-	ExampleBase* example = GetExample("WaterExample");
+	ExampleBase* example = GetExample("TerrainExample");
 	if (example)
 	{
 		example->run();

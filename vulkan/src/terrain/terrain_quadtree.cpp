@@ -14,19 +14,20 @@ QuadTree::QuadTree(Context* context, Ref<TerrainStream> stream, uint32_t depth, 
 
 	int n = static_cast<int>(std::pow(4, depth + 1)) / 3;
 	m_nodes.resize(n);
-	manager = CreateRef<TerrainChunkManager>(context, 100);
+	manager = CreateRef<TerrainChunkManager>(context, 150);
 }
 
 void QuadTree::update(Context* context, Ref<Camera> camera)
 {
 	m_frameIndex++;
+	m_visibleList.clear();
 	_update(context, camera, glm::ivec2(m_size / 2), 0, 0);
 	manager->update(context, m_stream, glm::ivec3(m_size, m_maxHeight, m_size));
 }
 
 bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Camera> camera)
 {
-	const glm::vec3& camPos = camera->get_position();
+	glm::vec3 camPos = camera->get_position();
 	glm::ivec2 min = position - size;
 	glm::ivec2 max = position + size;
 	BoundingBox box = { glm::vec3(min.x, -m_maxHeight, min.y), glm::vec3(max.x, m_maxHeight, max.y) };
@@ -34,7 +35,7 @@ bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Cam
 	if (camera->get_frustum()->intersect_box(box))
 	{
 		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camPos);
-		if (distance < size.x * 2.0f)
+		if (distance < size.x * 4.0f)
 			return true;
 		return false;
 	}
@@ -101,29 +102,31 @@ void draw_quad(const glm::ivec2& min_size, const glm::ivec2& max_size)
 void QuadTree::render(Context* context, Ref<Camera> camera)
 {
 	m_totalChunkRendered = 0;
-	std::vector<TerrainChunk*> chunks;
-	_get_visible_list(camera, glm::ivec2(m_size / 2), 0, 0, chunks);
-
-	// Sort from front to back
 	glm::vec3 camPos = camera->get_position();
-	std::sort(chunks.begin(), chunks.end(), [&](const TerrainChunk* lhs, const TerrainChunk* rhs) 
-		{
-			glm::ivec2 c1 = lhs->get_center();
-			glm::ivec2 c2 = rhs->get_center();
-			return glm::distance2(glm::vec3(c1.x, 0.0f, c1.y), camPos) < glm::distance2(glm::vec3(c2.x, 0.0f, c2.y), camPos);
-		});
+	if (m_visibleList.size() == 0)
+	{
+		_get_visible_list(camera, glm::ivec2(m_size / 2), 0, 0, m_visibleList);
+		// Sort from front to back
 
+		std::sort(m_visibleList.begin(), m_visibleList.end(), [&](const TerrainChunk* lhs, const TerrainChunk* rhs)
+			{
+				glm::ivec2 c1 = lhs->get_center();
+				glm::ivec2 c2 = rhs->get_center();
+				return glm::distance2(glm::vec3(c1.x, 0.0f, c1.y), camPos) < glm::distance2(glm::vec3(c2.x, 0.0f, c2.y), camPos);
+			});
+	}
 
 	uint32_t indexCount = manager->indexCount;
 	context->set_buffer(manager->ib, 0);
 	
-	for (auto chunk : chunks)
+	for (auto chunk : m_visibleList)
 	{
 		glm::ivec2 center = chunk->get_center();
 		glm::ivec2 size = chunk->get_max() - chunk->get_min();
 
 
 		float morphFactor = 1.0f;
+		/*
 		if (chunk->get_lod_level() > 0)
 		{
 			float transitionRegionWidth = 0.2f * size.x;
@@ -132,7 +135,8 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 			dist /= transitionRegionWidth;
 			morphFactor = 1.0f - glm::clamp(dist * 0.5f + 0.5f, 0.0f, 1.0f);
 		}
-		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4) + sizeof(glm::vec4), sizeof(float), &morphFactor);
+		*/
+		//context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4) + sizeof(glm::vec4), sizeof(float), &morphFactor);
 
 		Ref<VertexBufferView> vb = chunk->vb;
 		context->set_buffer(vb->buffer, vb->offset);

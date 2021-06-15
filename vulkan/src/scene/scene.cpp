@@ -80,12 +80,15 @@ void Scene::update(Context* context, float dt)
 void Scene::prepass(Context* context)
 {
 	m_sunLightShadowCascade->render(context, this, m_sun->cast_shadow());
+	if (m_water)
+	{
+		m_water->prepass(context, this, &m_lightBindings, 1);
+	}
 }
 
 void Scene::render(Context* context)
 {
 	render_ui();
-
 	ShaderBindings* bindings[3];
 	bindings[0] = m_uniformBindings;
 	bindings[1] = m_lightBindings;
@@ -97,7 +100,7 @@ void Scene::render(Context* context)
 	if (m_terrain)
 		m_terrain->render(context, m_camera, bindings, bindingCount);
 	if (m_water)
-		m_water->render(context, bindings, bindingCount);
+		m_water->render(context, m_camera, bindings, 2);
 
 }
 

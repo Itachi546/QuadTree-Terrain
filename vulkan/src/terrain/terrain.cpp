@@ -116,6 +116,11 @@ void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** unif
 	m_quadTree->render(context, camera);
 }
 
+void Terrain::render_no_renderpass(Context* context, Ref<Camera> camera)
+{
+	m_quadTree->render(context, camera);
+}
+
 void Terrain::destroy()
 {
 	m_quadTree->destroy();
