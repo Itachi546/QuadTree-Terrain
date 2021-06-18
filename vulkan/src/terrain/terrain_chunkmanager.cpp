@@ -56,8 +56,8 @@ TerrainChunkManager::TerrainChunkManager(Context* context, uint32_t poolSize)  :
 {
 	m_chunkPool.resize(POOL_SIZE);
 
-	uint32_t chunkVBSize = (m_vertexCount + 3) * (m_vertexCount + 3) * sizeof(VertexP4N3_Float);
-	m_vb = Device::create_vertexbuffer(BufferUsageHint::StaticDraw, chunkVBSize * POOL_SIZE);
+	uint32_t chunkVBSize = (m_vertexCount + 3) * (m_vertexCount + 3) * sizeof(VertexP4N1_Float);
+	this->vb = Device::create_vertexbuffer(BufferUsageHint::StaticDraw, chunkVBSize * POOL_SIZE);
 
 	uint32_t chunkIndexSize = (m_vertexCount + 2) * (m_vertexCount + 2) * 6 * sizeof(uint32_t);
 	ib = Device::create_indexbuffer(BufferUsageHint::StaticDraw, IndexType::UnsignedInt, chunkIndexSize);
@@ -66,7 +66,7 @@ TerrainChunkManager::TerrainChunkManager(Context* context, uint32_t poolSize)  :
 	for (uint32_t i = 0; i < POOL_SIZE; ++i)
 	{
 		Ref<VertexBufferView> vb = CreateRef<VertexBufferView>();
-		vb->buffer = m_vb;
+		vb->buffer = this->vb;
 		vb->offset = i * chunkVBSize;
 		vb->size = chunkVBSize;
 		m_chunkPool[i] = new TerrainChunk(vb);
@@ -96,7 +96,7 @@ void TerrainChunkManager::destroy()
 	for (auto& pool : m_chunkPool)
 		delete pool;
 
-	Device::destroy_buffer(m_vb);
+	Device::destroy_buffer(vb);
 	Device::destroy_buffer(ib);
 	m_chunkPool.clear();
 }

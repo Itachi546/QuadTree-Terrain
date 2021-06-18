@@ -53,11 +53,9 @@ private:
 	Framebuffer* m_reflectionFB;
 	Framebuffer* m_refractionFB;
 
-	Pipeline* m_offscreenReflectionPipeline;
-	Pipeline* m_terrainReflectionPipeline;
+	Pipeline* m_offscreenMeshPipeline;
+	Pipeline* m_offscreenTerrainPipeline;
 	// temp
-	Pipeline* m_offscreenRefractionPipeline;
-	Pipeline* m_terrainRefractionPipeline;
 
 
 	//Reflection and refraction texture size
@@ -69,6 +67,6 @@ private:
 
 	Pipeline* create_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode);
 
-	void generate_reflection_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count);
-	void generate_refraction_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count);
+	void generate_reflection_texture(Context* context, Scene* scene);
+	void generate_refraction_texture(Context* context, Scene* scene);
 };

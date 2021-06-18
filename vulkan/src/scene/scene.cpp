@@ -35,6 +35,7 @@ Scene::Scene(std::string name, Context* context) : m_name(name)
 	m_sun = CreateRef<DirectionalLight>(lightDir);
 	m_sun->set_light_color(glm::vec3(1.28f, 1.20f, 0.99f));
 	m_sun->set_cast_shadow(true);
+	m_sun->set_intensity(1.978f);
 
 	m_lightUniformBuffer = Device::create_uniformbuffer(BufferUsageHint::DynamicDraw, sizeof(LightData));
 	m_uniformBindings = Device::create_shader_bindings();

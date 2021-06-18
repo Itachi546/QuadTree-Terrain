@@ -9,8 +9,11 @@
 
 #include <vector>
 
+#define USE_DISPLACED_WATER 0
+
 void create_grid_mesh(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& indices, uint32_t width, uint32_t height)
 {
+#if USE_DISPLACED_WATER
 	// Terrain Width and height
 	int VERTEX_COUNT = width;
 	float m = 1.0f / float(VERTEX_COUNT);
@@ -44,17 +47,36 @@ void create_grid_mesh(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& i
 			indices.push_back(i1);
 		}
 	}
+#else
+	float hW = width * 0.5f;
+	float hH = height * 0.5f;
+	vertices.emplace_back(-hW, 0.0f, -hH);
+	vertices.emplace_back(-hW, 0.0f,  hH);
+	vertices.emplace_back( hW, 0.0f,  hH);
+	vertices.emplace_back( hW, 0.0f, -hH);
+
+	indices = {
+		2, 0, 1,
+		0, 2, 3
+	};
+#endif
 }
 	
 
 WaterRenderer::WaterRenderer(Context* context)
 {
 	{
+#if USE_DISPLACED_WATER
 		std::string vertexCode = load_file("spirv/water.vert.spv");
 		ASSERT(vertexCode.size() % 4 == 0);
 		std::string fragmentCode = load_file("spirv/water.frag.spv");
 		ASSERT(fragmentCode.size() % 4 == 0);
-
+#else
+		std::string vertexCode = load_file("spirv/water_nodisp.vert.spv");
+		ASSERT(vertexCode.size() % 4 == 0);
+		std::string fragmentCode = load_file("spirv/water_nodisp.frag.spv");
+		ASSERT(fragmentCode.size() % 4 == 0);
+#endif
 		PipelineDescription pipelineDesc = {};
 		ShaderDescription shaderDescription[2] = {};
 		shaderDescription[0].shaderStage = ShaderStage::Vertex;
@@ -77,7 +99,7 @@ WaterRenderer::WaterRenderer(Context* context)
 
 	std::vector<glm::vec3> vertices;
 	std::vector<uint32_t> indices;
-	create_grid_mesh(vertices, indices, 2048, 2048);
+	create_grid_mesh(vertices, indices, 4096, 4096);
 
 	uint32_t sizeofVertexData = static_cast<uint32_t>(vertices.size()) * sizeof(glm::vec3);
 	m_vbo = Device::create_vertexbuffer(BufferUsageHint::StaticDraw, sizeofVertexData);

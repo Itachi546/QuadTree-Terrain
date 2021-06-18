@@ -20,6 +20,22 @@
 #include "scene/mesh.h"
 #include "terrain/terrain.h"
 
+void Water::create_renderpass(Context* context)
+{
+	RenderPassDescription desc = {};
+
+	Attachment attachments[] = {
+		Attachment{0, Format::R8G8B8A8_Unorm, TextureType::Color2D},
+		Attachment{1, Format::D32Float, TextureType::DepthStencil}
+	};
+	desc.attachments = attachments;
+	desc.attachmentCount = ARRAYSIZE(attachments);
+	desc.width = OFFSCREEN_WIDTH;
+	desc.height = OFFSCREEN_HEIGHT;
+	m_renderPass = Device::create_renderpass(desc);
+}
+
+
 Framebuffer* Water::create_framebuffer(Context* context)
 {
 	FramebufferDescription desc = {};
@@ -105,16 +121,14 @@ Water::Water(Context* context)
 		ASSERT(vertexCode.size() % 4 == 0);
 		std::string fragmentCode = load_file("spirv/water_offscreen.frag.spv");
 		ASSERT(fragmentCode.size() % 4 == 0);
-		m_offscreenReflectionPipeline = create_pipeline(context, vertexCode, fragmentCode);
-		m_offscreenRefractionPipeline = create_pipeline(context, vertexCode, fragmentCode);
+		m_offscreenMeshPipeline = create_pipeline(context, vertexCode, fragmentCode);
 
 		vertexCode = load_file("spirv/water_offscreen_terrain.vert.spv");
 		ASSERT(vertexCode.size() % 4 == 0);
 		fragmentCode = load_file("spirv/water_offscreen_terrain.frag.spv");
 		ASSERT(fragmentCode.size() % 4 == 0);
 
-		m_terrainReflectionPipeline = create_pipeline(context, vertexCode, fragmentCode);
-		m_terrainRefractionPipeline = create_pipeline(context, vertexCode, fragmentCode);
+		m_offscreenTerrainPipeline = create_pipeline(context, vertexCode, fragmentCode);
 
 		m_reflectionFB = create_framebuffer(context);
 		m_refractionFB = create_framebuffer(context);
@@ -168,14 +182,17 @@ void Water::render(Context* context, Ref<Camera> camera, ShaderBindings** unifor
 
 void Water::prepass(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count)
 {
-	generate_reflection_texture(context, scene, bindings, count);
-	generate_refraction_texture(context, scene, bindings, count);
+	context->update_pipeline(m_offscreenMeshPipeline, bindings, count);
+	context->update_pipeline(m_offscreenTerrainPipeline, bindings, count);
+
+	generate_reflection_texture(context, scene);
+	generate_refraction_texture(context, scene);
 
 	Texture* textures[] = { m_reflectionFB->get_color_attachment(0), m_refractionFB->get_color_attachment(0), m_refractionFB->get_depth_attachment()};
 	context->transition_layout_for_shader_read(textures, ARRAYSIZE(textures));
 }
 
-void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count)
+void Water::generate_reflection_texture(Context* context, Scene* scene)
 {
 	Ref<Camera> camera = scene->get_camera();
 	glm::vec3 position = camera->get_position();
@@ -200,10 +217,8 @@ void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBi
 	context->set_clear_depth(1.0f);
 	context->begin_renderpass(m_renderPass, m_reflectionFB);
 
-	context->update_pipeline(m_offscreenReflectionPipeline, bindings, count);
-	context->set_pipeline(m_offscreenReflectionPipeline);
 
-
+	context->set_pipeline(m_offscreenMeshPipeline);
 	uint32_t uniformOffset = sizeof(glm::mat4);
 	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::mat4) * 2, &VP[0][0]);
 	uniformOffset += sizeof(glm::mat4) * 2;
@@ -217,8 +232,8 @@ void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBi
 	Ref<Terrain> terrain = scene->get_terrain();
 	if (scene->get_terrain())
 	{
-		context->update_pipeline(m_terrainReflectionPipeline, bindings, count);
-		context->set_pipeline(m_terrainReflectionPipeline);
+
+		context->set_pipeline(m_offscreenTerrainPipeline);
 		uint32_t uniformOffset = 0;
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
 		uniformOffset += sizeof(glm::mat4) * 2;
@@ -231,7 +246,7 @@ void Water::generate_reflection_texture(Context* context, Scene* scene, ShaderBi
 	context->end_renderpass();
 }
 
-void Water::generate_refraction_texture(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count)
+void Water::generate_refraction_texture(Context* context, Scene* scene)
 {
 	Ref<Camera> camera = scene->get_camera();
 
@@ -241,8 +256,7 @@ void Water::generate_refraction_texture(Context* context, Scene* scene, ShaderBi
 	context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 	context->set_clear_depth(1.0f);
 	context->begin_renderpass(m_renderPass, m_refractionFB);
-	context->update_pipeline(m_offscreenRefractionPipeline, bindings, count);
-	context->set_pipeline(m_offscreenRefractionPipeline);
+	context->set_pipeline(m_offscreenMeshPipeline);
 
 
 	uint32_t uniformOffset = sizeof(glm::mat4);
@@ -256,8 +270,7 @@ void Water::generate_refraction_texture(Context* context, Scene* scene, ShaderBi
 	Ref<Terrain> terrain = scene->get_terrain();
 	if (scene->get_terrain())
 	{
-		context->update_pipeline(m_terrainRefractionPipeline, bindings, count);
-		context->set_pipeline(m_terrainRefractionPipeline);
+		context->set_pipeline(m_offscreenTerrainPipeline);
 		uint32_t uniformOffset = 0;
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
 		uniformOffset += sizeof(glm::mat4) * 2;
@@ -268,21 +281,6 @@ void Water::generate_refraction_texture(Context* context, Scene* scene, ShaderBi
 		terrain->render_no_renderpass(context, camera);
 	}
 	context->end_renderpass();
-}
-
-void Water::create_renderpass(Context* context)
-{
-	RenderPassDescription desc = {};
-
-	Attachment attachments[] = {
-		Attachment{0, Format::R8G8B8A8_Unorm, TextureType::Color2D},
-		Attachment{1, Format::D32Float, TextureType::DepthStencil}
-	};
-	desc.attachments = attachments;
-	desc.attachmentCount = ARRAYSIZE(attachments);
-	desc.width = OFFSCREEN_WIDTH;
-	desc.height = OFFSCREEN_HEIGHT;
-	m_renderPass = Device::create_renderpass(desc);
 }
 
 void Water::destroy()
@@ -298,10 +296,8 @@ void Water::destroy()
 	Device::destroy_shader_bindings(m_fftBindings);
 	Device::destroy_shader_bindings(debugBindings);
 
-	Device::destroy_pipeline(m_offscreenReflectionPipeline);
-	Device::destroy_pipeline(m_offscreenRefractionPipeline);
-	Device::destroy_pipeline(m_terrainReflectionPipeline);
-	Device::destroy_pipeline(m_terrainRefractionPipeline);
+	Device::destroy_pipeline(m_offscreenMeshPipeline);
+	Device::destroy_pipeline(m_offscreenTerrainPipeline);
 
 	Device::destroy_renderpass(m_renderPass);
 	Device::destroy_framebuffer(m_reflectionFB);

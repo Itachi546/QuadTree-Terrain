@@ -9,6 +9,7 @@ class VertexBuffer;
 class IndexBuffer;
 class UniformBuffer;
 class ShaderStorageBuffer;
+class IndirectBuffer;
 
 class ShaderBindings;
 class Texture;
@@ -38,11 +39,14 @@ public:
 	virtual void copy(IndexBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
 	virtual void copy(UniformBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
 	virtual void copy(ShaderStorageBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
+	virtual void copy(IndirectBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) = 0;
 
 	virtual void copy(Texture* texture, void* data, uint32_t sizeInByte) = 0;
 
 	virtual void draw(uint32_t vertexCount) = 0;
 	virtual void draw_indexed(uint32_t indexCount) = 0;
+	virtual void draw_indexed_indirect(IndirectBuffer* buffer, uint32_t offset, uint32_t drawCount, uint32_t stride) = 0;
+
 	virtual void dispatch_compute(uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) = 0;
 
 	virtual void set_buffer(VertexBuffer* buffer, uint32_t offset) = 0;

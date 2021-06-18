@@ -161,3 +161,25 @@ void VulkanShaderStorageBuffer::destroy(std::shared_ptr<VulkanAPI> api)
 {
 	m_buffer->destroy(api);
 }
+
+VulkanIndirectBuffer::VulkanIndirectBuffer(std::shared_ptr<VulkanAPI> api, BufferUsageHint usage, uint32_t sizeInByte)
+{
+	VkBufferUsageFlags bufferUsage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+
+	VkMemoryPropertyFlags properties = VkTypeConverter::from(usage, bufferUsage);
+	m_buffer = std::make_shared<VulkanBuffer>(api, bufferUsage, properties, sizeInByte);
+
+	m_bufferInfo.buffer = m_buffer->buffer;
+	m_bufferInfo.offset = 0;
+	m_bufferInfo.range = VK_WHOLE_SIZE;
+}
+
+void VulkanIndirectBuffer::copy(std::shared_ptr<VulkanAPI> api, VkCommandBuffer commandBuffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte)
+{
+	m_buffer->copy(api, commandBuffer, data, offsetInByte, sizeInByte);
+}
+
+void VulkanIndirectBuffer::destroy(std::shared_ptr<VulkanAPI> api)
+{
+	m_buffer->destroy(api);
+}

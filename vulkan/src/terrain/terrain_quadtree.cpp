@@ -6,6 +6,7 @@
 #include "core/frustum.h"
 #include "renderer/context.h"
 #include "renderer/buffer.h"
+#include "renderer/device.h"
 
 QuadTree::QuadTree(Context* context, Ref<TerrainStream> stream, uint32_t depth, uint32_t maxSize, int maxHeight) : m_depth(depth), m_size(maxSize), m_maxHeight(maxHeight), m_stream(stream)
 {
@@ -35,7 +36,7 @@ bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Cam
 	if (camera->get_frustum()->intersect_box(box))
 	{
 		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camPos);
-		if (distance < size.x * 4.0f)
+		if (distance < size.x * 3.0f)
 			return true;
 		return false;
 	}
@@ -103,6 +104,7 @@ void QuadTree::render(Context* context, Ref<Camera> camera)
 {
 	m_totalChunkRendered = 0;
 	glm::vec3 camPos = camera->get_position();
+
 	if (m_visibleList.size() == 0)
 	{
 		_get_visible_list(camera, glm::ivec2(m_size / 2), 0, 0, m_visibleList);

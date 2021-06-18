@@ -14,7 +14,7 @@ public:
 		scene = std::make_shared<Scene>("TerrainExample", m_context);
 		water = CreateRef<Water>(m_context);
 		scene->set_water(water);
-#if 1
+#if 0
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);

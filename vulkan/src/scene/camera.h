@@ -36,6 +36,18 @@ public:
 		return m_rotation;
 	}
 
+	void set_near_plane(float d)
+	{
+		m_nearPlane = d;
+		calculate_projection();
+	}
+
+	void set_far_plane(float d)
+	{
+		m_farPlane = d;
+		calculate_projection();
+	}
+
 	void set_height(float h)
 	{
 		m_targetPosition.y = h;

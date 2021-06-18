@@ -22,7 +22,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		RenderPassDescription desc = {};
 		desc.attachmentCount = 1;
 		// @TODO 16bit float might be enough
-		Attachment attachment = {0, Format::D16UNORM, TextureType::DepthStencil};
+		Attachment attachment = {0, Format::D16Unorm, TextureType::DepthStencil};
 		desc.attachments = &attachment;
 		desc.width = SHADOW_MAP_DIMENSION;
 		desc.height = SHADOW_MAP_DIMENSION;
@@ -52,7 +52,7 @@ ShadowCascade::ShadowCascade(const glm::vec3& direction) : m_direction(direction
 		TextureDescription desc = {};
 		desc.width = SHADOW_MAP_DIMENSION;
 		desc.height = SHADOW_MAP_DIMENSION;
-		desc.format = Format::D16UNORM;
+		desc.format = Format::D16Unorm;
 		desc.type = TextureType::DepthStencil;
 		desc.flags = TextureFlag::Sampler;
 
@@ -157,14 +157,6 @@ void ShadowCascade::render(Context* context, Scene* scene, bool renderShadow)
 				context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
 				context->draw_indexed(mesh->get_indices_count());
 			}
-
-#if 0
-			glm::mat4 model = glm::mat4(1.0f);
-			context->set_uniform(ShaderStage::Vertex, 0, sizeof(mat4), &model[0][0]);
-			Ref<Terrain> terrain = scene->get_terrain();
-			if (terrain)
-				terrain->render(context, scene->get_camera(), &m_bindings, 1, true);
-#endif
 			context->end_renderpass();
 		}
 	}

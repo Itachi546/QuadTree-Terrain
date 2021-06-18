@@ -35,6 +35,7 @@ private:
 	Ref<TerrainChunkManager> manager;
 	Ref<TerrainStream> m_stream;
 
+
 	std::vector<TerrainChunk*> m_visibleList;
 
 	void _update(Context* context, Ref<Camera> camera, const glm::ivec2& center, uint32_t parent, uint32_t depth);

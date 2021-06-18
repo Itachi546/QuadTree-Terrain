@@ -8,7 +8,7 @@ Camera::Camera()
 
 	m_fov = glm::radians(60.0f);
 	m_aspect = 4.0f / 3.0f;
-	m_nearPlane = 0.01f;
+	m_nearPlane = 0.2f;
 	m_farPlane = 2000.0f;
 
 	m_target = glm::vec3(0.0f, 0.0f, 1.0f);

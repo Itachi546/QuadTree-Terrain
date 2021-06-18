@@ -278,6 +278,12 @@ void VulkanContext::copy(ShaderStorageBuffer* buffer, void* data, uint32_t offse
 	vkBuffer->copy(m_api, m_tempCommandBuffer, data, offsetInByte, sizeInByte);
 }
 
+void VulkanContext::copy(IndirectBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte)
+{
+	VulkanIndirectBuffer* vkBuffer = reinterpret_cast<VulkanIndirectBuffer*>(buffer);
+	vkBuffer->copy(m_api, m_tempCommandBuffer, data, offsetInByte, sizeInByte);
+}
+
 void VulkanContext::copy(Texture* texture, void* data, uint32_t sizeInByte)
 {
 	VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -433,6 +439,12 @@ void VulkanContext::draw(uint32_t vertexCount)
 void VulkanContext::draw_indexed(uint32_t indexCount)
 {
 	vkCmdDrawIndexed(m_commandBuffer, indexCount, 1, 0, 0, 0);
+}
+
+void VulkanContext::draw_indexed_indirect(IndirectBuffer* buffer, uint32_t offset, uint32_t drawCount, uint32_t stride)
+{
+	VulkanIndirectBuffer* vkBuffer = reinterpret_cast<VulkanIndirectBuffer*>(buffer);
+	vkCmdDrawIndexedIndirect(m_commandBuffer, vkBuffer->get_buffer(), offset, drawCount, stride);
 }
 
 void VulkanContext::dispatch_compute(uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ)

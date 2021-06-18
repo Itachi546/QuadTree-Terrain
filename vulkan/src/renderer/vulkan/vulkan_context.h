@@ -31,6 +31,7 @@ public:
 	void copy(IndexBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
 	void copy(UniformBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
 	void copy(ShaderStorageBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
+	void copy(IndirectBuffer* buffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte) override;
 
 	void copy(Texture* texture, void* data, uint32_t sizeInByte);
 
@@ -47,6 +48,7 @@ public:
 
 	void draw(uint32_t vertexCount) override;
 	void draw_indexed(uint32_t indexCount) override;
+	void draw_indexed_indirect(IndirectBuffer* buffer, uint32_t offset, uint32_t drawCount, uint32_t stride);
 
 	void dispatch_compute(uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
 	RenderPass* get_global_renderpass() override

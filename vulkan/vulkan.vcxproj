@@ -203,6 +203,9 @@
     <ClInclude Include="external\imgui\imstb_rectpack.h" />
     <ClInclude Include="external\imgui\imstb_textedit.h" />
     <ClInclude Include="external\imgui\imstb_truetype.h" />
+    <CustomBuild Include="shaders\water\water_nodisp.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
     <ClInclude Include="src\water\normal_map_generator.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\spirv.h" />
@@ -386,6 +389,9 @@
       <FileType>Document</FileType>
     </CustomBuild>
     <CustomBuild Include="shaders\water\water_offscreen_terrain.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_nodisp.frag">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

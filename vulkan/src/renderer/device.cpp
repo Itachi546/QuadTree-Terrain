@@ -61,6 +61,12 @@ ShaderStorageBuffer* Device::create_shader_storage_buffer(BufferUsageHint usage,
 	return new VulkanShaderStorageBuffer(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), usage, sizeInByte);
 }
 
+IndirectBuffer* Device::create_indirect_buffer(BufferUsageHint usage, uint32_t sizeInByte)
+{
+	totalMemoryAllocated += sizeInByte;
+	return new VulkanIndirectBuffer(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), usage, sizeInByte);
+}
+
 Texture* Device::create_texture(const TextureDescription& desc)
 {
 	return new VulkanTexture(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), desc);
@@ -112,6 +118,7 @@ void Device::destroy_buffer(VertexBuffer* buffer)
 	VulkanVertexBuffer* vkBuffer = reinterpret_cast<VulkanVertexBuffer*>(buffer);
 	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
 	ASSERT(totalMemoryAllocated >= 0);
+	delete buffer;
 }
 
 void Device::destroy_buffer(IndexBuffer* buffer)
@@ -120,6 +127,7 @@ void Device::destroy_buffer(IndexBuffer* buffer)
 	VulkanIndexBuffer* vkBuffer = reinterpret_cast<VulkanIndexBuffer*>(buffer);
 	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
 	ASSERT(totalMemoryAllocated >= 0);
+	delete buffer;
 }
 
 void Device::destroy_buffer(UniformBuffer* buffer)
@@ -128,6 +136,7 @@ void Device::destroy_buffer(UniformBuffer* buffer)
 	VulkanUniformBuffer* vkBuffer = reinterpret_cast<VulkanUniformBuffer*>(buffer);
 	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
 	ASSERT(totalMemoryAllocated >= 0);
+	delete buffer;
 }
 
 void Device::destroy_buffer(ShaderStorageBuffer* buffer)
@@ -136,6 +145,16 @@ void Device::destroy_buffer(ShaderStorageBuffer* buffer)
 	VulkanShaderStorageBuffer* vkBuffer = reinterpret_cast<VulkanShaderStorageBuffer*>(buffer);
 	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
 	ASSERT(totalMemoryAllocated >= 0);
+	delete buffer;
+}
+
+void Device::destroy_buffer(IndirectBuffer* buffer)
+{
+	totalMemoryAllocated -= buffer->get_size();
+	VulkanIndirectBuffer* vkBuffer = reinterpret_cast<VulkanIndirectBuffer*>(buffer);
+	vkBuffer->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
+	ASSERT(totalMemoryAllocated >= 0);
+	delete buffer;
 }
 
 void Device::destroy_texture(Texture* texture)

@@ -514,6 +514,10 @@
     <CustomBuild Include="shaders\water\water_offscreen.vert" />
     <CustomBuild Include="shaders\water\water_offscreen_terrain.frag" />
     <CustomBuild Include="shaders\water\water_offscreen_terrain.vert" />
+    <CustomBuild Include="shaders\water\water_nodisp.vert">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_nodisp.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
