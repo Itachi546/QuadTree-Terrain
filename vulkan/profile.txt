@@ -120,3 +120,16 @@ frameTime: 6.72272
 frameTime: 52.2929
 frameTime: 6.05119
 frameTime: 8.37422
+frameTime: 23.1205
+frameTime: 42.6006
+frameTime: 22.7284
+frameTime: 7.27471
+frameTime: 8.2864
+frameTime: 10.3845
+frameTime: 11.9705
+frameTime: 24.4133
+frameTime: 10.4825
+frameTime: 63.0712
+frameTime: 95.5551
+frameTime: 14.2561
+frameTime: 10.5655

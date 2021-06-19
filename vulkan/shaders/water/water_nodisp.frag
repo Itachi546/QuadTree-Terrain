@@ -73,7 +73,8 @@ void main()
    vec3 col = calculate_light(viewDir, lightDir, normal) + refl;
    col = mix(refr, col, reflectance);
 
-   col = mix(foamColor,	col, smoothstep(0.0, maxFoamDepth, waterDepth));
+   float radius = length(normal.xz) * 0.05f;
+   col = mix(foamColor,	col, smoothstep(radius, maxFoamDepth + radius, waterDepth));
    col /=(1.0f + col);
 
 
