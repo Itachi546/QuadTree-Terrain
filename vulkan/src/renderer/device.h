@@ -8,6 +8,8 @@ class GraphicsWindow;
 class VertexBuffer;
 class IndexBuffer;
 class UniformBuffer;
+class ShaderStorageBuffer;
+class IndirectBuffer;
 
 class GraphicsAPI;
 class Pipeline;
@@ -40,7 +42,9 @@ public:
 	static VertexBuffer* create_vertexbuffer(BufferUsageHint usage, uint32_t sizeInByte);
 	static IndexBuffer* create_indexbuffer(BufferUsageHint usage, IndexType indexType, uint32_t sizeInByte);
 	static UniformBuffer* create_uniformbuffer(BufferUsageHint usage, uint32_t sizeInByte);
-	
+	static ShaderStorageBuffer* create_shader_storage_buffer(BufferUsageHint usage, uint32_t sizeInByte);
+	static IndirectBuffer* create_indirect_buffer(BufferUsageHint usage, uint32_t sizeInByte);
+
 	static Texture* create_texture(const TextureDescription& desc);
 
 	static ShaderBindings* create_shader_bindings();
@@ -50,9 +54,13 @@ public:
 	static void destroy_renderpass(RenderPass* renderPass);
 	static void destroy_framebuffer(Framebuffer* framebuffer);
 	static void destroy_context(Context* context);
+
 	static void destroy_buffer(VertexBuffer* buffer);
 	static void destroy_buffer(IndexBuffer* buffer);
 	static void destroy_buffer(UniformBuffer* buffer);
+	static void destroy_buffer(ShaderStorageBuffer* buffer);
+	static void destroy_buffer(IndirectBuffer* buffer);
+
 	static void destroy_texture(Texture* texture);
 	static void destroy_shader_bindings(ShaderBindings* bindings);
 

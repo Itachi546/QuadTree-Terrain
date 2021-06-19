@@ -1,6 +1,7 @@
 #include "cube_example.h"
 #include "gizmo_example.h"
 #include "terrain_example.h"
+#include "water_example.h"
 
 #include <functional>
 #include <map>
@@ -22,7 +23,7 @@ int main()
 	Register("CubeExample", CreateCubeExampleFn);
 	Register("GizmoExample", CreateGizmoExampleFn);
 	Register("TerrainExample", CreateTerrainExampleFn);
-
+	Register("WaterExample", CreateWaterExampleFn);
 	ExampleBase* example = GetExample("TerrainExample");
 	if (example)
 	{

@@ -152,6 +152,7 @@
     <ClCompile Include="external\imgui\imgui_impl_vulkan.cpp" />
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\water\normal_map_generator.cpp" />
     <ClCompile Include="src\common\spirv_reflect.c" />
     <ClCompile Include="src\debug\gizmo.cpp" />
     <ClCompile Include="src\fx\outlinefx.cpp" />
@@ -179,6 +180,12 @@
     <ClCompile Include="src\terrain\terrain_chunkmanager.cpp" />
     <ClCompile Include="src\terrain\terrain_quadtree.cpp" />
     <ClCompile Include="src\terrain\terrain_stream.cpp" />
+    <ClCompile Include="src\water\inversion.cpp" />
+    <ClCompile Include="src\water\twiddle_factors.cpp" />
+    <ClCompile Include="src\water\butterfly.cpp" />
+    <ClCompile Include="src\water\spectrum_texture.cpp" />
+    <ClCompile Include="src\water\water.cpp" />
+    <ClCompile Include="src\water\water_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\GLFW\src\egl_context.h" />
@@ -196,6 +203,10 @@
     <ClInclude Include="external\imgui\imstb_rectpack.h" />
     <ClInclude Include="external\imgui\imstb_textedit.h" />
     <ClInclude Include="external\imgui\imstb_truetype.h" />
+    <CustomBuild Include="shaders\water\water_nodisp.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <ClInclude Include="src\water\normal_map_generator.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\spirv.h" />
     <ClInclude Include="src\common\spirv_reflect.h" />
@@ -220,8 +231,8 @@
     <ClInclude Include="src\physics\rigidbody.h" />
     <ClInclude Include="src\physics\sphere_collider.h" />
     <ClInclude Include="src\gizmo_example.h" />
-    <ClInclude Include="src\renderer\texture.h" />
     <ClInclude Include="src\renderer\framebuffer.h" />
+    <ClInclude Include="src\renderer\texture.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_framebuffer.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_includes.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_texture.h" />
@@ -262,6 +273,13 @@
     <ClInclude Include="src\terrain\terrain_quadtree.h" />
     <ClInclude Include="src\terrain_example.h" />
     <ClInclude Include="src\terrain\terrain_stream.h" />
+    <ClInclude Include="src\water\inversion.h" />
+    <ClInclude Include="src\water\twiddle_factors.h" />
+    <ClInclude Include="src\water\butterfly.h" />
+    <ClInclude Include="src\water\spectrum_texture.h" />
+    <ClInclude Include="src\water\water.h" />
+    <ClInclude Include="src\water\water_renderer.h" />
+    <ClInclude Include="src\water_example.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\main.frag">
@@ -288,52 +306,94 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shaders\line.frag">
+    <CustomBuild Include="shaders\debug\line.frag">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\line.vert">
-      <FileType>Document</FileType>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="shaders\outline.frag">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="shaders\outline.vert">
+    <CustomBuild Include="shaders\debug\line.vert">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shaders\edge_detection.frag">
+    <CustomBuild Include="shaders\debug\outline.frag">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\image2D.vert">
-      <FileType>Document</FileType>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="shaders\image2D.frag">
+    <CustomBuild Include="shaders\debug\outline.vert">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shaders\terrain.frag">
+    <CustomBuild Include="shaders\debug\edge_detection.frag">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\terrain.vert">
+    <CustomBuild Include="shaders\debug\image2D.vert">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shaders\shadow.frag">
+    <CustomBuild Include="shaders\debug\image2D.frag">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\shadow.vert">
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="shaders\terrain\terrain.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\terrain\terrain.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="shaders\shadow\shadow.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\shadow\shadow.vert">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <CustomBuild Include="shaders\water\philipSpectrum.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\twiddleFactors.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\hdt.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\butterflyOperation.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\inversion.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\debug\edge_detection.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\normalmap.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_offscreen.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_offscreen.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_offscreen_terrain.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_offscreen_terrain.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_nodisp.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

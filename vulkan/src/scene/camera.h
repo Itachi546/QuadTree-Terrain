@@ -12,6 +12,10 @@ class Camera
 	friend class Scene;
 public:
 	Camera();
+
+	// Don't forget to call update after changing camera parameter
+	Ref<Camera> clone();
+
 	void update(float dt);
 	glm::mat4 get_projection() const { return m_projection; }
 	glm::mat4 get_view()       const { return m_view; }
@@ -20,6 +24,28 @@ public:
 	{
 		m_position = p;
 		m_targetPosition = p;
+	}
+
+	void set_rotation(glm::vec3 rotation)
+	{
+		m_rotation = m_targetRotation = rotation;
+	}
+
+	glm::vec3 get_rotation()
+	{
+		return m_rotation;
+	}
+
+	void set_near_plane(float d)
+	{
+		m_nearPlane = d;
+		calculate_projection();
+	}
+
+	void set_far_plane(float d)
+	{
+		m_farPlane = d;
+		calculate_projection();
 	}
 
 	void set_height(float h)

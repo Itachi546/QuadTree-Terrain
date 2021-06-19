@@ -12,10 +12,10 @@ class Context;
 struct VertexBufferView;
 class IndexBuffer;
 
-struct VertexP4N3_Float
+struct VertexP4N1_Float
 {
 	glm::vec4 position;
-	glm::vec3 normal;
+	uint32_t normal;
 };
 
 class TerrainChunk
@@ -47,6 +47,6 @@ private:
 
 	bool m_loaded = false;
 
-	void create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<VertexP4N3_Float>& vertices);
+	void create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<VertexP4N1_Float>& vertices);
 
 };

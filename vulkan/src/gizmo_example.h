@@ -10,29 +10,7 @@ class GizmoExample : public ExampleBase
 public:
 	GizmoExample() : ExampleBase(1920, 1055)
 	{
-		std::string vertexCode = load_file("spirv/main.vert.spv");
-		ASSERT(vertexCode.size() % 4 == 0);
-		std::string fragmentCode = load_file("spirv/main.frag.spv");
-		ASSERT(fragmentCode.size() % 4 == 0);
-
-		PipelineDescription pipelineDesc = {};
-		ShaderDescription shaderDescription[2] = {};
-		shaderDescription[0].shaderStage = ShaderStage::Vertex;
-		shaderDescription[0].code = vertexCode;
-		shaderDescription[0].sizeInByte = static_cast<uint32_t>(vertexCode.size());
-		shaderDescription[1].shaderStage = ShaderStage::Fragment;
-		shaderDescription[1].code = fragmentCode;
-		shaderDescription[1].sizeInByte = static_cast<uint32_t>(fragmentCode.size());
-		pipelineDesc.shaderStageCount = 2;
-		pipelineDesc.shaderStages = shaderDescription;
-		pipelineDesc.renderPass = m_context->get_global_renderpass();
-		pipelineDesc.rasterizationState.enableDepthTest = true;
-		pipelineDesc.rasterizationState.polygonMode = PolygonMode::Fill;
-		pipelineDesc.rasterizationState.faceCulling = FaceCulling::None;
-		pipelineDesc.blendState.enable = false;
-		pipeline = Device::create_pipeline(pipelineDesc);
-
-		scene = CreateRef<Scene>("PhysicsTest", m_context);
+		scene = CreateRef<Scene>("GizmoExample", m_context);
 
 		gizmo = CreateRef<Gizmo>();
 		gizmo->init(m_context, m_window->get_width(), m_window->get_height());
@@ -80,7 +58,6 @@ public:
 	{
 		scene->destroy();
 		gizmo->destroy();
-		Device::destroy_pipeline(pipeline);
 	}
 
 private:
@@ -103,7 +80,6 @@ private:
 		m_context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
-		m_context->set_graphics_pipeline(pipeline);
 		scene->render(m_context);
 		gizmo->render(m_context);
 		DebugDraw::render(m_context, scene->get_uniform_binding());
@@ -167,7 +143,6 @@ private:
 		gizmo->on_resize(width, height);
 	}
 
-	Pipeline* pipeline;
 	Entity* cube;
 
 	Ref<Scene>  scene;

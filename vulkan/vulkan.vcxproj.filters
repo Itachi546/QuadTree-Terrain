@@ -170,6 +170,27 @@
     <ClCompile Include="external\imgui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\water\water.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\spectrum_texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\twiddle_factors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\butterfly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\inversion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\water_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\water\normal_map_generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">
@@ -337,9 +358,6 @@
     <ClInclude Include="src\fx\outlinefx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\vulkan\vulkan_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -415,21 +433,48 @@
     <ClInclude Include="external\imgui\imstb_truetype.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\water_example.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\spectrum_texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\twiddle_factors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\butterfly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\inversion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\water_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\water\normal_map_generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shaders\edge_detection.frag">
+    <CustomBuild Include="shaders\debug\edge_detection.frag">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\image2D.frag">
+    <CustomBuild Include="shaders\debug\image2D.frag">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\image2D.vert">
+    <CustomBuild Include="shaders\debug\image2D.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\line.frag">
+    <CustomBuild Include="shaders\debug\line.frag">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\line.vert">
+    <CustomBuild Include="shaders\debug\line.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
     <CustomBuild Include="shaders\main.frag">
@@ -438,24 +483,41 @@
     <CustomBuild Include="shaders\main.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\outline.frag">
+    <CustomBuild Include="shaders\debug\outline.frag">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\outline.vert">
+    <CustomBuild Include="shaders\debug\outline.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\shadow.frag">
+    <CustomBuild Include="shaders\shadow\shadow.frag">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\shadow.vert">
+    <CustomBuild Include="shaders\shadow\shadow.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\terrain.frag">
+    <CustomBuild Include="shaders\terrain\terrain.frag">
       <Filter>Shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="shaders\terrain.vert">
+    <CustomBuild Include="shaders\terrain\terrain.vert">
       <Filter>Shaders</Filter>
     </CustomBuild>
+    <CustomBuild Include="shaders\water\philipSpectrum.comp" />
+    <CustomBuild Include="shaders\water\twiddleFactors.comp" />
+    <CustomBuild Include="shaders\water\hdt.comp" />
+    <CustomBuild Include="shaders\water\butterflyOperation.comp" />
+    <CustomBuild Include="shaders\water\inversion.comp" />
+    <CustomBuild Include="shaders\water\water.frag" />
+    <CustomBuild Include="shaders\water\water.vert" />
+    <CustomBuild Include="shaders\debug\edge_detection.vert" />
+    <CustomBuild Include="shaders\water\normalmap.comp" />
+    <CustomBuild Include="shaders\water\water_offscreen.frag" />
+    <CustomBuild Include="shaders\water\water_offscreen.vert" />
+    <CustomBuild Include="shaders\water\water_offscreen_terrain.frag" />
+    <CustomBuild Include="shaders\water\water_offscreen_terrain.vert" />
+    <CustomBuild Include="shaders\water\water_nodisp.vert">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shaders\water\water_nodisp.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

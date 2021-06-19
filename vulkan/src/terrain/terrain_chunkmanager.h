@@ -25,6 +25,7 @@ public:
 	void destroy();
 
 	IndexBuffer* ib;
+	VertexBuffer* vb;
 	uint32_t indexCount = 0;
 private:
 	uint32_t POOL_SIZE = 100;
@@ -34,5 +35,4 @@ private:
 	std::stack<uint32_t> m_availableList;
 	std::queue<TerrainChunk*> m_chunkToBeLoaded;
 
-	VertexBuffer* m_vb;
 };

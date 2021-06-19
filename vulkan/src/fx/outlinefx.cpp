@@ -32,6 +32,7 @@ void OutlineFX::init(uint32_t width, uint32_t height)
 	textureDesc.height = height;
 	textureDesc.width = width;
 	textureDesc.type = TextureType::Color2D;
+	textureDesc.flags = TextureFlag::Sampler;
 	SamplerDescription sampler = SamplerDescription::Initialize();
 	textureDesc.sampler = &sampler;
 
@@ -61,7 +62,7 @@ void OutlineFX::init(uint32_t width, uint32_t height)
 	desc.renderPass = m_renderpass;
 	m_prepassPipeline = Device::create_pipeline(desc);
 
-	vertexCode = load_file("spirv/image2d.vert.spv");
+	vertexCode = load_file("spirv/edge_detection.vert.spv");
 	ASSERT(vertexCode.size() % 4 == 0);
 	fragmentCode = load_file("spirv/edge_detection.frag.spv");
 	ASSERT(fragmentCode.size() % 4 == 0);
@@ -75,10 +76,10 @@ void OutlineFX::init(uint32_t width, uint32_t height)
 	m_outlinePipeline = Device::create_pipeline(desc);
 
 	m_bindings = Device::create_shader_bindings();
-	m_bindings->set_texture(m_prepassAttachment->get_color_attachment(0), 0);
+	m_bindings->set_texture_sampler(m_prepassAttachment->get_color_attachment(0), 0);
 
 	m_outlineOutputBindings = Device::create_shader_bindings();
-	m_outlineOutputBindings->set_texture(m_outlineAttachment->get_color_attachment(0), 0);
+	m_outlineOutputBindings->set_texture_sampler(m_outlineAttachment->get_color_attachment(0), 0);
 }
 
 void OutlineFX::resize(uint32_t width, uint32_t height)
@@ -94,9 +95,9 @@ void OutlineFX::render(Context* context, std::vector<Entity*> entities, ShaderBi
 {
 	context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 	context->begin_renderpass(m_renderpass, m_prepassAttachment);
-	context->set_graphics_pipeline(m_prepassPipeline);
 	ShaderBindings* bindingArr[] = { globalBindings };
-	context->set_shader_bindings(bindingArr, 1);
+	context->update_pipeline(m_prepassPipeline, bindingArr, 1);
+	context->set_pipeline(m_prepassPipeline);
 	for (Entity* entity : entities)
 	{
 		glm::mat4 model = entity->transform->get_mat4();
@@ -111,17 +112,23 @@ void OutlineFX::render(Context* context, std::vector<Entity*> entities, ShaderBi
 		context->draw_indexed(mesh->get_indices_count());
 	}
 	context->end_renderpass();
-	context->transition_layout_for_shader_read(m_prepassAttachment->get_color_attachment(0), false);
+
+	Texture* texture = m_prepassAttachment->get_color_attachment(0);
+	context->transition_layout_for_shader_read(&texture, 1);
 
 	context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 	context->begin_renderpass(m_renderpass, m_outlineAttachment);
-	context->set_graphics_pipeline(m_outlinePipeline);
+	context->update_pipeline(m_outlinePipeline, &m_bindings, 1);
+
+	context->set_pipeline(m_outlinePipeline);
 	glm::vec2 inv_resolution = glm::vec2(1.0f / float(m_width), 1.0f / float(m_height));
 	context->set_uniform(ShaderStage::Fragment, 0, sizeof(glm::vec2), &inv_resolution);
-	context->set_shader_bindings(&m_bindings, 1);
+
 	context->draw(6);
 	context->end_renderpass();
-	context->transition_layout_for_shader_read(m_outlineAttachment->get_color_attachment(0), false);
+
+	texture = m_outlineAttachment->get_color_attachment(0);
+	context->transition_layout_for_shader_read(&texture, 1);
 }
 
 void OutlineFX::destroy()

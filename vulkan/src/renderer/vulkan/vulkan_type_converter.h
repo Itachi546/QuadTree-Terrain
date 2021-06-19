@@ -45,7 +45,7 @@ public:
 			return VK_FORMAT_R32G32B32_SFLOAT;
 		case Format::D32Float:
 			return VK_FORMAT_D32_SFLOAT;
-		case Format::D16UNORM:
+		case Format::D16Unorm:
 			return VK_FORMAT_D16_UNORM;
 		default:
 			ASSERT_MSG(1, "Undefined Format");

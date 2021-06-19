@@ -14,6 +14,7 @@ class Camera;
 class ShadowCascade;
 class DirectionalLight;
 class Terrain;
+class Water;
 
 class Scene
 {
@@ -23,7 +24,12 @@ public:
 	void destroy_entity(Entity* entity);
 	void update(Context* context, float dt);
 	void prepass(Context* context);
+
 	void render(Context* context);
+
+	// modelMatrixOffset is offset to the model matrix in push constant
+	void render_entities(Context* context, Ref<Camera> camera, uint32_t modelMatrixOffset);
+
 	void destroy();
 
 	void set_camera(Ref<Camera> camera);
@@ -40,6 +46,8 @@ public:
 
 	void set_terrain(Ref<Terrain> terrain) { m_terrain = terrain; }
 	Ref<Terrain> get_terrain() { return m_terrain; }
+
+	void set_water(Ref<Water> water) { m_water = water; }
 
 	ShaderBindings* get_uniform_binding() { return m_uniformBindings; }
 	Ref<DirectionalLight> get_directional_light() { return m_sun; }
@@ -59,6 +67,7 @@ private:
 	ShaderBindings* m_uniformBindings = nullptr;
 	UniformBuffer* m_uniformBuffer = nullptr;
 	UniformBuffer* m_lightUniformBuffer = nullptr;
+	Pipeline* m_pipeline;
 
 	std::string m_name;
 	std::vector<Entity*> m_entities;
@@ -68,6 +77,7 @@ private:
 	Ref<Mesh> m_sphereMesh;
 
 	Ref<Terrain> m_terrain;
+	Ref<Water> m_water;
 
 	Ref<ShadowCascade> m_sunLightShadowCascade;
 	Ref<DirectionalLight> m_sun;
@@ -82,5 +92,5 @@ private:
 
 	void render_ui();
 
-	void _render(Context* context);
+
 };

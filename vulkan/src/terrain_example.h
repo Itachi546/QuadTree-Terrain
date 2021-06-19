@@ -4,37 +4,17 @@
 #include "light/cascaded_shadow.h"
 #include "terrain/terrain_stream.h"
 #include "terrain/terrain.h"
+#include "water/water.h"
 
 class TerrainExample : public ExampleBase
 {
 public:
 	TerrainExample() : ExampleBase(1920, 1055)
 	{
-		std::string vertexCode = load_file("spirv/main.vert.spv");
-		ASSERT(vertexCode.size() % 4 == 0);
-		std::string fragmentCode = load_file("spirv/main.frag.spv");
-		ASSERT(fragmentCode.size() % 4 == 0);
-
-		PipelineDescription pipelineDesc = {};
-		ShaderDescription shaderDescription[2] = {};
-		shaderDescription[0].shaderStage = ShaderStage::Vertex;
-		shaderDescription[0].code = vertexCode;
-		shaderDescription[0].sizeInByte = static_cast<uint32_t>(vertexCode.size());
-		shaderDescription[1].shaderStage = ShaderStage::Fragment;
-		shaderDescription[1].code = fragmentCode;
-		shaderDescription[1].sizeInByte = static_cast<uint32_t>(fragmentCode.size());
-		pipelineDesc.shaderStageCount = 2;
-		pipelineDesc.shaderStages = shaderDescription;
-		pipelineDesc.renderPass = m_context->get_global_renderpass();
-		pipelineDesc.rasterizationState.depthTestFunction = CompareOp::LessOrEqual;
-		pipelineDesc.rasterizationState.enableDepthTest = true;
-		pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
-		pipelineDesc.rasterizationState.topology = Topology::Triangle;
-		pipeline = Device::create_pipeline(pipelineDesc);
-
-		scene = std::make_shared<Scene>("Hello World", m_context);
-
-		/*
+		scene = std::make_shared<Scene>("TerrainExample", m_context);
+		water = CreateRef<Water>(m_context);
+		scene->set_water(water);
+#if 0
 		std::ifstream inFile("assets/heightmap.bin", std::ios::binary);
 		int size[2];
 		inFile.read(reinterpret_cast<char*>(size), sizeof(int) * 2);
@@ -44,18 +24,22 @@ public:
 		float* buffer = new float[bufferSize];
 		inFile.read(reinterpret_cast<char*>(buffer), bufferSize * sizeof(float));
 		Ref<TerrainStream> stream = CreateRef<TerrainStream>(buffer, size[0], size[1]);
-		*/
-		Ref<TerrainStream> stream = CreateRef<TerrainStream>("assets/heightmap.png");
-
-		terrain = CreateRef<Terrain>(m_context, stream);
-		scene->set_terrain(terrain);
-
 		uint32_t width = stream->get_width();
 		uint32_t height = stream->get_height();
+		water->set_translation(glm::vec3(width * 0.5f, -180.0f, height * 0.5f));
+#else	
+		Ref<TerrainStream> stream = CreateRef<TerrainStream>("assets/heightmap.png");
+		uint32_t width = stream->get_width();
+		uint32_t height = stream->get_height();
+		water->set_translation(glm::vec3(width * 0.5f, -50.0f, height * 0.5f));
+#endif
+		terrain = CreateRef<Terrain>(m_context, stream);
+		scene->set_terrain(terrain);
 		cube = scene->create_cube();
 
-		float h = 5.0f + terrain->get_height(glm::vec3(width * 0.75f, 0.0f, height * 0.75f));
-		cube->transform->position = glm::vec3(width * 0.65f, h, height * 0.65f);
+		glm::vec3 cubePosition = glm::vec3(width * 0.68f, 0.0f, height * 0.55f);
+		float h = 40.0f + terrain->get_height(cubePosition);
+		cube->transform->position = glm::vec3(cubePosition.x, h, cubePosition.z);
 		cube->transform->scale *= glm::vec3(5.0f, 10.0f, 5.0f);
 
 		camera = CreateRef<Camera>();
@@ -74,6 +58,7 @@ public:
 
 		scene->update(m_context, dt);
 		terrain->update(m_context, camera);
+		water->update(m_context, dt);
 
 		glm::vec2 mousePos = {};
 		mouse->get_mouse_position(&mousePos.x, &mousePos.y);
@@ -92,7 +77,6 @@ public:
 		m_context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
-		m_context->set_graphics_pipeline(pipeline);
 		scene->render(m_context);
 		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
@@ -143,15 +127,15 @@ public:
 	~TerrainExample()
 	{
 		terrain->destroy();
+		water->destroy();
 		scene->destroy();
-		Device::destroy_pipeline(pipeline);
 	}
 
 private:
-	Pipeline* pipeline;
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
 	Ref<Terrain> terrain;
+	Ref<Water> water;
 	Ref<Camera> camera;
 	float mouseX = 0.0f, mouseY = 0.0f;
 };

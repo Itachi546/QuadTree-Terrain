@@ -24,7 +24,22 @@ float get_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 	return  h * maxHeight;
 }
 
-void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<VertexP4N3_Float>& vertices)
+uint32_t compress_normal(const glm::vec3& normal)
+{
+	glm::vec3 n = normal * 0.5f + 0.5f;
+	uint8_t x = uint8_t(n.x * 255);
+	uint8_t y = uint8_t(n.y * 255);
+	uint8_t z = uint8_t(n.z * 255);
+
+	uint32_t result = 0;
+	result = (result | x) << 8;
+	result = (result | y) << 8;
+	result = result | z;
+
+	return result;
+}
+
+void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSize, uint32_t vertexCount, std::vector<VertexP4N1_Float>& vertices)
 {
 	// Terrain Width and height
 	int VERTEX_COUNT = vertexCount;
@@ -74,9 +89,9 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 				}
 			}
 
-			VertexP4N3_Float vertex;
+			VertexP4N1_Float vertex;
 			vertex.position = glm::vec4(fx, h, fz, nextHeight);
-			vertex.normal = glm::normalize(glm::vec3(a - b, 1.0f, d - c));
+			vertex.normal = compress_normal(glm::normalize(glm::vec3(a - b, 1.0f, d - c)));
 
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);
 			vertices[index] = vertex;
@@ -90,7 +105,7 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 		for (int x = -1; x <= VERTEX_COUNT + 1; ++x)
 		{
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);
-			VertexP4N3_Float& vertex = vertices[index];
+			VertexP4N1_Float& vertex = vertices[index];
 			vertex.position.y -= skirtHeight;
 		}
 
@@ -98,7 +113,7 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 		for (int x = -1; x <= VERTEX_COUNT + 1; ++x)
 		{
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);
-			VertexP4N3_Float& vertex = vertices[index];
+			VertexP4N1_Float& vertex = vertices[index];
 			vertex.position.y -= skirtHeight;
 		}
 
@@ -106,7 +121,7 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 		for (int z = -1; z <= VERTEX_COUNT + 1; ++z)
 		{
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);
-			VertexP4N3_Float& vertex = vertices[index];
+			VertexP4N1_Float& vertex = vertices[index];
 			vertex.position.y -= skirtHeight;
 		}
 
@@ -114,7 +129,7 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 		for (int z = -1; z <= VERTEX_COUNT + 1; ++z)
 		{
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);
-			VertexP4N3_Float& vertex = vertices[index];
+			VertexP4N1_Float& vertex = vertices[index];
 			vertex.position.y -= skirtHeight;
 		}
 	}
@@ -139,10 +154,10 @@ void TerrainChunk::initialize(const glm::ivec2& min, const glm::ivec2& max, uint
 
 void TerrainChunk::build(Context* context, Ref<TerrainStream> stream, const glm::ivec3& terrainSize, uint32_t vertexCount)
 {
-	std::vector<VertexP4N3_Float> vertices;
+	std::vector<VertexP4N1_Float> vertices;
 	create_mesh(stream, terrainSize, vertexCount, vertices);
 	//m_mesh->finalize(context);
-	ASSERT(vertices.size() * sizeof(VertexP4N3_Float) == vb->size);
+	ASSERT(vertices.size() * sizeof(VertexP4N1_Float) == vb->size);
 	context->copy(vb->buffer, vertices.data(), vb->offset, vb->size);
 	m_loaded = true;
 }

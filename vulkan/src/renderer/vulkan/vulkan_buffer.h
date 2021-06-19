@@ -105,3 +105,66 @@ private:
 	std::shared_ptr<VulkanBuffer> m_buffer;
 	VkDescriptorBufferInfo m_bufferInfo;
 };
+
+
+class VulkanShaderStorageBuffer : public ShaderStorageBuffer
+{
+public:
+	VulkanShaderStorageBuffer(std::shared_ptr<VulkanAPI> api, BufferUsageHint usage, uint32_t sizeInByte);
+
+	BufferUsageHint get_usage_hint() const override
+	{
+		return m_usage;
+	}
+
+	int get_size() const override
+	{
+		return m_buffer->size;
+	}
+
+	VkBuffer get_buffer()
+	{
+		return m_buffer->buffer;
+	}
+
+	VkDescriptorBufferInfo* get_buffer_info() { return &m_bufferInfo; }
+
+	void copy(std::shared_ptr<VulkanAPI> api, VkCommandBuffer commandBuffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte);
+	void destroy(std::shared_ptr<VulkanAPI> api);
+
+private:
+	BufferUsageHint m_usage;
+	std::shared_ptr<VulkanBuffer> m_buffer;
+	VkDescriptorBufferInfo m_bufferInfo;
+};
+
+class VulkanIndirectBuffer : public IndirectBuffer
+{
+public:
+	VulkanIndirectBuffer(std::shared_ptr<VulkanAPI> api, BufferUsageHint usage, uint32_t sizeInByte);
+	
+	BufferUsageHint get_usage_hint() const override
+	{
+		return m_usage;
+	}
+
+	int get_size() const override
+	{
+		return m_buffer->size;
+	}
+
+	VkBuffer get_buffer()
+	{
+		return m_buffer->buffer;
+	}
+
+	VkDescriptorBufferInfo* get_buffer_info() { return &m_bufferInfo; }
+
+	void copy(std::shared_ptr<VulkanAPI> api, VkCommandBuffer commandBuffer, void* data, uint32_t offsetInByte, uint32_t sizeInByte);
+	void destroy(std::shared_ptr<VulkanAPI> api);
+
+private:
+	BufferUsageHint m_usage;
+	std::shared_ptr<VulkanBuffer> m_buffer;
+	VkDescriptorBufferInfo m_bufferInfo;
+};

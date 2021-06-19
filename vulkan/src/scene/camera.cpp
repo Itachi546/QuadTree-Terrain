@@ -8,8 +8,8 @@ Camera::Camera()
 
 	m_fov = glm::radians(60.0f);
 	m_aspect = 4.0f / 3.0f;
-	m_nearPlane = 0.01f;
-	m_farPlane = 1000.0f;
+	m_nearPlane = 0.2f;
+	m_farPlane = 2000.0f;
 
 	m_target = glm::vec3(0.0f, 0.0f, 1.0f);
 	m_speed = 2.0f;
@@ -18,6 +18,34 @@ Camera::Camera()
 	m_frustum = CreateRef<Frustum>();
 	calculate_projection();
 	calculate_view();
+}
+
+Ref<Camera> Camera::clone()
+{
+	std::shared_ptr<Camera> camera = CreateRef<Camera>();
+	camera->m_position = m_position;
+	camera->m_rotation = m_rotation;
+
+	camera->m_targetPosition = m_targetPosition;
+	camera->m_targetRotation = m_targetRotation;
+
+	camera->m_projection = m_projection;
+	camera->m_invProjection = m_invProjection;
+
+	camera->m_fov = m_fov;
+	camera->m_aspect = m_aspect;
+	camera->m_nearPlane = m_nearPlane;
+	camera->m_farPlane = m_farPlane;
+
+	camera->m_target = m_target;
+	camera->m_right = m_right;
+	camera->m_up = m_up;
+	camera->m_forward = m_forward;
+	camera->m_speed = m_speed;
+	camera->m_sensitivity = m_sensitivity;
+	return camera;
+
+
 }
 
 void Camera::update(float dt)
