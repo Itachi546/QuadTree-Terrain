@@ -64,7 +64,6 @@ public:
 	static void destroy_texture(Texture* texture);
 	static void destroy_shader_bindings(ShaderBindings* bindings);
 
-
 	static uint64_t get_total_memory_allocated() { return totalMemoryAllocated; }
 private:
 	static std::shared_ptr<GraphicsAPI> graphicsAPI;

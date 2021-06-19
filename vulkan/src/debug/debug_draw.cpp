@@ -74,11 +74,12 @@ void DebugDraw::init(Context* context)
 	s_DebugData.initialized = true;
 }
 
-void DebugDraw::immediate_draw_textured_quad(Context* context, ShaderBindings* bindings)
+void DebugDraw::immediate_draw_textured_quad(Context* context, ShaderBindings* bindings, glm::vec4 posAndSize)
 {
-	context->set_pipeline(s_DebugData.fullscreenQuad);
 	ShaderBindings* bindingArr[] = { bindings };
-	context->set_shader_bindings(bindingArr, 1);
+	context->update_pipeline(s_DebugData.fullscreenQuad, bindingArr, 1);
+	context->set_pipeline(s_DebugData.fullscreenQuad);
+
 	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::vec4), &posAndSize);
 	context->draw(6);
 }
@@ -90,7 +91,6 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 
 	if (s_DebugData.lines.size() + s_DebugData.boxes.size() > 0)
 	{
-		context->set_pipeline(s_DebugData.line_pipeline);
 		ShaderBindings* bindingArr[] = { globalBindings };
 		context->update_pipeline(s_DebugData.line_pipeline, bindingArr, 1);
 		context->set_pipeline(s_DebugData.line_pipeline);
@@ -134,6 +134,8 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 	if (totalPoints > 0)
 	{
 		context->copy(s_DebugData.buffer, s_DebugData.points.data(), offset, totalPoints * sizeof(Point));
+		ShaderBindings* bindingArr[] = { globalBindings };
+		context->update_pipeline(s_DebugData.point_pipeline, bindingArr, 1);
 		context->set_pipeline(s_DebugData.point_pipeline);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(defaultData), &defaultData);
 
@@ -147,6 +149,9 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 	if (totalShapes > 0)
 	{
 		context->copy(s_DebugData.buffer, s_DebugData.shapes.data(), offset, totalShapes * sizeof(Point));
+		ShaderBindings* bindingArr[] = { globalBindings };
+		context->update_pipeline(s_DebugData.shape_pipeline, bindingArr, 1);
+
 		context->set_pipeline(s_DebugData.shape_pipeline);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(DebugDrawData), &defaultData);
 		context->set_buffer(s_DebugData.buffer, offset);
@@ -160,6 +165,9 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 	// no depth test
 	if (s_DebugData.no_depthlines.size() + s_DebugData.circles.size() > 0)
 	{
+		ShaderBindings* bindingArr[] = { globalBindings };
+		context->update_pipeline(s_DebugData.line_pipeline_no_depth, bindingArr, 1);
+
 		context->set_pipeline(s_DebugData.line_pipeline_no_depth);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(defaultData), &defaultData);
 
@@ -202,6 +210,8 @@ void DebugDraw::render(Context* context, ShaderBindings* globalBindings)
 	if (totalPoints > 0)
 	{
 		context->copy(s_DebugData.buffer, s_DebugData.no_depthPoint.data(), offset, totalPoints * sizeof(Point));
+		ShaderBindings* bindingArr[] = { globalBindings };
+		context->update_pipeline(s_DebugData.point_pipeline_no_depth, bindingArr, 1);
 		context->set_pipeline(s_DebugData.point_pipeline_no_depth);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(defaultData), &defaultData);
 		context->set_buffer(s_DebugData.buffer, offset);

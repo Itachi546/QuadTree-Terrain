@@ -34,7 +34,6 @@ VulkanFramebuffer::VulkanFramebuffer(std::shared_ptr<VulkanAPI> api, const Frame
 
 	VkDevice device = api->get_device();
 	m_framebuffer = create_framebuffer(device, (reinterpret_cast<VulkanRenderPass*>(rp))->get_renderpass(), width, height, imageViews);
-
 }
 
 void VulkanFramebuffer::transition_layout(VkCommandBuffer commandBuffer, VkImageLayout newLayout)
@@ -42,13 +41,19 @@ void VulkanFramebuffer::transition_layout(VkCommandBuffer commandBuffer, VkImage
 	std::vector<VkImageMemoryBarrier> barriers;
 	for (int i = 0; i < m_colorImages.size(); ++i)
 	{
-		barriers.push_back(image_barrier(m_colorImages[i]->get_image(), 0, 0, VK_IMAGE_LAYOUT_UNDEFINED,
+		VulkanTexture* attachment = m_colorImages[i];
+		barriers.push_back(image_barrier(attachment->get_image(), 0, 0, attachment->get_layout(),
 			newLayout, VK_IMAGE_ASPECT_COLOR_BIT));
+
+		attachment->set_layout(newLayout);
 	}
 
 	if (m_depthImage)
-		barriers.push_back(image_barrier(m_depthImage->get_image(), 0, 0, VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT));
+	{
+		barriers.push_back(image_barrier(m_depthImage->get_image(), 0, 0, m_depthImage->get_layout(),
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT));
+		m_depthImage->set_layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	}
 
 	if(barriers.size() > 0)
 		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
