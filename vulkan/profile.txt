@@ -134,3 +134,5 @@ frameTime: 95.5551
 frameTime: 14.2561
 frameTime: 10.5655
 frameTime: 306.667
+frameTime: 11.0582
+frameTime: 14.4929
