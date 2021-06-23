@@ -58,7 +58,7 @@ void main()
    float waterDistance = (2.0 * zN * zF) / (zF + zN - curDepth * zRange);
 
    float waterDepth = max(floorDistance - waterDistance, 0.0);
-   float alpha = clamp(waterDepth * 0.25f, 0.0, 1.0);
+   float alpha = clamp(waterDepth, 0.0, 10.0);
 
    float distortionFactor = max(dist * 0.5f, 10.0f);
    vec2 distortion = (normal.xz / distortionFactor) * 0.5f;
@@ -73,10 +73,10 @@ void main()
    vec3 col = calculate_light(viewDir, lightDir, normal) + refl;
    col = mix(refr, col, reflectance);
 
-   float radius = length(normal.xz) * 0.05f;
-   col = mix(foamColor,	col, smoothstep(radius, maxFoamDepth + radius, waterDepth));
+//   float radius	= length(normal.xz)	* 0.05f;
+   //col = mix(foamColor,	col, smoothstep(radius,	maxFoamDepth + radius, waterDepth));
    col /=(1.0f + col);
 
 
-   fragColor = vec4(col, 1.0);
+   fragColor = vec4(col, alpha);
 }

@@ -2,6 +2,7 @@
 #include "gizmo_example.h"
 #include "terrain_example.h"
 #include "water_example.h"
+#include "atmosphere_example.h"
 
 #include <functional>
 #include <map>
@@ -24,7 +25,9 @@ int main()
 	Register("GizmoExample", CreateGizmoExampleFn);
 	Register("TerrainExample", CreateTerrainExampleFn);
 	Register("WaterExample", CreateWaterExampleFn);
-	ExampleBase* example = GetExample("TerrainExample");
+	Register("AtmosphereExample", CreateAtmosphereExampleFn);
+
+	ExampleBase* example = GetExample("AtmosphereExample");
 	if (example)
 	{
 		example->run();

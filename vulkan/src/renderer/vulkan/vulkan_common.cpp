@@ -16,6 +16,7 @@ QueueFamilyIndices find_queue_families_indices(VkPhysicalDevice physicalDevice)
 		if (flag & VK_QUEUE_GRAPHICS_BIT && flag & VK_QUEUE_COMPUTE_BIT)
 		{
 			familyIndices.graphicsFamily = i;
+			break;
 		}
 	}
 	return familyIndices;
@@ -49,6 +50,7 @@ VkPhysicalDevice select_physical_device(const std::vector<VkPhysicalDevice> phys
 	VkPhysicalDevice selected = physicalDevices[0];
 
 	Debug_Log("--- GPUs ---");
+	Debug_Log("Total GPU: %d", physicalDevices.size());
 	for (const auto& physicalDevice : physicalDevices)
 	{
 		VkPhysicalDeviceProperties properties;

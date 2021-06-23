@@ -20,6 +20,9 @@ public:
 	glm::mat4 get_projection() const { return m_projection; }
 	glm::mat4 get_view()       const { return m_view; }
 
+	glm::mat4 get_inv_projection() const { return m_invProjection; }
+	glm::mat4 get_inv_view()       const { return m_invView; }
+
 	void set_position(glm::vec3 p)
 	{
 		m_position = p;

@@ -191,6 +191,9 @@
     <ClCompile Include="src\water\normal_map_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\atmosphere\atmosphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">
@@ -460,6 +463,12 @@
     <ClInclude Include="src\water\normal_map_generator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\atmosphere\atmosphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\atmosphere_example.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\debug\edge_detection.frag">
@@ -518,6 +527,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="shaders\water\water_nodisp.frag" />
+    <CustomBuild Include="shaders\atmosphere\precompute_transmittance.comp" />
+    <CustomBuild Include="shaders\atmosphere\atmosphere.frag" />
+    <CustomBuild Include="shaders\atmosphere\atmosphere.vert" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
