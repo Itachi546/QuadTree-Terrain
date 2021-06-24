@@ -21,7 +21,18 @@ float get_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 	float h1 = glm::mix(c, d, fx);
 	
 	float h = glm::mix(h0, h1, fy) * 2.0f - 1.0f;
-	return  h * maxHeight;
+
+	const float transitionRegion = 200.0f;
+	float hW  = float(stream->get_width()) * 0.5f;
+	float hH = float(stream->get_height()) * 0.5f;
+
+	float radius = glm::max(hW, hH) - transitionRegion;
+	float distance = glm::length(vec2(x - hW, y - hH)) - radius;
+	if (distance < 0.0f)
+		return  h * maxHeight;
+	float factor = glm::max(distance, 0.0f) / transitionRegion;
+	factor = glm::smoothstep(0.0f, 1.0f, factor);
+	return glm::lerp(h * maxHeight, -maxHeight, factor);
 }
 
 uint32_t compress_normal(const glm::vec3& normal)
@@ -97,11 +108,12 @@ void TerrainChunk::create_mesh(Ref<TerrainStream> stream, const ivec3& terrainSi
 			vertices[index] = vertex;
 		}
 	}
+
 	// Displace the skirt
 	if (m_lodLevel > 0)
 	{
 		int z = 0;
-		const float skirtHeight = 1.0f;
+		const float skirtHeight = 0.0f;
 		for (int x = -1; x <= VERTEX_COUNT + 1; ++x)
 		{
 			int index = (z + 1) * (VERTEX_COUNT + 3) + (x + 1);

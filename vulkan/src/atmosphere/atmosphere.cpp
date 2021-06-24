@@ -19,7 +19,7 @@ Atmosphere::Atmosphere(Context* context)
 
 	m_params.BetaR = glm::vec3(5.8e-6f, 13.5e-6f, 33.1e-6f);
 	m_params.BetaM = glm::vec3(21e-6f);
-	m_params.TRANSMITTANCE_TEXTURE_DIM = 512;
+	m_params.TRANSMITTANCE_TEXTURE_DIM = 1024;
 
 	m_ubo = Device::create_uniformbuffer(BufferUsageHint::StaticDraw, sizeof(m_params));
 	context->copy(m_ubo, &m_params, 0, sizeof(m_params));
@@ -36,7 +36,8 @@ Atmosphere::Atmosphere(Context* context)
   {
 	  TextureDescription desc = TextureDescription::Initialize(m_params.TRANSMITTANCE_TEXTURE_DIM, m_params.TRANSMITTANCE_TEXTURE_DIM);
 	  desc.flags = TextureFlag::Sampler | TextureFlag::StorageImage;
-	  desc.format = Format::R16G16B16A16Float;
+	  //desc.format = Format::R16G16B16A16Float;
+	  desc.format = Format::R32G32Float;
 	  desc.type = TextureType::Color2D;
 	  SamplerDescription sampler = SamplerDescription::Initialize();
 	  sampler.wrapU = sampler.wrapV = sampler.wrapW = WrapMode::ClampToEdge;
@@ -54,7 +55,7 @@ Atmosphere::Atmosphere(Context* context)
   {
 	  std::string vertexCode = load_file("spirv/atmosphere.vert.spv");
 	  ASSERT(vertexCode.size() % 4 == 0);
-	  std::string fragmentCode = load_file("spirv/atmosphere.frag.spv");
+	  std::string fragmentCode = load_file("spirv/atmosphere_baked.frag.spv");
 	  ASSERT(fragmentCode.size() % 4 == 0);
 
 	  PipelineDescription pipelineDesc = {};
@@ -93,16 +94,23 @@ void Atmosphere::precompute_transmittance(Context* context)
 	context->end_compute();
 }
 
-void Atmosphere::render(Context* context, Ref<Camera> camera)
+void Atmosphere::render(Context* context, Ref<Camera> camera, glm::vec3 lightDir)
 {
 	context->update_pipeline(m_pipeline, &m_bindings, 1);
 	context->set_pipeline(m_pipeline);
 
-	glm::mat4 uniformData[] = { camera->get_inv_projection(), camera->get_inv_view() };
-	glm::vec3 cameraPos = camera->get_position();
-	cameraPos.y += m_params.EARTH_RADIUS;
-	context->set_uniform(ShaderStage::Fragment, 0, sizeof(glm::mat4) * 2, &uniformData[0][0]);
-	context->set_uniform(ShaderStage::Fragment, sizeof(glm::mat4) * 2, sizeof(glm::vec3), &cameraPos[0]);
+	struct UniformData
+	{
+		glm::mat4 projection;
+		glm::mat4 view;
+		glm::vec4 camPos;
+		glm::vec4 lightDir;
+	} uniformData;
+	uniformData.projection = camera->get_inv_projection();
+	uniformData.view = camera->get_inv_view();
+	uniformData.camPos = glm::vec4(camera->get_position() + glm::vec3(0.0f, m_params.EARTH_RADIUS, 0.0f), 1.0f);
+	uniformData.lightDir = glm::vec4(lightDir, 1.0);
+	context->set_uniform(ShaderStage::Fragment, 0, sizeof(UniformData), &uniformData);
 	context->draw(6);
 }
 

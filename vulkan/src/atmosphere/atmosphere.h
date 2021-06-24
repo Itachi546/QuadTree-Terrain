@@ -14,7 +14,7 @@ class Atmosphere
 {
 public:
 	Atmosphere(Context* context);
-	void render(Context* context, Ref<Camera> camera);
+	void render(Context* context, Ref<Camera> camera, glm::vec3 lightDir);
 	void destroy();
 private:
 	struct AtmosphereParams

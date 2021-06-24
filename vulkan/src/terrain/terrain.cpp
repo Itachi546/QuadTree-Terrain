@@ -60,7 +60,7 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream): m_stream(stream)
 
 	m_activePipeline = m_pipeline;
 
-	uint32_t terrainSize = stream->get_width();;
+	uint32_t terrainSize = static_cast<uint32_t>(std::pow(2, 11));
 	uint32_t depth = static_cast<int>(std::log2(terrainSize / m_minchunkSize));
 	m_maxLod = depth;
 
@@ -114,6 +114,7 @@ void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** unif
 		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4), sizeof(glm::vec4), &m_terrainIntersection[0]);
 	}
 	m_quadTree->render(context, camera);
+
 }
 
 void Terrain::render_no_renderpass(Context* context, Ref<Camera> camera)

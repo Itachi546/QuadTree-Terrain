@@ -49,7 +49,7 @@ public:
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		scene->render(m_context);
-		atmosphere->render(m_context, camera);
+		atmosphere->render(m_context, camera, scene->get_directional_light()->get_direction());
 		DebugDraw::render(m_context, scene->get_uniform_binding());
 
 		m_context->end_renderpass();

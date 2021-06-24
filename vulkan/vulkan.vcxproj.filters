@@ -530,6 +530,7 @@
     <CustomBuild Include="shaders\atmosphere\precompute_transmittance.comp" />
     <CustomBuild Include="shaders\atmosphere\atmosphere.frag" />
     <CustomBuild Include="shaders\atmosphere\atmosphere.vert" />
+    <CustomBuild Include="shaders\atmosphere\atmosphere_baked.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

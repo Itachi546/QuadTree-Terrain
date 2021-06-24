@@ -27,7 +27,7 @@ int main()
 	Register("WaterExample", CreateWaterExampleFn);
 	Register("AtmosphereExample", CreateAtmosphereExampleFn);
 
-	ExampleBase* example = GetExample("AtmosphereExample");
+	ExampleBase* example = GetExample("TerrainExample");
 	if (example)
 	{
 		example->run();

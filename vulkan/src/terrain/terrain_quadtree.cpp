@@ -18,9 +18,16 @@ QuadTree::QuadTree(Context* context, Ref<TerrainStream> stream, uint32_t depth, 
 	manager = CreateRef<TerrainChunkManager>(context, 150);
 }
 
+#include <imgui/imgui.h>
 void QuadTree::update(Context* context, Ref<Camera> camera)
 {
 	m_frameIndex++;
+	// @TODO temp
+	if (ImGui::CollapsingHeader("Terrain"))
+	{
+		ImGui::Text("poolSize: %d", 150);
+		ImGui::Text("chunk rendered last frame: %d", m_visibleList.size());
+	}
 	m_visibleList.clear();
 	_update(context, camera, glm::ivec2(m_size / 2), 0, 0);
 	manager->update(context, m_stream, glm::ivec3(m_size, m_maxHeight, m_size));
