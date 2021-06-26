@@ -20,6 +20,29 @@
 #include "scene/mesh.h"
 #include "terrain/terrain.h"
 
+#include "atmosphere/atmosphere.h"
+
+Pipeline* Water::create_atmosphere_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode)
+{
+	PipelineDescription pipelineDesc = {};
+	ShaderDescription shaderDescription[2] = {};
+	shaderDescription[0].shaderStage = ShaderStage::Vertex;
+	shaderDescription[0].code = vertexCode;
+	shaderDescription[0].sizeInByte = static_cast<uint32_t>(vertexCode.size());
+	shaderDescription[1].shaderStage = ShaderStage::Fragment;
+	shaderDescription[1].code = fragmentCode;
+	shaderDescription[1].sizeInByte = static_cast<uint32_t>(fragmentCode.size());
+	pipelineDesc.shaderStageCount = 2;
+	pipelineDesc.shaderStages = shaderDescription;
+	pipelineDesc.renderPass = m_renderPass;
+	pipelineDesc.rasterizationState.depthTestFunction = CompareOp::LessOrEqual;
+	pipelineDesc.rasterizationState.enableDepthTest = true;
+	pipelineDesc.rasterizationState.faceCulling = FaceCulling::Front;
+	pipelineDesc.rasterizationState.topology = Topology::Triangle;
+
+	return Device::create_pipeline(pipelineDesc);
+}
+
 void Water::create_renderpass(Context* context)
 {
 	RenderPassDescription desc = {};
@@ -127,8 +150,13 @@ Water::Water(Context* context)
 		ASSERT(vertexCode.size() % 4 == 0);
 		fragmentCode = load_file("spirv/water_offscreen_terrain.frag.spv");
 		ASSERT(fragmentCode.size() % 4 == 0);
-
 		m_offscreenTerrainPipeline = create_pipeline(context, vertexCode, fragmentCode);
+
+		vertexCode = load_file("spirv/cubemap.vert.spv");
+		ASSERT(vertexCode.size() % 4 == 0);
+		fragmentCode = load_file("spirv/cubemap.frag.spv");
+		ASSERT(fragmentCode.size() % 4 == 0);
+		m_offscreenCubemapPipeline = create_atmosphere_pipeline(context, vertexCode, fragmentCode);
 
 		m_reflectionFB = create_framebuffer(context);
 		m_refractionFB = create_framebuffer(context);
@@ -232,17 +260,30 @@ void Water::generate_reflection_texture(Context* context, Scene* scene)
 	Ref<Terrain> terrain = scene->get_terrain();
 	if (scene->get_terrain())
 	{
-
 		context->set_pipeline(m_offscreenTerrainPipeline);
 		uint32_t uniformOffset = 0;
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
 		uniformOffset += sizeof(glm::mat4) * 2;
 		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 		uniformOffset += sizeof(glm::vec4);
-
-
 		terrain->render_no_renderpass(context, newCamera);
 	}
+	Ref<Atmosphere> atmosphere = scene->get_atmosphere();
+	if (atmosphere)
+	{
+		ShaderBindings* bindings = atmosphere->get_cubemap();
+		context->update_pipeline(m_offscreenCubemapPipeline, &bindings, 1);
+		context->set_pipeline(m_offscreenCubemapPipeline);
+		context->set_uniform(ShaderStage::Vertex, 0, sizeof(VP), &VP);
+
+		Ref<Mesh> cube = scene->get_cube_mesh();
+		VertexBufferView* vb = cube->get_vb();
+		context->set_buffer(vb->buffer, vb->offset);
+		IndexBufferView* ib = cube->get_ib();
+		context->set_buffer(ib->buffer, ib->offset);
+		context->draw_indexed(cube->get_indices_count());
+	}
+
 	context->end_renderpass();
 }
 
@@ -298,6 +339,7 @@ void Water::destroy()
 
 	Device::destroy_pipeline(m_offscreenMeshPipeline);
 	Device::destroy_pipeline(m_offscreenTerrainPipeline);
+	Device::destroy_pipeline(m_offscreenCubemapPipeline);
 
 	Device::destroy_renderpass(m_renderPass);
 	Device::destroy_framebuffer(m_reflectionFB);

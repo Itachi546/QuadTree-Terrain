@@ -9,6 +9,7 @@
 #include "water/water.h"
 #include "core/frustum.h"
 #include "common/common.h"
+#include "atmosphere/atmosphere.h"
 
 #include "imgui/imgui.h"
 
@@ -67,6 +68,8 @@ Scene::Scene(std::string name, Context* context) : m_name(name)
 	pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
 	pipelineDesc.rasterizationState.topology = Topology::Triangle;
 	m_pipeline = Device::create_pipeline(pipelineDesc);
+
+	m_atmosphere = CreateRef<Atmosphere>(context);
 }
 
 Entity* Scene::create_entity(std::string name)
@@ -99,6 +102,7 @@ void Scene::update(Context* context, float dt)
 
 	LightData sun = { m_sun->get_direction(), m_sun->get_intensity(), m_sun->get_light_color(), float(m_sun->cast_shadow()) };
 	context->copy(m_lightUniformBuffer, &sun, 0, sizeof(LightData));
+	m_atmosphere->update(context, m_camera, m_sun->get_direction(), m_sun->get_intensity());
 }
 
 void Scene::prepass(Context* context)
@@ -126,7 +130,9 @@ void Scene::render(Context* context)
 		m_terrain->render(context, m_camera, bindings, bindingCount);
 	if (m_water)
 		m_water->render(context, m_camera, bindings, 2);
-
+	if (m_atmosphere)
+		m_atmosphere->render(context, m_cubeMesh, m_camera, m_sun->get_direction(), m_sun->get_intensity());
+	DebugDraw::render(context, m_uniformBindings);
 }
 
 void Scene::render_entities(Context* context, Ref<Camera> camera, uint32_t modelMatrixOffset)
@@ -160,6 +166,7 @@ void Scene::render_entities(Context* context, Ref<Camera> camera, uint32_t model
 void Scene::destroy()
 {
 	m_sunLightShadowCascade->destroy();
+	m_atmosphere->destroy();
 
 	for (std::size_t i = 0; i < m_entities.size(); ++i)
 		delete m_entities[i];

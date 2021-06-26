@@ -8,6 +8,7 @@
 #include "debug/debug_draw.h"
 #include "scene/camera.h"
 #include "renderer/buffer.h"
+#include "scene/mesh.h"
 
 Atmosphere::Atmosphere(Context* context)
 {
@@ -53,9 +54,32 @@ Atmosphere::Atmosphere(Context* context)
   }
 
   {
-	  std::string vertexCode = load_file("spirv/atmosphere.vert.spv");
+	  TextureDescription cubemapDesc = TextureDescription::Initialize(CUBEMAP_DIMS, CUBEMAP_DIMS);
+	  cubemapDesc.flags = TextureFlag::Sampler | TextureFlag::StorageImage;
+	  cubemapDesc.format = Format::R8G8B8A8_Unorm;
+	  cubemapDesc.type = TextureType::Cubemap;
+	  SamplerDescription sampler = SamplerDescription::Initialize();
+	  sampler.wrapU = sampler.wrapV = sampler.wrapW = WrapMode::ClampToEdge;
+	  cubemapDesc.sampler = &sampler;
+	  m_cubemap = Device::create_texture(cubemapDesc);
+
+	  std::string code = load_file("spirv/atmosphere.comp.spv");
+	  PipelineDescription desc = {};
+	  ShaderDescription shader = { ShaderStage::Compute, code, static_cast<uint32_t>(code.size()) };
+	  desc.shaderStageCount = 1;
+	  desc.shaderStages = &shader;
+	  m_cubemapPipeline = Device::create_pipeline(desc);
+
+	  m_cubemapBindings = Device::create_shader_bindings();
+	  m_cubemapBindings->set_texture_sampler(m_transmittanceTexture, 0);
+	  m_cubemapBindings->set_buffer(m_ubo, 1);
+	  m_cubemapBindings->set_storage_image(m_cubemap, 2);
+  }
+
+  {
+	  std::string vertexCode = load_file("spirv/cubemap.vert.spv");
 	  ASSERT(vertexCode.size() % 4 == 0);
-	  std::string fragmentCode = load_file("spirv/atmosphere_baked.frag.spv");
+	  std::string fragmentCode = load_file("spirv/cubemap.frag.spv");
 	  ASSERT(fragmentCode.size() % 4 == 0);
 
 	  PipelineDescription pipelineDesc = {};
@@ -71,14 +95,12 @@ Atmosphere::Atmosphere(Context* context)
 	  pipelineDesc.renderPass = context->get_global_renderpass();
 	  pipelineDesc.rasterizationState.depthTestFunction = CompareOp::LessOrEqual;
 	  pipelineDesc.rasterizationState.enableDepthTest = true;
-	  pipelineDesc.rasterizationState.faceCulling = FaceCulling::Back;
+	  pipelineDesc.rasterizationState.faceCulling = FaceCulling::Front;
 	  pipelineDesc.rasterizationState.topology = Topology::Triangle;
 	  m_pipeline = Device::create_pipeline(pipelineDesc);
 
-
 	  m_bindings = Device::create_shader_bindings();
-	  m_bindings->set_texture_sampler(m_transmittanceTexture, 0);
-	  m_bindings->set_buffer(m_ubo, 1);
+	  m_bindings->set_texture_sampler(m_cubemap, 0);
   }
 }
 
@@ -94,7 +116,24 @@ void Atmosphere::precompute_transmittance(Context* context)
 	context->end_compute();
 }
 
-void Atmosphere::render(Context* context, Ref<Camera> camera, glm::vec3 lightDir)
+void Atmosphere::update(Context* context, Ref<Camera> camera, glm::vec3 lightDir, float lightIntensity)
+{
+	context->begin_compute();
+	context->transition_layout_for_compute_read(&m_cubemap, 1);
+	context->update_pipeline(m_cubemapPipeline, &m_cubemapBindings, 1);
+	context->set_pipeline(m_cubemapPipeline);
+
+	glm::vec4 uniformData[] = {
+		glm::vec4(camera->get_position() + vec3(0.0f, m_params.EARTH_RADIUS, 0.0f), float(CUBEMAP_DIMS)),
+		glm::vec4(lightDir, lightIntensity),
+	};
+	context->set_uniform(ShaderStage::Compute, 0, sizeof(glm::vec4) * 2, uniformData);
+	context->dispatch_compute(CUBEMAP_DIMS / 32, CUBEMAP_DIMS / 32, 6);
+	context->transition_layout_for_shader_read(&m_cubemap, 1);
+	context->end_compute();
+}
+
+void Atmosphere::render(Context* context, Ref<Mesh> cube, Ref<Camera> camera, glm::vec3 lightDir, float lightIntensity)
 {
 	context->update_pipeline(m_pipeline, &m_bindings, 1);
 	context->set_pipeline(m_pipeline);
@@ -103,15 +142,21 @@ void Atmosphere::render(Context* context, Ref<Camera> camera, glm::vec3 lightDir
 	{
 		glm::mat4 projection;
 		glm::mat4 view;
-		glm::vec4 camPos;
-		glm::vec4 lightDir;
+		vec4 cameraPosition;
+		vec4 lightDirection;
 	} uniformData;
-	uniformData.projection = camera->get_inv_projection();
-	uniformData.view = camera->get_inv_view();
-	uniformData.camPos = glm::vec4(camera->get_position() + glm::vec3(0.0f, m_params.EARTH_RADIUS, 0.0f), 1.0f);
-	uniformData.lightDir = glm::vec4(lightDir, 1.0);
-	context->set_uniform(ShaderStage::Fragment, 0, sizeof(UniformData), &uniformData);
-	context->draw(6);
+	uniformData.projection = camera->get_projection();
+	uniformData.view = camera->get_view();
+	uniformData.cameraPosition = glm::vec4(camera->get_position() + vec3(0.0f, m_params.EARTH_RADIUS, 0.0f), float(CUBEMAP_DIMS));
+	uniformData.lightDirection = glm::vec4(lightDir, lightIntensity);
+
+	context->set_uniform(ShaderStage::Vertex, 0, sizeof(uniformData), &uniformData);
+
+	VertexBufferView* vb = cube->get_vb();
+	context->set_buffer(vb->buffer, vb->offset);
+	IndexBufferView* ib = cube->get_ib();
+	context->set_buffer(ib->buffer, ib->offset);
+	context->draw_indexed(cube->get_indices_count());
 }
 
 
@@ -119,10 +164,15 @@ void Atmosphere::destroy()
 {
 	Device::destroy_pipeline(m_transmittanceComputePipeline);
 	Device::destroy_texture(m_transmittanceTexture);
+	Device::destroy_texture(m_cubemap);
 	Device::destroy_shader_bindings(m_transmittanceBindings);
 
 	Device::destroy_shader_bindings(m_bindings);
 	Device::destroy_pipeline(m_pipeline);
+
+	Device::destroy_shader_bindings(m_cubemapBindings);
+	Device::destroy_pipeline(m_cubemapPipeline);
 	Device::destroy_buffer(m_ubo);
+
 }
 

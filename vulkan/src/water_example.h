@@ -47,7 +47,6 @@ public:
 		m_context->begin_renderpass(nullptr, nullptr);
 		scene->render(m_context);
 		DebugDraw::immediate_draw_textured_quad(m_context, water->debugBindings, glm::vec4(0.9f, 0.5f, 0.1f, 0.1f));
-
 		m_context->end_renderpass();
 		m_context->end();
 	}

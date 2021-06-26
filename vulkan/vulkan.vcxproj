@@ -153,6 +153,7 @@
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\atmosphere\atmosphere.cpp" />
+    <ClCompile Include="src\renderer\vulkan\vulkan_query.cpp" />
     <ClCompile Include="src\water\normal_map_generator.cpp" />
     <ClCompile Include="src\common\spirv_reflect.c" />
     <ClCompile Include="src\debug\gizmo.cpp" />
@@ -209,6 +210,8 @@
     </CustomBuild>
     <ClInclude Include="src\atmosphere\atmosphere.h" />
     <ClInclude Include="src\atmosphere_example.h" />
+    <ClInclude Include="src\renderer\gpu_query.h" />
+    <ClInclude Include="src\renderer\vulkan\vulkan_query.h" />
     <ClInclude Include="src\water\normal_map_generator.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\spirv.h" />
@@ -407,6 +410,15 @@
       <FileType>Document</FileType>
     </CustomBuild>
     <CustomBuild Include="shaders\atmosphere\atmosphere_baked.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\atmosphere\atmosphere.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\atmosphere\cubemap.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\atmosphere\cubemap.vert">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

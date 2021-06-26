@@ -194,6 +194,9 @@
     <ClCompile Include="src\atmosphere\atmosphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\vulkan_query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">
@@ -469,6 +472,12 @@
     <ClInclude Include="src\atmosphere_example.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\gpu_query.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\vulkan_query.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\debug\edge_detection.frag">
@@ -531,6 +540,9 @@
     <CustomBuild Include="shaders\atmosphere\atmosphere.frag" />
     <CustomBuild Include="shaders\atmosphere\atmosphere.vert" />
     <CustomBuild Include="shaders\atmosphere\atmosphere_baked.frag" />
+    <CustomBuild Include="shaders\atmosphere\atmosphere.comp" />
+    <CustomBuild Include="shaders\atmosphere\cubemap.vert" />
+    <CustomBuild Include="shaders\atmosphere\cubemap.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

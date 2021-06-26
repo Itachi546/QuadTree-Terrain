@@ -55,6 +55,7 @@ private:
 
 	Pipeline* m_offscreenMeshPipeline;
 	Pipeline* m_offscreenTerrainPipeline;
+	Pipeline* m_offscreenCubemapPipeline;
 	// temp
 
 
@@ -66,6 +67,7 @@ private:
 	Framebuffer* create_framebuffer(Context* context);
 
 	Pipeline* create_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode);
+	Pipeline* create_atmosphere_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode);
 
 	void generate_reflection_texture(Context* context, Scene* scene);
 	void generate_refraction_texture(Context* context, Scene* scene);

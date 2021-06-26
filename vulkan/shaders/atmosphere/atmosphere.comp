@@ -4,17 +4,8 @@
 
 #include "../shader_constants.h"
 
-layout(location = 0) out vec4 fragColor;
-
-layout(location = 0) in vec2 v_uv; 
-
-layout(push_constant) uniform block
-{
-   mat4 u_invProjection;
-   mat4 u_invView;
-   vec4 u_cameraPosition;
-   vec4 u_lightDir;
-};
+#define LOCAL_SIZE 32
+layout(local_size_x = LOCAL_SIZE, local_size_y = LOCAL_SIZE, local_size_z = 1) in;
 
 layout(binding = 0) uniform sampler2D u_transmittance;
 layout(binding = 1) uniform AtmosphereParams
@@ -30,6 +21,14 @@ layout(binding = 1) uniform AtmosphereParams
   int TRANSMITTANCE_TEXTURE_DIM;
 };
 
+layout(binding = 2, rgba8) uniform writeonly imageCube u_cubeMap;
+
+// Push Constants
+layout(push_constant) uniform block
+{
+   vec4 u_cameraPosition;
+   vec4 u_lightDir;
+};
 
 
 #define SunColor              vec3(1.28, 1.20, 0.99)
@@ -69,15 +68,6 @@ vec3 calculate_sun_disk(vec3 r0, vec3 rd)
     return vec3(0.0);
 }
 
-vec3 generate_direction(vec2 uv)
-{
-    vec4 d = vec4(uv, 0.0, 0.0);
-    d = u_invProjection * d;
-    d.z = -1.0f, d.w = 0.0f;
-
-    vec3 worldSpace = vec3(u_invView * d);
-    return normalize(worldSpace);
-}
 
 float phaseR(float cosTheta)
 {
@@ -96,71 +86,6 @@ float phaseM(float t)
 	float denom = (8.0 * PI) * (2.0 + gg) * pow(1.0 + gg - 2.0 * gt, 1.5);
     return num / denom;
 }
-
-
-#define NUM_STEPS_LIGHT 16
-vec2 get_optical_depth_light(vec3 r0, vec3 rd)
-{
-    float t = intersectSphere(r0, rd, vec4(0.0f, 0.0f, 0.0f, ATMOSPHERE_RADIUS));
-    float stepSize = t / float(NUM_STEPS_LIGHT);
-
-    float opticalDepthR = 0.0f;
-    float opticalDepthM = 0.0f;
-
-    vec3 p = r0 + EPSILON * rd;
-    vec3 pInc = rd * stepSize;
-
-    for(int i = 0; i < NUM_STEPS_LIGHT; ++i)
-    {
-       float h = length(p) - EARTH_RADIUS;
-       opticalDepthR += exp(-h / Hr) * stepSize;
-       opticalDepthM += exp(-h / Hm) * stepSize;
-
-       p += pInc;
-    }
-    return vec2(opticalDepthR, opticalDepthM);
-}
-
-#define NUM_STEPS 16
-vec3 calculate_scattering(vec3 r0, vec3 rd)
-{
-    float t = intersectSphere(r0, rd, vec4(0.0f, 0.0f, 0.0f, ATMOSPHERE_RADIUS));
-    float stepSize = t / float(NUM_STEPS);
-
-    float opticalDepthR = 0.0f;
-    float opticalDepthM = 0.0f;
-
-    vec3 scatteringR = vec3(0.0f);
-    vec3 scatteringM = vec3(0.0f);
-
-    float cosTheta = max(dot(rd, sunDir), 0.0);
-    vec3 p = r0 + EPSILON * rd;
-    vec3 pInc = rd * stepSize;
-    for(int i = 0; i < NUM_STEPS; ++i)
-    {
-       float h = length(p) - EARTH_RADIUS;
-	   //if(h	< 0.0)
-       //   break;
-       float hr = exp(-h / Hr) * stepSize;
-       float hm = exp(-h / Hm) * stepSize;
-
-   	   opticalDepthR +=	hr;
-       opticalDepthM += hm;
-
-       vec2 opticalDepthL =   get_optical_depth_light(p, sunDir);
-       vec3 tau = (opticalDepthR + opticalDepthL.x) * BetaR + 1.1f * (opticalDepthM + opticalDepthL.y) * BetaM;
-       vec3 attenuation = exp(-tau);
-       scatteringR += attenuation * hr;
-       scatteringM += attenuation * hm;
-       p += pInc;
-    }
-   
-   vec3 T = exp(-opticalDepthR * BetaR) + exp(-opticalDepthM * BetaM);
-   vec3 L = calculate_sun_disk(r0, rd) * T;
-   return L + (scatteringR * phaseR(cosTheta) * BetaR + scatteringM * phaseM(cosTheta) * BetaM) * SunIntensity;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void get_optical_depth_baked(vec3 r0, vec3 rd, out vec2 result)
 {
@@ -181,6 +106,7 @@ void get_optical_depth_baked2(vec3 r0, vec3 p, vec3 rd, out vec2 result)
     result = b - a;
 }
 
+#define NUM_STEPS 32
 vec3 calculate_scattering_baked(vec3 r0, vec3 rd)
 {
     float t = intersectSphere(r0, rd, vec4(0.0f, 0.0f, 0.0f, ATMOSPHERE_RADIUS));
@@ -219,19 +145,47 @@ vec3 calculate_scattering_baked(vec3 r0, vec3 rd)
     }
    vec3 T = exp(-opticalDepth.x * BetaR) + exp(-opticalDepth.y * BetaM);
    //vec3 L = calculate_sun_disk(r0, rd) * T;
-   return (scatteringR * phaseR(cosTheta) * BetaR + scatteringM * phaseM(cosTheta) * BetaM) * SunIntensity;
+   return (scatteringR * phaseR(cosTheta) * BetaR + scatteringM * phaseM(cosTheta) * BetaM) * SunIntensity * u_lightDir.w;
    //return L	+ (scatteringR * phaseR(cosTheta) *	BetaR +	scatteringM	* phaseM(cosTheta) * BetaM)	* SunIntensity;
 }
+/*
+vec3 generate_direction(vec2 uv)
+{
+    vec4 d = vec4(uv, 0.0, 0.0);
+    d = u_invProjection * d;
+    d.z = -1.0f, d.w = 0.0f;
 
+    vec3 worldSpace = vec3(u_invView * d);
+    return normalize(worldSpace);
+}
+*/
+vec3 cubeCoordToWorld(ivec3 cubeCoord, vec2 cubemapSize)
+{
+   vec2 texCoord =	vec2(cubeCoord.xy) / cubemapSize;
+   texCoord	= texCoord	 * 2.0 - 1.0; // -1..1
+   switch(cubeCoord.z)
+   {
+       case	0: return vec3(1.0,	-texCoord.yx); // posx
+	   case	1: return vec3(-1.0, -texCoord.y, texCoord.x); //negx
+	   case	2: return vec3(texCoord.x, 1.0,	texCoord.y); //	posy
+	   case	3: return vec3(texCoord.x, -1.0, -texCoord.y); //negy
+	   case	4: return vec3(texCoord.x, -texCoord.y,	1.0); // posz
+	   case	5: return vec3(-texCoord.xy, -1.0);	// negz
+    }
+	return vec3(0.0);
+}
 
 void main() 
 {
-    vec3 r0 = u_cameraPosition.xyz;
-    vec3 rd = generate_direction(v_uv);
-
-    vec3 col = vec3(0.0);
-	col	= calculate_scattering_baked(r0, rd);
-    //vec3 col = rd * 0.5f + 0.5f;
-    col =col / (1.0 + col);
-    fragColor = vec4(col, 1.0);
+    ivec3 uv = ivec3(gl_GlobalInvocationID.xyz);
+    vec3 col = vec3(0.0f);
+    if(uv.z != 3)
+    {
+        vec3 worldPos =	cubeCoordToWorld(uv, vec2(u_cameraPosition.w));
+		vec3 r0	= u_cameraPosition.xyz;
+		vec3 rd	= normalize(worldPos);
+		col	= calculate_scattering_baked(r0, rd);
+		col	= col /	(1.0 + col);
+    }
+	imageStore(u_cubeMap, uv, vec4(col, 1.0f));
 }

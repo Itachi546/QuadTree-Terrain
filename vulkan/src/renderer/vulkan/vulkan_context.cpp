@@ -7,6 +7,7 @@
 #include "vulkan_buffer.h"
 #include "vulkan_shaderbidings.h"
 #include "vulkan_framebuffer.h"
+#include "vulkan_query.h"
 
 #include "imgui/imgui_impl_vulkan.h"
 
@@ -149,7 +150,6 @@ void VulkanContext::acquire_swapchain_image()
 	{
 		uint32_t width = m_window->get_width();
 		uint32_t height = m_window->get_height();
-		m_window->wait_for_event();
 		m_swapchain->resize_swapchain(m_api, m_globalRenderPass->get_renderpass(), width, height);
 		m_globalRenderPass->set_width(m_swapchain->m_extent.width);
 		m_globalRenderPass->set_height(m_swapchain->m_extent.height);
@@ -195,8 +195,10 @@ void VulkanContext::begin_renderpass(RenderPass* rp, Framebuffer* framebuffer)
 
 	bool defaultRenderPass = m_activeRenderPass == m_globalRenderPass;
 
+
 	VkRenderPassBeginInfo beginPassInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 	beginPassInfo.renderPass = m_activeRenderPass->get_renderpass();
+
 	uint32_t width = m_activeRenderPass->get_width();
 	uint32_t height = m_activeRenderPass->get_height();
 	beginPassInfo.renderArea.extent.width = width;
@@ -452,6 +454,24 @@ void VulkanContext::dispatch_compute(uint32_t workGroupSizeX, uint32_t workGroup
 	vkCmdDispatch(m_commandBuffer, workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 }
 
+void VulkanContext::reset_query(GpuTimestampQuery* query)
+{
+	VulkanQuery* vkQuery = reinterpret_cast<VulkanQuery*>(query);
+	vkCmdResetQueryPool(m_commandBuffer, vkQuery->get_query_pool(), 0, vkQuery->get_query_count());
+}
+
+void VulkanContext::write_timestamp(GpuTimestampQuery* query, uint32_t queryIndex)
+{
+	VulkanQuery* vkQuery = reinterpret_cast<VulkanQuery*>(query);
+	vkCmdWriteTimestamp(m_commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, vkQuery->get_query_pool(), queryIndex);
+}
+
+void VulkanContext::get_result(GpuTimestampQuery* query, uint32_t firstQuery, uint32_t queryCount, void* output)
+{
+	VulkanQuery* vkQuery = reinterpret_cast<VulkanQuery*>(query);
+	VK_CHECK(vkGetQueryPoolResults(m_api->get_device(), vkQuery->get_query_pool(), firstQuery, queryCount, sizeof(uint64_t) * queryCount, output, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT));
+}
+
 GraphicsWindow* VulkanContext::get_window()
 {
 	return reinterpret_cast<GraphicsWindow*>(m_window);
@@ -470,8 +490,6 @@ void VulkanContext::present()
 	{
 		uint32_t width = m_window->get_width();
 		uint32_t height = m_window->get_height();
-
-		m_window->wait_for_event();
 		m_swapchain->resize_swapchain(m_api, m_globalRenderPass->get_renderpass(), width, height);
 		m_globalRenderPass->set_width(width);
 		m_globalRenderPass->set_height(height);

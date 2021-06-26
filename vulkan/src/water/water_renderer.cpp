@@ -113,7 +113,6 @@ WaterRenderer::WaterRenderer(Context* context)
 
 void WaterRenderer::render(Context* context, ShaderBindings** uniformBindings, glm::vec3 cameraPos, glm::vec3 translate, uint32_t count)
 {
-
 	context->update_pipeline(m_pipeline, uniformBindings, count);
 	context->set_pipeline(m_pipeline);
 	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::vec4), &translate);

@@ -51,6 +51,11 @@ public:
 	void draw_indexed_indirect(IndirectBuffer* buffer, uint32_t offset, uint32_t drawCount, uint32_t stride);
 
 	void dispatch_compute(uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
+
+	void reset_query(GpuTimestampQuery* query) override;
+	void write_timestamp(GpuTimestampQuery* query, uint32_t queryIndex) override;
+	void get_result(GpuTimestampQuery* query, uint32_t firstQuery, uint32_t queryCount, void* output) override;
+
 	RenderPass* get_global_renderpass() override
 	{
 		return reinterpret_cast<RenderPass*>(m_globalRenderPass);

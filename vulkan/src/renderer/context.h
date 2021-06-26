@@ -15,6 +15,7 @@ class ShaderBindings;
 class Texture;
 class Framebuffer;
 class GraphicsWindow;
+class GpuTimestampQuery;
 
 class Context
 {
@@ -52,6 +53,8 @@ public:
 	virtual void set_buffer(VertexBuffer* buffer, uint32_t offset) = 0;
 	virtual void set_buffer(IndexBuffer* buffer, uint32_t offset) = 0;
 
+
+
 	virtual void transition_layout_for_shader_read(Texture** texture, uint32_t count) = 0;
 	virtual void transition_layout_for_compute_read(Texture** texture, uint32_t count) = 0;
 
@@ -72,6 +75,11 @@ public:
 	{
 		m_clearValues.depth = depth;
 	}
+
+	virtual void reset_query(GpuTimestampQuery* query) = 0;
+	//virtual void end_query(GpuTimestampQuery* query) = 0;
+	virtual void write_timestamp(GpuTimestampQuery* query, uint32_t queryIndex) = 0;
+	virtual void get_result(GpuTimestampQuery* query, uint32_t firstQuery, uint32_t queryCount, void* output) = 0;
 
 	virtual RenderPass* get_global_renderpass() = 0;
 

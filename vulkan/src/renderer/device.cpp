@@ -8,12 +8,13 @@
 #include "vulkan/vulkan_shaderbidings.h"
 #include "vulkan/vulkan_texture.h"
 #include "vulkan/vulkan_framebuffer.h"
+#include "vulkan/vulkan_query.h"
 
 std::shared_ptr<GraphicsAPI> Device::graphicsAPI = {};
 uint64_t Device::totalMemoryAllocated = 0;
-GraphicsWindow* Device::create_window(int width, int height, const char* title)
+GraphicsWindow* Device::create_window(int width, int height, const char* title, bool fullScreen)
 {
-	return new VulkanGraphicsWindow(width, height, title, Device::graphicsAPI);
+	return new VulkanGraphicsWindow(Device::graphicsAPI, width, height, title, fullScreen);
 }
 
 Pipeline* Device::create_pipeline(const PipelineDescription& desc)
@@ -70,6 +71,11 @@ IndirectBuffer* Device::create_indirect_buffer(BufferUsageHint usage, uint32_t s
 Texture* Device::create_texture(const TextureDescription& desc)
 {
 	return new VulkanTexture(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), desc);
+}
+
+GpuTimestampQuery* Device::create_query(uint32_t queryCount)
+{
+	return new VulkanQuery(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI), queryCount);
 }
 
 ShaderBindings* Device::create_shader_bindings()
@@ -167,4 +173,11 @@ void Device::destroy_texture(Texture* texture)
 void Device::destroy_shader_bindings(ShaderBindings* bindings)
 {
 	delete bindings;
+}
+
+void Device::destroy_query(GpuTimestampQuery* query)
+{
+	VulkanQuery* vkQuery = reinterpret_cast<VulkanQuery*>(query);
+	vkQuery->destroy(std::static_pointer_cast<VulkanAPI>(Device::graphicsAPI));
+	delete query;
 }

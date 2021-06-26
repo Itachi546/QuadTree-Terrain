@@ -3,11 +3,12 @@
 #include "example_base.h"
 #include "light/directional_light.h"
 #include "atmosphere/atmosphere.h"
+#include "renderer/gpu_query.h"
 
 class AtmosphereExample : public ExampleBase
 {
 public:
-	AtmosphereExample() : ExampleBase(1920, 1055)
+	AtmosphereExample() : ExampleBase(1920, 1055, false)
 	{
 		scene = std::make_shared<Scene>("AtmosphereExample", m_context);
 		//cube = scene->create_cube();
@@ -15,12 +16,11 @@ public:
 
 		Entity* plane = scene->create_plane();
 		plane->transform->position.y -= 0.5f;
-		plane->transform->scale = glm::vec3(10.0f);
+		plane->transform->scale = glm::vec3(100.0f);
 
 		Entity* sphere = scene->create_sphere();
 		sphere->transform->position += glm::vec3(1.0f, 0.0f, 0.0f);
 		sphere->transform->scale *= 0.5f;
-
 
 		cube = scene->create_cube();
 		cube->transform->position -= glm::vec3(-2.0f, 0.0f, 0.0f);
@@ -30,8 +30,6 @@ public:
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 		scene->set_camera(camera);
 		//scene->get_directional_light()->set_cast_shadow(false);
-
-		atmosphere = CreateRef<Atmosphere>(m_context);
 	}
 
 	void update(float dt) override
@@ -44,14 +42,10 @@ public:
 	{
 		m_context->begin();
 		scene->prepass(m_context);
-
-		m_context->set_clear_color(0.5f, 0.7f, 0.9f, 1.0f);
+		m_context->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		scene->render(m_context);
-		atmosphere->render(m_context, camera, scene->get_directional_light()->get_direction());
-		DebugDraw::render(m_context, scene->get_uniform_binding());
-
 		m_context->end_renderpass();
 		m_context->end();
 	}
@@ -96,13 +90,11 @@ public:
 	~AtmosphereExample()
 	{
 		scene->destroy();
-		atmosphere->destroy();
 	}
 
 private:
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
-	std::shared_ptr<Atmosphere> atmosphere;
 	Ref<Camera> camera;
 	float mouseX = 0.0f, mouseY = 0.0f;
 };

@@ -2,14 +2,17 @@
 #include "vulkan_api.h"
 #include "vulkan_type_converter.h"
 
-void VulkanTexture::create_image(VkDevice device, VkPhysicalDeviceMemoryProperties memProps, VkImageUsageFlags usage, VkImageType imageType, VkFormat format, uint32_t width, uint32_t height)
+void VulkanTexture::create_image(VkDevice device, VkPhysicalDeviceMemoryProperties memProps, VkImageUsageFlags usage, VkImageType imageType, VkFormat format, uint32_t width, uint32_t height, uint32_t layerCount)
 {
 	VkImageCreateInfo createInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+	if (layerCount == 6)
+		createInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
 	createInfo.imageType = imageType;
 	createInfo.format = format;
 	createInfo.extent = { width, height, 1 };
 	createInfo.mipLevels = 1;
-	createInfo.arrayLayers = 1;
+	createInfo.arrayLayers = layerCount;
 	createInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
 	createInfo.usage = usage;
@@ -31,15 +34,15 @@ void VulkanTexture::create_image(VkDevice device, VkPhysicalDeviceMemoryProperti
 	VK_CHECK(vkBindImageMemory(device, m_image, m_memory, 0));
 }
 
-void VulkanTexture::create_image_view(VkDevice device, VkImageAspectFlags aspectMask, VkFormat format)
+void VulkanTexture::create_image_view(VkDevice device, VkImageAspectFlags aspectMask, VkFormat format, VkImageViewType imageViewType, uint32_t layerCount)
 {
 	VkImageViewCreateInfo createInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 	createInfo.image = m_image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.viewType = imageViewType;
 	createInfo.format = format;
 	createInfo.subresourceRange.aspectMask = aspectMask;
 	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.layerCount = 1;
+	createInfo.subresourceRange.layerCount = layerCount;
 	VK_CHECK(vkCreateImageView(device, &createInfo, nullptr, &m_imageView));
 }
 
@@ -71,8 +74,17 @@ VulkanTexture::VulkanTexture(std::shared_ptr<VulkanAPI> api, const TextureDescri
 	ASSERT(desc.type != TextureType::Color3D);
 	VkImageType imageType = VK_IMAGE_TYPE_2D;
 	VkFormat format = VkTypeConverter::from(desc.format);
-	create_image(device, memoryProps, usage, imageType, format, desc.width, desc.height);
-	create_image_view(device, m_aspect, format);
+
+	VkImageViewType imageViewType = VK_IMAGE_VIEW_TYPE_2D;
+	uint32_t layerCount = 1;
+	if (desc.type == TextureType::Cubemap)
+	{
+		imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		layerCount = 6;
+	}
+
+	create_image(device, memoryProps, usage, imageType, format, desc.width, desc.height, layerCount);
+	create_image_view(device, m_aspect, format, imageViewType, layerCount);
 
 	m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 

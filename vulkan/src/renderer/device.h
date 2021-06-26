@@ -23,6 +23,8 @@ struct TextureDescription;
 struct RenderPassDescription;
 struct PipelineDescription;
 struct FramebufferDescription;
+
+class GpuTimestampQuery;
 /*
   Renderpass(Attachments, vkCmdBeginRenderPass),
   Framebuffer(renderPass, Attachments)
@@ -32,7 +34,7 @@ struct FramebufferDescription;
 class Device
 {
 public:
-	static GraphicsWindow* create_window(int width, int height, const char* title);
+	static GraphicsWindow* create_window(int width, int height, const char* title, bool fullScreen = false);
 	static Pipeline* create_pipeline(const PipelineDescription& desc);
 	static RenderPass* create_renderpass(const RenderPassDescription& desc);
 	static Framebuffer* create_framebuffer(const FramebufferDescription& desc, RenderPass* rp);
@@ -46,6 +48,8 @@ public:
 	static IndirectBuffer* create_indirect_buffer(BufferUsageHint usage, uint32_t sizeInByte);
 
 	static Texture* create_texture(const TextureDescription& desc);
+	static GpuTimestampQuery* create_query(uint32_t queryCount);
+
 
 	static ShaderBindings* create_shader_bindings();
 
@@ -63,6 +67,7 @@ public:
 
 	static void destroy_texture(Texture* texture);
 	static void destroy_shader_bindings(ShaderBindings* bindings);
+	static void destroy_query(GpuTimestampQuery* query);
 
 	static uint64_t get_total_memory_allocated() { return totalMemoryAllocated; }
 private:

@@ -15,9 +15,9 @@
 class ExampleBase
 {
 public:
-	ExampleBase(int width, int height)
+	ExampleBase(int width, int height, bool fullScreen = false)
 	{
-		m_window = Device::create_window(width, height, "Hello Vulkan");
+		m_window = Device::create_window(width, height, "Hello Vulkan", fullScreen);
 		m_context = Device::create_context(m_window);
 		DebugDraw::init(m_context);
 		m_window->set_on_render_frame([&]() { _render(); });

@@ -42,7 +42,7 @@ static void mouse_callback(GLFWwindow* window, int button, int action, int mods)
 
 }
 
-VulkanGraphicsWindow::VulkanGraphicsWindow(int width, int height, const char* title, std::shared_ptr<GraphicsAPI>& graphicsAPI)
+VulkanGraphicsWindow::VulkanGraphicsWindow(std::shared_ptr<GraphicsAPI>& graphicsAPI, int width, int height, const char* title, bool fullScreen)
 {
 	if (!glfwInit())
 		glfwInit();
@@ -53,14 +53,21 @@ VulkanGraphicsWindow::VulkanGraphicsWindow(int width, int height, const char* ti
 	m_userdata.mouse = std::make_shared<Mouse>();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	m_window = glfwCreateWindow(width, height, title, 0, 0);
+
+	GLFWmonitor* monitor = nullptr;
+	if (fullScreen)
+		monitor = glfwGetPrimaryMonitor();
+
+	m_window = glfwCreateWindow(width, height, title, monitor, 0);
+	ASSERT_MSG(m_window != nullptr, "Failed to create Vulkan Window!");
+
 	glfwSetWindowUserPointer(m_window, &m_userdata);
 	glfwSetWindowSizeCallback(m_window, resize_callback);
 	glfwSetKeyCallback(m_window, key_callback);
 	glfwSetMouseButtonCallback(m_window, mouse_callback);
-	ASSERT_MSG(m_window != nullptr, "Failed to create Vulkan Window!");
-	
+
 	//glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
 	std::shared_ptr<VulkanAPI> api = std::make_shared<VulkanAPI>(m_window);
 	graphicsAPI = api;
 }
@@ -71,6 +78,9 @@ void VulkanGraphicsWindow::run(double frameRate)
 	while (!glfwWindowShouldClose(m_window))
 	{
 		glfwPollEvents();
+
+		if (m_userdata.width == 0 || m_userdata.height == 0)
+			continue;
 
 		imgui_new_frame();
 

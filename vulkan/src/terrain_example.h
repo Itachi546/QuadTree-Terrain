@@ -9,7 +9,7 @@
 class TerrainExample : public ExampleBase
 {
 public:
-	TerrainExample() : ExampleBase(1920, 1055)
+	TerrainExample() : ExampleBase(1920, 1055, false)
 	{
 		scene = std::make_shared<Scene>("TerrainExample", m_context);
 		water = CreateRef<Water>(m_context);
@@ -78,7 +78,6 @@ public:
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		scene->render(m_context);
-		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
 		m_context->end();
 	}

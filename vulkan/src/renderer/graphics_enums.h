@@ -89,6 +89,7 @@ enum class TextureType
 {
 	Color2D,
 	Color3D,
+	Cubemap,
 	DepthStencil
 };
 

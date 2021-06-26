@@ -48,7 +48,6 @@ public:
 		m_context->set_clear_depth(1.0f);
 		m_context->begin_renderpass(nullptr, nullptr);
 		scene->render(m_context);
-		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
 		m_context->end();
 	}

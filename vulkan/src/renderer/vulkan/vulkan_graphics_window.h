@@ -23,7 +23,7 @@ struct ImGui_ImplVulkan_InitInfo;
 class VulkanGraphicsWindow : public GraphicsWindow
 {
 public:
-	VulkanGraphicsWindow(int width, int height, const char* title, std::shared_ptr<GraphicsAPI>& graphicsAPI);
+	VulkanGraphicsWindow(std::shared_ptr<GraphicsAPI>& graphicsAPI, int width, int height, const char* title, bool fullScreen = false);
 	void run(double frameRate) override;
 	void destroy(std::shared_ptr<GraphicsAPI> m_graphicsAPI);
 

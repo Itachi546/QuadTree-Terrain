@@ -15,6 +15,7 @@ class ShadowCascade;
 class DirectionalLight;
 class Terrain;
 class Water;
+class Atmosphere;
 
 class Scene
 {
@@ -46,6 +47,7 @@ public:
 
 	void set_terrain(Ref<Terrain> terrain) { m_terrain = terrain; }
 	Ref<Terrain> get_terrain() { return m_terrain; }
+	Ref<Atmosphere> get_atmosphere() { return m_atmosphere; }
 
 	void set_water(Ref<Water> water) { m_water = water; }
 
@@ -55,6 +57,8 @@ public:
 	Entity* create_cube();
 	Entity* create_plane();
 	Entity* create_sphere();
+
+	Ref<Mesh> get_cube_mesh() { return m_cubeMesh; }
 private:
 	struct GlobalState
 	{
@@ -83,6 +87,8 @@ private:
 	Ref<DirectionalLight> m_sun;
 	ShaderBindings* m_lightBindings = nullptr;
 	
+
+	Ref<Atmosphere> m_atmosphere;
 	// Debug
 	bool m_showBoundingBox = false;
 

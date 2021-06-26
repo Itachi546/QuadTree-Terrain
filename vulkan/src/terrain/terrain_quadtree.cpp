@@ -36,6 +36,8 @@ void QuadTree::update(Context* context, Ref<Camera> camera)
 bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Camera> camera)
 {
 	glm::vec3 camPos = camera->get_position();
+	camPos.y = 0.0f;
+
 	glm::ivec2 min = position - size;
 	glm::ivec2 max = position + size;
 	BoundingBox box = { glm::vec3(min.x, -m_maxHeight, min.y), glm::vec3(max.x, m_maxHeight, max.y) };
@@ -43,7 +45,7 @@ bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Cam
 	if (camera->get_frustum()->intersect_box(box))
 	{
 		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camPos);
-		if (distance < size.x * 3.0f)
+		if (distance < size.x * 2.0f)
 			return true;
 		return false;
 	}

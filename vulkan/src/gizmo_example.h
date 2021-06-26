@@ -82,7 +82,6 @@ private:
 		m_context->begin_renderpass(nullptr, nullptr);
 		scene->render(m_context);
 		gizmo->render(m_context);
-		DebugDraw::render(m_context, scene->get_uniform_binding());
 		m_context->end_renderpass();
 		m_context->end();
 
