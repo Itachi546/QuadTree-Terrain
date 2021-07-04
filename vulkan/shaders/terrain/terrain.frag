@@ -23,6 +23,10 @@ layout(binding = 1) uniform Light
    vec3 lightColor;
    float castShadow;
 };
+layout(binding = 2) uniform samplerCube u_cubemap;
+layout(binding = 3) uniform samplerCube u_irradiance;
+
+
 
 vec3 grassColor = vec3(0.01f, 0.5f, 0.01f);
 vec3 rockColor = vec3(0.4f, 0.2f, 0.01f);

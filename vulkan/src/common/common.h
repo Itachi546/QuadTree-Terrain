@@ -12,4 +12,3 @@ inline std::string load_file(const char* filename)
 		ASSERT_MSG(0, "File doesn't exist");
 	return std::string{};
 }
-

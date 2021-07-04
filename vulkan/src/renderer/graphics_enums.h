@@ -45,6 +45,7 @@ enum class Format
 	R8G8B8A8_Unorm,
 	R16Float,
 	R16G16B16A16Float,
+	R16G16B16Float,
 	R32Float,
 	R32G32Float,
 	R32G32B32Float,

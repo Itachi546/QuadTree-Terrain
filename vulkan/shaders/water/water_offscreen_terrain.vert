@@ -13,6 +13,7 @@ layout(push_constant) uniform block
    mat4 projection;
    mat4 view;
    vec4 clipPlane;
+   vec4 cameraPosition;
 };
 
 const float multiplier = 1.0f / 255.0f;
@@ -24,7 +25,7 @@ void main()
     vec4 viewSpace = view * worldSpacePosition;
 
     gl_Position = projection * viewSpace;
-    viewSpacePosition = viewSpace.xyz;
+    viewSpacePosition = cameraPosition.xyz - worldSpacePosition.xyz;
 
     float z = float(normal & 0xFF);
     float y = float((normal >> 8) & 0xFF);

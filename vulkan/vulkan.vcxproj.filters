@@ -197,6 +197,12 @@
     <ClCompile Include="src\renderer\vulkan\vulkan_query.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\diffuse_irradiance_generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">
@@ -478,6 +484,15 @@
     <ClInclude Include="src\renderer\vulkan\vulkan_query.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\diffuse_irradiance_generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\image_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\debug\edge_detection.frag">
@@ -541,8 +556,10 @@
     <CustomBuild Include="shaders\atmosphere\atmosphere.vert" />
     <CustomBuild Include="shaders\atmosphere\atmosphere_baked.frag" />
     <CustomBuild Include="shaders\atmosphere\atmosphere.comp" />
-    <CustomBuild Include="shaders\atmosphere\cubemap.vert" />
-    <CustomBuild Include="shaders\atmosphere\cubemap.frag" />
+    <CustomBuild Include="shaders\cubemap\cubemap.vert" />
+    <CustomBuild Include="shaders\cubemap\cubemap.frag" />
+    <CustomBuild Include="shaders\cubemap\diffuse_irradiance.comp" />
+    <CustomBuild Include="shaders\cubemap\equirectangular_to_cubemap.comp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

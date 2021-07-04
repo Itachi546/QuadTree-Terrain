@@ -15,6 +15,7 @@ class NormalMapGenerator;
 class RenderPass;
 class Framebuffer;
 class Camera;
+class UniformBuffer;
 
 class WaterRenderer;
 struct WaterProperties;
@@ -34,6 +35,22 @@ public:
 
 	ShaderBindings* debugBindings;
 private:
+	struct WaterParams
+	{
+		glm::vec3 waterColor;
+		float maxDepth;
+
+		glm::vec3 foamColor;
+		float maxFoamDepth;
+
+		glm::vec3 absorptionColor;
+		float zN;
+		float zF;
+
+		float shoreBlendDistance;
+	} m_waterParams;
+
+
 	float m_timeElapsed = 0.0f;
 
 	Ref<SpectrumTexture> m_spectrumTexture;
@@ -58,6 +75,7 @@ private:
 	Pipeline* m_offscreenCubemapPipeline;
 	// temp
 
+	UniformBuffer* m_waterUniformParams;
 
 	//Reflection and refraction texture size
 	const uint32_t OFFSCREEN_WIDTH = 512;

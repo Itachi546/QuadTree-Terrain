@@ -2,6 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_GOOGLE_include_directive   : require
 
+#include "shader_constants.h"
 #include "shadow/shadow.h"
 
 layout(location = 0) in vec3 vnormal;
@@ -10,34 +11,42 @@ layout(location = 2) in vec3 viewSpacePosition;
 
 layout(location = 0) out vec4 fragColor;
 
-const bool enablePCF = true;
-const bool enableShadowDebug = false;
+#define INCLUDE_IMPLEMENTATION
+#include "pbr.h"
 
 layout(binding = 1) uniform Light
 {
-   vec3 lightDirection;
-   float lightIntensity;
-   vec3 lightColor;
-   float castShadow;
+    LightProperties directionalLight;
 };
+
+layout(binding = 2) uniform samplerCube u_cubemap;
+layout(binding = 3) uniform samplerCube u_irradiance;
 
 void main() 
 {
-    vec3 normal = normalize(vnormal);
-    vec3 col = vec3(0.0f);
-	float shadow = 1.0f;
-	if(castShadow > 0.5f)
-	  shadow = calculateShadowFactor(worldSpacePosition, length(viewSpacePosition), enablePCF);
 
-    col += max(dot(normal, normalize(lightDirection)), 0.0) * lightColor * lightIntensity * shadow;
-	col	+= (normal.y * 0.5 + 0.5) *	vec3(0.16, 0.20, 0.28);
+    vec3 N = normalize(vnormal);
+    vec3 V = normalize(viewSpacePosition);
 
-	
-	//float fog = 1.0f - exp(-length(viewSpacePosition) * 0.002);
-	//col = mix(col, vec3(0.5, 0.7, 1.0), fog);
+    Material material;
+    material.albedo = vec3(1.0, 0.0, 0.0);
+    material.roughness = 1.0;
+    material.ao = 1.0;
+    material.metallic = 0.2;
 
-	if(castShadow > 0.5f && enableShadowDebug)
+    vec3 col = calculateLight(N, directionalLight, material, V);
+
+    vec3 F0 = vec3(0.04f);
+    vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 kD = (1.0 - kS) * (1.0 - material.metallic);
+	vec3 irradiance = texture(u_irradiance, N).rgb;
+    vec3 diffuse = irradiance * vec3(1.0);
+    vec3 ambient = (kD * diffuse) * material.ao;
+	col += ambient;
+
+	if(directionalLight.castShadow > 0.5f && enableShadowDebug)
 	  col *= debugCascade();
+
     col /= (1.0 + col);
     fragColor = vec4(col, 1.0f);
 }

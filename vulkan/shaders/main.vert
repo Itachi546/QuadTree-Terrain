@@ -12,10 +12,11 @@ layout(location = 2) out vec3 viewSpacePosition;
 void main() 
 {
     vec4 worldSpace = model * vec4(position, 1.0);
-    vec4 camSpace = globalState.view * worldSpace;
-    gl_Position = globalState.projection * camSpace;
+    gl_Position = globalState.projection * globalState.view * worldSpace;
 
     vnormal = inverse(transpose(mat3(model))) * normal;
     worldSpacePosition = worldSpace.xyz;
-    viewSpacePosition = camSpace.xyz;
+
+     viewSpacePosition = globalState.cameraPosition - worldSpacePosition.xyz;
+    //viewSpacePosition = camSpace.xyz;
 }

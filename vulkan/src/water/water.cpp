@@ -12,6 +12,7 @@
 #include "renderer/renderpass.h"
 #include "renderer/framebuffer.h"
 #include "renderer/pipeline.h"
+#include "renderer/buffer.h"
 #include "common/common.h"
 
 #include "core/frustum.h"
@@ -19,7 +20,7 @@
 #include "scene/camera.h"
 #include "scene/mesh.h"
 #include "terrain/terrain.h"
-
+#include <imgui/imgui.h>
 #include "atmosphere/atmosphere.h"
 
 Pipeline* Water::create_atmosphere_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode)
@@ -176,6 +177,15 @@ Water::Water(Context* context)
 	debugBindings = Device::create_shader_bindings();
 	//debugBindings->set_texture_sampler(m_normaMapGenerator->get_normal_texture(), 0);
 	debugBindings->set_texture_sampler(m_refractionFB->get_color_attachment(0), 0);
+	{
+		m_waterParams.maxDepth = 100.0f;
+		m_waterParams.maxFoamDepth = 0.05f;
+		m_waterParams.foamColor = glm::vec3(1.0f);
+		m_waterParams.absorptionColor = m_waterParams.waterColor = glm::vec3(0.1f, 0.3f, 0.7f);
+		m_waterParams.shoreBlendDistance = 10.0f;
+		m_waterUniformParams = Device::create_uniformbuffer(BufferUsageHint::DynamicCopy, sizeof(m_waterParams));
+		m_rendererBindings->set_buffer(m_waterUniformParams, 7);
+	}
 }
 
 void Water::update(Context* context, float dt)
@@ -197,14 +207,30 @@ void Water::update(Context* context, float dt)
 	Texture* normalMap = m_normaMapGenerator->get_normal_texture();
 	context->transition_layout_for_shader_read(&normalMap, 1);
 	context->end_compute();
+
 }
 
 void Water::render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, uint32_t count)
 {
+	if (ImGui::CollapsingHeader("Water"))
+	{
+		ImGui::SliderFloat("Absorption Max Depth", &m_waterParams.maxDepth, 0.0f, 200.0f);
+		ImGui::SliderFloat("Shored Blend Distance", &m_waterParams.shoreBlendDistance, 0.0f, 100.0f);
+		ImGui::SliderFloat("Water Height", &m_translate.y, -300, 300);
+		ImGui::ColorPicker3("Water Color", &m_waterParams.waterColor[0]);
+		ImGui::ColorPicker3("Absorption Color", &m_waterParams.absorptionColor[0]);
+
+	}
+
+	m_waterParams.zN = camera->get_near_plane();
+	m_waterParams.zF = camera->get_far_plane();
+	context->copy(m_waterUniformParams, &m_waterParams, 0, sizeof(m_waterParams));
+
 	std::vector<ShaderBindings*> bindings;
 	for (uint32_t i = 0; i < count; ++i)
 		bindings.push_back(uniformBindings[i]);
 	bindings.push_back(m_rendererBindings);
+
 	m_renderer->render(context, bindings.data(), camera->get_position(), m_translate, static_cast<uint32_t>(bindings.size()));
 }
 
@@ -253,6 +279,8 @@ void Water::generate_reflection_texture(Context* context, Scene* scene)
 	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 	uniformOffset += sizeof(glm::vec4);
 
+	glm::vec3 cameraPosition = newCamera->get_position();
+	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &cameraPosition);
 
 	scene->render_entities(context, newCamera, 0);
 	//render_scene(context, scene, uniformOffset);
@@ -271,7 +299,7 @@ void Water::generate_reflection_texture(Context* context, Scene* scene)
 	Ref<Atmosphere> atmosphere = scene->get_atmosphere();
 	if (atmosphere)
 	{
-		ShaderBindings* bindings = atmosphere->get_cubemap();
+		ShaderBindings* bindings = atmosphere->get_cubemap_bindings();
 		context->update_pipeline(m_offscreenCubemapPipeline, &bindings, 1);
 		context->set_pipeline(m_offscreenCubemapPipeline);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(VP), &VP);
@@ -317,7 +345,8 @@ void Water::generate_refraction_texture(Context* context, Scene* scene)
 		uniformOffset += sizeof(glm::mat4) * 2;
 		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
 		uniformOffset += sizeof(glm::vec4);
-
+		glm::vec3 cameraPosition = camera->get_position();
+		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &cameraPosition);
 
 		terrain->render_no_renderpass(context, camera);
 	}
@@ -344,5 +373,6 @@ void Water::destroy()
 	Device::destroy_renderpass(m_renderPass);
 	Device::destroy_framebuffer(m_reflectionFB);
 	Device::destroy_framebuffer(m_refractionFB);
+	Device::destroy_buffer(m_waterUniformParams);
 }
 

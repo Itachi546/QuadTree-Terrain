@@ -24,8 +24,8 @@ public:
 
 	void set_layout(VkImageLayout layout) { m_layout = layout; }
 
-	uint32_t get_height() override { return m_width; }
-	uint32_t get_width() override { return m_height; }
+	uint32_t get_height() override { return m_height; }
+	uint32_t get_width() override { return m_width; }
 
 private:
 	VkImage m_image = 0;

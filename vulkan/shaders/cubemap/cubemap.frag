@@ -32,5 +32,7 @@ vec3 calculate_sun_disk(vec3 r0, vec3 rd, vec3 sunDir, float intensity)
 void main()
 {
    vec3 L = calculate_sun_disk(rayOrigin, normalize(rayDirection), normalize(sunDirection.xyz), sunDirection.w);
-   fragColor = vec4(L + texture(skybox, uv).rgb, 1.0f);
+   L += texture(skybox, uv).rgb;
+   L /=(1.0 + L);
+   fragColor = vec4(L, 1.0f);
 }

@@ -154,6 +154,8 @@
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\atmosphere\atmosphere.cpp" />
     <ClCompile Include="src\renderer\vulkan\vulkan_query.cpp" />
+    <ClCompile Include="src\utils\diffuse_irradiance_generator.cpp" />
+    <ClCompile Include="src\utils\skybox.cpp" />
     <ClCompile Include="src\water\normal_map_generator.cpp" />
     <ClCompile Include="src\common\spirv_reflect.c" />
     <ClCompile Include="src\debug\gizmo.cpp" />
@@ -210,8 +212,11 @@
     </CustomBuild>
     <ClInclude Include="src\atmosphere\atmosphere.h" />
     <ClInclude Include="src\atmosphere_example.h" />
+    <ClInclude Include="src\common\image_loader.h" />
     <ClInclude Include="src\renderer\gpu_query.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_query.h" />
+    <ClInclude Include="src\utils\diffuse_irradiance_generator.h" />
+    <ClInclude Include="src\utils\skybox.h" />
     <ClInclude Include="src\water\normal_map_generator.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\spirv.h" />
@@ -415,10 +420,16 @@
     <CustomBuild Include="shaders\atmosphere\atmosphere.comp">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\atmosphere\cubemap.frag">
+    <CustomBuild Include="shaders\cubemap\cubemap.frag">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="shaders\atmosphere\cubemap.vert">
+    <CustomBuild Include="shaders\cubemap\cubemap.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\cubemap\diffuse_irradiance.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="shaders\cubemap\equirectangular_to_cubemap.comp">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

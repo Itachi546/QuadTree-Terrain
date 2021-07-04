@@ -3,6 +3,7 @@
 #include "example_base.h"
 #include "light/cascaded_shadow.h"
 #include "core/frustum.h"
+#include "utils/skybox.h"
 
 class CubeExample : public ExampleBase
 {
@@ -15,7 +16,7 @@ public:
 
 		Entity* plane = scene->create_plane();
 		plane->transform->position.y -= 0.5f;
-		plane->transform->scale = glm::vec3(10.0f);
+		plane->transform->scale = glm::vec3(100.0f);
 
 		Entity* sphere = scene->create_sphere();
 		sphere->transform->position += glm::vec3(1.0f, 0.0f, 0.0f);
@@ -31,6 +32,7 @@ public:
 		scene->set_camera(camera);
 		scene->show_bounding_box(true);
 
+		skybox = CreateRef<Skybox>(m_context, "assets/hdri/newport_loft.hdr");
 	}
 
 	void update(float dt) override
@@ -91,6 +93,7 @@ public:
 
 	~CubeExample()
 	{
+		skybox->destroy();
 		scene->destroy();
 	}
 
@@ -98,6 +101,7 @@ private:
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
 	Ref<Camera> camera;
+	Ref<Skybox> skybox;
 	float mouseX = 0.0f, mouseY = 0.0f;
 };
 

@@ -43,6 +43,8 @@ public:
 			return VK_FORMAT_R16_SFLOAT;
 		case Format::R16G16B16A16Float:
 			return VK_FORMAT_R16G16B16A16_SFLOAT;
+		case Format::R16G16B16Float:
+			return VK_FORMAT_R16G16B16_SFLOAT;
 		case Format::R32G32Float:
 			return VK_FORMAT_R32G32_SFLOAT;
 		case Format::R32G32B32Float:

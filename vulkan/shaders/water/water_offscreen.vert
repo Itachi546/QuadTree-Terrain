@@ -14,6 +14,7 @@ layout(push_constant) uniform block
    mat4 P;
    mat4 V;
    vec4 clipPlane;
+   vec4 cameraPosition;
 };
 
 
@@ -22,9 +23,10 @@ void main()
     vec4 worldSpacePosition = model * vec4(position, 1.0f);
     gl_ClipDistance[0] = dot(worldSpacePosition, clipPlane);
 
-    vec4 viewSpace = V * worldSpacePosition;
-    gl_Position = P * viewSpace;
+    vec4 worldSpace = model * vec4(position, 1.0);
+    gl_Position = P * V * worldSpace;
 
-    viewSpacePosition = viewSpace.xyz;
     vnormal = inverse(transpose(mat3(model))) * normal;
+
+    viewSpacePosition = cameraPosition.xyz - worldSpacePosition.xyz;
 }

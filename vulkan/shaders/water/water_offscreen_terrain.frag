@@ -14,6 +14,10 @@ layout(binding = 1) uniform Light
    vec3 lightColor;
    float castShadow;
 };
+layout(binding = 2) uniform samplerCube u_cubemap;
+layout(binding = 3) uniform samplerCube u_irradiance;
+
+
 
 vec3 grassColor = vec3(0.01f, 0.5f, 0.01f);
 vec3 rockColor = vec3(0.4f, 0.2f, 0.01f);
@@ -44,9 +48,6 @@ void main()
 
     col += max(dot(normal, lightDirection), 0.0) * lightColor * lightIntensity * shadow * calculateColor(normal);
 	col	+= (normal.y * 0.5 + 0.5) *	vec3(0.16, 0.20, 0.28) * 0.5f;
-
-	float fog = 1.0f - exp(-length(viewSpacePosition) * 0.002);
-	col = mix(col, vec3(0.5, 0.7, 1.0), fog);
 
     col /= (1.0 + col);
 	fragColor =	vec4(col, 1.0f);

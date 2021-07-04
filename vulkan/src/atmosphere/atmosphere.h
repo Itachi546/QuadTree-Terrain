@@ -3,6 +3,7 @@
 #include <core/base.h>
 #include <core/math.h>
 
+class DiffuseIrradianceGenerator;
 class Context;
 class Pipeline;
 class Texture;
@@ -21,7 +22,10 @@ public:
 	void destroy();
 
 	float get_earth_radius() { return m_params.EARTH_RADIUS; }
-	ShaderBindings* get_cubemap() { return m_bindings; }
+	ShaderBindings* get_cubemap_bindings() { return m_skyboxBindings; }
+
+	Texture* get_cubemap_texture() { return m_atmosphereCubemapInfo.texture; }
+	Texture* get_irradiance_texture() { return m_diffuseIrradianceInfo.texture; }
 private:
 	struct AtmosphereParams
 	{
@@ -36,23 +40,27 @@ private:
 		int TRANSMITTANCE_TEXTURE_DIM;
 	} m_params;
 
+	struct PipelineInfo
+	{
+		Pipeline* pipeline;
+		ShaderBindings* bindings;
+		Texture* texture;
+	};
+
 	//Uniform Buffer
 	UniformBuffer* m_ubo;
 
 	// Precomputing optical depth texture
-	ShaderBindings* m_transmittanceBindings;
-	Texture* m_transmittanceTexture;
-	Texture* m_cubemap;
-	Pipeline* m_transmittanceComputePipeline;
+	PipelineInfo m_transmittanceInfo;
+	PipelineInfo m_atmosphereCubemapInfo;
+	PipelineInfo m_diffuseIrradianceInfo;
 
-	// Rendering the atmosphere
-    Pipeline* m_pipeline;
-	ShaderBindings* m_bindings;
+	Ref<DiffuseIrradianceGenerator> m_DIGenerator;
 
-	Pipeline* m_cubemapPipeline;
-	ShaderBindings* m_cubemapBindings;
+	Pipeline* m_skyboxPipeline;
+	ShaderBindings* m_skyboxBindings;
 
 	const uint32_t CUBEMAP_DIMS = 256;
-
+	const uint32_t DIFFUSE_IRRADIANCE_DIMS = 32;
 	void precompute_transmittance(Context* context);
 };

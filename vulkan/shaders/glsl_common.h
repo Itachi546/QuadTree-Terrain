@@ -2,6 +2,7 @@ layout(set = 0, binding = 0) uniform GlobalState
 {
 	mat4 projection;
 	mat4 view;
+	vec3 cameraPosition;
 } globalState;
 
 #ifdef USE_MODEL_MATRIX

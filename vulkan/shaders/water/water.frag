@@ -22,26 +22,39 @@ layout(binding = 4) uniform sampler2D reflectionTexture;
 layout(binding = 5) uniform sampler2D refractionTexture;
 layout(binding = 6) uniform sampler2D refractionDepthTexture;
 
-const vec3 waterColor =  vec3(0.1, 0.3, 0.7);
-const vec3 foamColor =  vec3(1.0f);
+layout(binding = 7) uniform WaterParams
+{
+   vec3 waterColor;
+   float maxDepth;
 
-const float zN = 0.01f;
-const float zF = 2000.0f;
-const float maxFoamDepth = 10.0f;
-const float zRange = zF - zN;
+   vec3 foamColor;
+   float maxFoamDepth;
+
+   float zN;
+   float zF;
+
+   float shoreBlendDistance;
+};
+
+
+//const vec3 foamColor =  vec3(1.0f);
+//const float maxFoamDepth = 10.0f;
+
 
 vec3 calculate_light(vec3 viewDir, vec3 lightDir, vec3 normal)
 {
    vec3 reflection = normalize(reflect(-lightDir, normal));
    float direction = max(0.0, dot(viewDir, reflection));
    vec3 col = pow(direction, 16.0) * lightColor * lightIntensity;
-   col += max(dot(lightDir, normal), 0.0) * lightColor * waterColor * lightIntensity;
+   col += max(dot(lightDir, normal), 0.0) * lightColor * waterColor.xyz * lightIntensity;
    //col += vec3(0.1f);
    return col;
 }
 
 void main() 
 { 
+   const float	zRange = zF	- zN;
+
    vec3 viewDir = normalize(viewDirection);
    vec3 lightDir = normalize(lightDirection);
    vec3 normal = normalize(vnormal);
@@ -54,14 +67,14 @@ void main()
    float waterDistance = (2.0 * zN * zF) / (zF + zN - curDepth * zRange);
 
    float waterDepth = max(floorDistance - waterDistance, 0.0);
-   float alpha = clamp(waterDepth / 10.0, 0.0, 1.0);
+   float alpha = clamp(waterDepth / shoreBlendDistance, 0.0, 1.0);
 
    float distortionFactor = max(dist * 0.5f, 10.0f);
    vec2 distortion = normal.xz / distortionFactor;
    vec3 refl = texture(reflectionTexture, uv + distortion).rgb;
    vec3 refr = texture(refractionTexture, vec2(uv.x, 1.0 - uv.y) - distortion).rgb;
-   float absorption	= clamp(waterDepth / 80.0f, 0.0, 1.0);
-   refr = mix(refr, waterColor, absorption); 
+   float absorption	= clamp(waterDepth / maxDepth, 0.0, 1.0);
+   refr = mix(refr, waterColor.xyz, absorption); 
 
    float cos_theta = max(dot(viewDir, vec3(0.0, 1.0, 0.0)), 0.0);
    float f0 = 0.02;

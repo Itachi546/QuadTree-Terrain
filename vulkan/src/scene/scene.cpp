@@ -38,13 +38,6 @@ Scene::Scene(std::string name, Context* context) : m_name(name)
 	m_sun->set_cast_shadow(true);
 	m_sun->set_intensity(1.978f);
 
-	m_lightUniformBuffer = Device::create_uniformbuffer(BufferUsageHint::DynamicDraw, sizeof(LightData));
-	m_uniformBindings = Device::create_shader_bindings();
-	m_uniformBindings->set_buffer(m_uniformBuffer, 0);
-
-	m_lightBindings = Device::create_shader_bindings();
-	m_lightBindings->set_buffer(m_lightUniformBuffer, 1);
-
 	m_sunLightShadowCascade = CreateRef<ShadowCascade>(lightDir);
 
 	std::string vertexCode = load_file("spirv/main.vert.spv");
@@ -70,6 +63,15 @@ Scene::Scene(std::string name, Context* context) : m_name(name)
 	m_pipeline = Device::create_pipeline(pipelineDesc);
 
 	m_atmosphere = CreateRef<Atmosphere>(context);
+
+	m_lightUniformBuffer = Device::create_uniformbuffer(BufferUsageHint::DynamicDraw, sizeof(LightData));
+	m_uniformBindings = Device::create_shader_bindings();
+	m_uniformBindings->set_buffer(m_uniformBuffer, 0);
+
+	m_lightBindings = Device::create_shader_bindings();
+	m_lightBindings->set_buffer(m_lightUniformBuffer, 1);
+	m_lightBindings->set_texture_sampler(m_atmosphere->get_cubemap_texture(), 2);
+	m_lightBindings->set_texture_sampler(m_atmosphere->get_irradiance_texture(), 3);
 }
 
 Entity* Scene::create_entity(std::string name)
@@ -98,6 +100,8 @@ void Scene::update(Context* context, float dt)
 
 	m_state.projection = m_camera->get_projection();
 	m_state.view = m_camera->get_view();
+	m_state.cameraPosition = m_camera->get_position();
+
 	context->copy(m_uniformBuffer, &m_state, 0, sizeof(GlobalState));
 
 	LightData sun = { m_sun->get_direction(), m_sun->get_intensity(), m_sun->get_light_color(), float(m_sun->cast_shadow()) };

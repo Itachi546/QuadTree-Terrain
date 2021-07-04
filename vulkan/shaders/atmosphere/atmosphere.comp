@@ -3,6 +3,7 @@
 #extension GL_GOOGLE_include_directive   : require
 
 #include "../shader_constants.h"
+#include "../cubemap/cubemap.h"
 
 #define LOCAL_SIZE 32
 layout(local_size_x = LOCAL_SIZE, local_size_y = LOCAL_SIZE, local_size_z = 1) in;
@@ -21,7 +22,7 @@ layout(binding = 1) uniform AtmosphereParams
   int TRANSMITTANCE_TEXTURE_DIM;
 };
 
-layout(binding = 2, rgba8) uniform writeonly imageCube u_cubeMap;
+layout(binding = 2, rgba16f) uniform writeonly imageCube u_cubeMap;
 
 // Push Constants
 layout(push_constant) uniform block
@@ -159,22 +160,6 @@ vec3 generate_direction(vec2 uv)
     return normalize(worldSpace);
 }
 */
-vec3 cubeCoordToWorld(ivec3 cubeCoord, vec2 cubemapSize)
-{
-   vec2 texCoord =	vec2(cubeCoord.xy) / cubemapSize;
-   texCoord	= texCoord	 * 2.0 - 1.0; // -1..1
-   switch(cubeCoord.z)
-   {
-       case	0: return vec3(1.0,	-texCoord.yx); // posx
-	   case	1: return vec3(-1.0, -texCoord.y, texCoord.x); //negx
-	   case	2: return vec3(texCoord.x, 1.0,	texCoord.y); //	posy
-	   case	3: return vec3(texCoord.x, -1.0, -texCoord.y); //negy
-	   case	4: return vec3(texCoord.x, -texCoord.y,	1.0); // posz
-	   case	5: return vec3(-texCoord.xy, -1.0);	// negz
-    }
-	return vec3(0.0);
-}
-
 void main() 
 {
     ivec3 uv = ivec3(gl_GlobalInvocationID.xyz);
@@ -185,7 +170,6 @@ void main()
 		vec3 r0	= u_cameraPosition.xyz;
 		vec3 rd	= normalize(worldPos);
 		col	= calculate_scattering_baked(r0, rd);
-		col	= col /	(1.0 + col);
     }
 	imageStore(u_cubeMap, uv, vec4(col, 1.0f));
 }
