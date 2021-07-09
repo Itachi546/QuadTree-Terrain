@@ -397,7 +397,7 @@ void VulkanContext::transition_layout_for_shader_read(Texture** texture, uint32_
 
 void VulkanContext::transition_layout_for_compute_read(Texture** texture, uint32_t count)
 {
-	std::vector<VkImageMemoryBarrier> barriers(count);
+	std::vector<VkImageMemoryBarrier> barriers;
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		VulkanTexture* vkTexture = reinterpret_cast<VulkanTexture*>(texture[i]);
@@ -406,11 +406,11 @@ void VulkanContext::transition_layout_for_compute_read(Texture** texture, uint32
 
 		VkImageAspectFlagBits aspect = vkTexture->get_image_aspect();
 		if (vkTexture->get_layout() == VK_IMAGE_LAYOUT_GENERAL)
-			return;
+			continue;
 
-		barriers[i] = image_barrier(vkTexture->get_image(), 0, 0,
+		barriers.push_back(image_barrier(vkTexture->get_image(), 0, 0,
 			vkTexture->get_layout(),
-			VK_IMAGE_LAYOUT_GENERAL, aspect);
+			VK_IMAGE_LAYOUT_GENERAL, aspect));
 
 		vkTexture->set_layout(VK_IMAGE_LAYOUT_GENERAL);
 	}
@@ -419,7 +419,7 @@ void VulkanContext::transition_layout_for_compute_read(Texture** texture, uint32
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
 		0, 0, nullptr,
 		0, nullptr,
-		count, barriers.data());
+		static_cast<uint32_t>(barriers.size()), barriers.data());
 
 }
 

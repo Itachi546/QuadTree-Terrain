@@ -16,16 +16,11 @@ class Mesh;
 class Atmosphere
 {
 public:
-	Atmosphere(Context* context);
+	Atmosphere(Context* context, Texture* m_cubemap, UniformBuffer* viewProjection);
 	void update(Context* context, Ref<Camera> camera, glm::vec3 lightDir, float lightIntensity);
-	void render(Context* context, Ref<Mesh> cube, Ref<Camera> camera, glm::vec3 lightDir, float lightIntensity);
 	void destroy();
 
 	float get_earth_radius() { return m_params.EARTH_RADIUS; }
-	ShaderBindings* get_cubemap_bindings() { return m_skyboxBindings; }
-
-	Texture* get_cubemap_texture() { return m_atmosphereCubemapInfo.texture; }
-	Texture* get_irradiance_texture() { return m_diffuseIrradianceInfo.texture; }
 private:
 	struct AtmosphereParams
 	{
@@ -52,15 +47,11 @@ private:
 
 	// Precomputing optical depth texture
 	PipelineInfo m_transmittanceInfo;
-	PipelineInfo m_atmosphereCubemapInfo;
-	PipelineInfo m_diffuseIrradianceInfo;
 
-	Ref<DiffuseIrradianceGenerator> m_DIGenerator;
+	// Rendering to the cubemap
+	Texture* m_cubemap;
+	Pipeline* m_pipeline;
+	ShaderBindings* m_bindings;
 
-	Pipeline* m_skyboxPipeline;
-	ShaderBindings* m_skyboxBindings;
-
-	const uint32_t CUBEMAP_DIMS = 256;
-	const uint32_t DIFFUSE_IRRADIANCE_DIMS = 32;
 	void precompute_transmittance(Context* context);
 };

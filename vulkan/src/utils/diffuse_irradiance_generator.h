@@ -10,7 +10,7 @@ class DiffuseIrradianceGenerator
 public:
 	DiffuseIrradianceGenerator();
 	// Call between begin compute and end compute
-	void generate(Context* context, ShaderBindings** bindings, unsigned int count, unsigned int cubemapSize);
+	void generate(Context* context, ShaderBindings** bindings, unsigned int count, unsigned int irradianceCubemapSize);
 	void destroy();
 private:
 	const int sampleCount = 32;

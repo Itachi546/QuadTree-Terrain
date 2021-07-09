@@ -3,7 +3,7 @@
 #include "core/base.h"
 #include "core/math.h"
 #include "mesh.h"
-
+#include "material.h"
 #include <string>
 #include <memory>
 
@@ -24,6 +24,7 @@ struct Transform
 		rotation = glm::angleAxis(angle, axis);
 	}
 };
+
 struct Rigidbody;
 
 class Entity
@@ -34,6 +35,7 @@ public:
 
 	Ref<Transform> transform;
 	Ref<Mesh> mesh;
+	Ref<Material> material;
 	Ref<Rigidbody> rigidBody;
 	std::string name;
 };

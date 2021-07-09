@@ -5,27 +5,50 @@
 #define LOCAL_SIZE 32
 layout(local_size_x = LOCAL_SIZE, local_size_y = LOCAL_SIZE, local_size_z = 1) in;
 
-#include "cubemap.h"
-
 layout(binding = 0)  uniform sampler2D u_equirectangularMap;
 layout(binding = 1, rgba32f)  uniform writeonly imageCube u_cubemap;
+layout(binding = 2) uniform Matrices
+{
+   mat4 u_invViews[6];
+   mat4 u_invProjection;
+};
 
-const vec2 invAtan = vec2(0.1591, 0.3183);
+layout(push_constant) uniform Data
+{
+   vec2 u_cubemapDims;
+};
+
+#include "cubemap.glsl"
 
 vec2 sample_spherical_map(vec3 v)
 {
     vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
-    uv *= invAtan;
+    uv *= vec2(0.1591, 0.3183);
     uv += 0.5;
     return uv;
 }
 
+
+vec3 generate_direction(vec2 uv, int index)
+{
+    vec4 d = vec4(uv, 0.0, 0.0);
+    d = u_invProjection * d;
+    d.z = -1.0f, d.w = 0.0f;
+
+    vec3 worldSpace = vec3(u_invViews[index] * d);
+    return normalize(worldSpace);
+}
+
+
 void main()
 {
-    ivec3 uv = ivec3(gl_GlobalInvocationID.xyz);
-    vec3 direction = normalize(cubeCoordToWorld(uv, vec2(1024.0)));
+    ivec3 cubeCoord = ivec3(gl_GlobalInvocationID.xyz);
+
+    vec2 uv = vec2(cubeCoord) / u_cubemapDims;
+    vec3 direction = generate_direction(uv * 2.0f - 1.0f, cubeCoord.z);
 
     vec2 sphericalCoord = sample_spherical_map(direction);
-    vec4 result = texture(u_equirectangularMap, sphericalCoord);
-    imageStore(u_cubemap, uv, result);
+    vec3 result = texture(u_equirectangularMap, sphericalCoord).rgb;
+
+    imageStore(u_cubemap, cubeCoord, vec4(result, 1.0f));
 }

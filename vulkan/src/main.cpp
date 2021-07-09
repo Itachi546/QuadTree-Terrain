@@ -3,6 +3,7 @@
 #include "terrain_example.h"
 #include "water_example.h"
 #include "atmosphere_example.h"
+#include "pbr_example.h"
 
 #include <functional>
 #include <map>
@@ -26,8 +27,9 @@ int main()
 	Register("TerrainExample", CreateTerrainExampleFn);
 	Register("WaterExample", CreateWaterExampleFn);
 	Register("AtmosphereExample", CreateAtmosphereExampleFn);
+	Register("PBRExample", CreatePBRExampleFn);
 
-	ExampleBase* example = GetExample("CubeExample");
+	ExampleBase* example = GetExample("TerrainExample");
 	if (example)
 	{
 		example->run();

@@ -21,18 +21,20 @@ public:
 		Entity* sphere = scene->create_sphere();
 		sphere->transform->position += glm::vec3(1.0f, 0.0f, 0.0f);
 		sphere->transform->scale *= 0.5f;
+		sphere->material->albedo = glm::vec3(0.2f, 0.3f, 1.0f);
+		sphere->material->metallic = 0.8f;
+		sphere->material->roughness = 0.1f;
 
 
 		cube = scene->create_cube();
 		cube->transform->position -= glm::vec3(-2.0f, 0.0f, 0.0f);
 		cube->transform->scale *= 0.5f;
+		cube->material->albedo = glm::vec3(1.0f, 0.0f, 0.0f);
 
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
 		scene->set_camera(camera);
 		scene->show_bounding_box(true);
-
-		skybox = CreateRef<Skybox>(m_context, "assets/hdri/newport_loft.hdr");
 	}
 
 	void update(float dt) override
@@ -93,7 +95,6 @@ public:
 
 	~CubeExample()
 	{
-		skybox->destroy();
 		scene->destroy();
 	}
 
@@ -101,7 +102,6 @@ private:
 	Entity* cube;
 	std::shared_ptr<Scene> scene;
 	Ref<Camera> camera;
-	Ref<Skybox> skybox;
 	float mouseX = 0.0f, mouseY = 0.0f;
 };
 

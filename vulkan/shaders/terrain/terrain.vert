@@ -27,8 +27,8 @@ void main()
 {
     float height = position.y;//mix(position.y, position.w, morphFactor);
     vec4 worldSpace = model * vec4(position.x, height, position.z, 1.0);
-    vec4 camSpace = globalState.view * worldSpace;
-    gl_Position = globalState.projection * camSpace;
+
+    gl_Position = globalState.projection * globalState.view * worldSpace;
 
     float z = float(normal & 0xFF);
     float y = float((normal >> 8) & 0xFF);
@@ -36,8 +36,9 @@ void main()
 
     vec3 norm = (vec3(x, y, z) * multiplier) * 2.0f - 1.0f;
     vnormal = inverse(transpose(mat3(model))) * norm;
+
     worldSpacePosition = worldSpace.xyz;
-    viewSpacePosition = camSpace.xyz;
+    viewSpacePosition = globalState.cameraPosition - worldSpacePosition.xyz;
     intersectionPoint = intersection;
 
     vMorph = morphFactor;

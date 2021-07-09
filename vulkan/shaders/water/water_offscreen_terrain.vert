@@ -8,12 +8,12 @@ layout(location	= 1) in	uint normal;
 layout(location = 0) out vec3 vnormal;
 layout(location = 1) out vec3 viewSpacePosition;
 
-layout(push_constant) uniform block
+layout(binding = 0) uniform block
 {
    mat4 projection;
    mat4 view;
    vec4 clipPlane;
-   vec4 cameraPosition;
+   vec3 cameraPosition;
 };
 
 const float multiplier = 1.0f / 255.0f;

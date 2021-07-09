@@ -32,10 +32,10 @@ enum class IndexType : uint8_t
 
 enum class ShaderStage
 {
-	Vertex,
-	Fragment,
-	Compute,
-	Geometry
+	Vertex = 0x01,
+	Fragment = 0x02,
+	Compute = 0x04,
+	Geometry = 0x08
 };
 
 enum class Format

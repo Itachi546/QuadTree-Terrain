@@ -67,14 +67,19 @@ private:
 	glm::vec3 m_translate = glm::vec3(0.0f);
 
 	RenderPass* m_renderPass;
-	Framebuffer* m_reflectionFB;
-	Framebuffer* m_refractionFB;
+	struct OffscreenPipelineInfo
+	{
+		Framebuffer* fb;
+		Pipeline* meshPipeline;
+		Pipeline* terrainPipeline;
+		UniformBuffer* ubo;
+		ShaderBindings* binding;
+	};
 
-	Pipeline* m_offscreenMeshPipeline;
-	Pipeline* m_offscreenTerrainPipeline;
+	OffscreenPipelineInfo m_reflection;
+	OffscreenPipelineInfo m_refraction;
+
 	Pipeline* m_offscreenCubemapPipeline;
-	// temp
-
 	UniformBuffer* m_waterUniformParams;
 
 	//Reflection and refraction texture size
@@ -87,6 +92,13 @@ private:
 	Pipeline* create_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode);
 	Pipeline* create_atmosphere_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode);
 
-	void generate_reflection_texture(Context* context, Scene* scene);
-	void generate_refraction_texture(Context* context, Scene* scene);
+	void generate_offscreen_texture(Context* context, Scene* scene, OffscreenPipelineInfo* info, Ref<Camera> camera, bool reflectionPass);
+
+	struct OffscreenUniformData
+	{
+		mat4 P;
+		mat4 V;
+		vec4 clipPlane;
+		vec3 cameraPosition;
+	};
 };

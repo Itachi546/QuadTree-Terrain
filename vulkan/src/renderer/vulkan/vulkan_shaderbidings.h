@@ -5,6 +5,8 @@
 #include "vulkan_buffer.h"
 #include "vulkan_texture.h"
 
+#include <algorithm>
+
 class VulkanShaderBindings : public ShaderBindings
 {
 public:
@@ -26,7 +28,7 @@ public:
 		bufferInfo.range = VK_WHOLE_SIZE;
 		descriptor.pBufferInfo = buffer->get_buffer_info();
 
-		descriptorSets.push_back(descriptor);
+		insert_descriptor(descriptor);
 	}
 
 	virtual void set_buffer(ShaderStorageBuffer* ubo, uint32_t binding)
@@ -46,7 +48,8 @@ public:
 		bufferInfo.offset = 0;
 		bufferInfo.range = VK_WHOLE_SIZE;
 		descriptor.pBufferInfo = buffer->get_buffer_info();
-		descriptorSets.push_back(descriptor);
+
+		insert_descriptor(descriptor);
 	}
 
 	void set_texture_sampler(Texture* texture, uint32_t binding) override
@@ -59,7 +62,8 @@ public:
 
 		VulkanTexture* vkTexture = reinterpret_cast<VulkanTexture*>(texture);
 		descriptor.pImageInfo = vkTexture->get_sampler_descriptor_info();
-		descriptorSets.push_back(descriptor);
+
+		insert_descriptor(descriptor);
 	}
 
 	void set_storage_image(Texture* texture, uint32_t binding) override
@@ -72,8 +76,25 @@ public:
 
 		VulkanTexture* vkTexture = reinterpret_cast<VulkanTexture*>(texture);
 		descriptor.pImageInfo = vkTexture->get_storage_image_descriptor_info();
-		descriptorSets.push_back(descriptor);
+
+		insert_descriptor(descriptor);
 	}
 
 	std::vector<VkWriteDescriptorSet> descriptorSets;
+
+private:
+	inline void insert_descriptor(VkWriteDescriptorSet set)
+	{
+
+		for (int i = 0; i < descriptorSets.size(); ++i)
+		{
+			auto& existing = descriptorSets[i];
+			if (existing.dstBinding == set.dstBinding)
+			{
+				descriptorSets[i] = set;
+				return;
+			}
+		}
+		descriptorSets.push_back(set);
+	}
 };

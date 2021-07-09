@@ -35,12 +35,14 @@ public:
 #endif
 		terrain = CreateRef<Terrain>(m_context, stream);
 		scene->set_terrain(terrain);
-		cube = scene->create_cube();
+		Entity* cube = scene->create_cube();
+		cube->material->albedo = glm::vec3(1.0f, 0.0f, 0.0f);
+
 
 		glm::vec3 cubePosition = glm::vec3(width * 0.68f, 0.0f, height * 0.55f);
 		float h = 40.0f + terrain->get_height(cubePosition);
-		cube->transform->position = glm::vec3(cubePosition.x, h, cubePosition.z);
-		cube->transform->scale *= glm::vec3(5.0f, 10.0f, 5.0f);
+		cube->transform->position = glm::vec3(cubePosition.x, h - 4.0f, cubePosition.z);
+		cube->transform->scale *= glm::vec3(10.0f, 15.0f, 10.0f);
 
 		camera = CreateRef<Camera>();
 		camera->set_aspect(float(m_window->get_width()) / float(m_window->get_height()));
@@ -131,7 +133,6 @@ public:
 	}
 
 private:
-	Entity* cube;
 	std::shared_ptr<Scene> scene;
 	Ref<Terrain> terrain;
 	Ref<Water> water;

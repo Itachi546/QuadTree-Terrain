@@ -493,6 +493,12 @@
     <ClInclude Include="src\common\image_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\pbr_example.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\debug\edge_detection.frag">

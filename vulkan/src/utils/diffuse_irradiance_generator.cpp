@@ -16,15 +16,15 @@ DiffuseIrradianceGenerator::DiffuseIrradianceGenerator()
 	m_pipeline = Device::create_pipeline(desc);
 }
 
-void DiffuseIrradianceGenerator::generate(Context* context, ShaderBindings** bindings, unsigned int count, unsigned int cubemapSize)
+void DiffuseIrradianceGenerator::generate(Context* context, ShaderBindings** bindings, unsigned int count, unsigned int irradianceCubemapSize)
 {
 	context->update_pipeline(m_pipeline, bindings, count);
 	context->set_pipeline(m_pipeline);
 
-	int uniformData[] = { int(cubemapSize), sampleCount };
+	int uniformData[] = { int(irradianceCubemapSize), sampleCount };
 	context->set_uniform(ShaderStage::Compute, 0, sizeof(uniformData), uniformData);
 
-	context->dispatch_compute(cubemapSize / 8, cubemapSize / 8, 6);
+	context->dispatch_compute(irradianceCubemapSize / 8, irradianceCubemapSize / 8, 6);
 }
 
 void DiffuseIrradianceGenerator::destroy()

@@ -7,9 +7,9 @@ layout(binding = 0) uniform samplerCube skybox;
 layout(location = 0) in vec3 uv;
 
 layout(location = 0) out vec4 fragColor;
-layout(location = 1) in vec3 rayOrigin;
-layout(location = 2) in vec4 sunDirection;
-layout(location = 3) in vec3 rayDirection;
+//layout(location = 1) in vec3 rayOrigin;
+//layout(location = 2) in vec4 sunDirection;
+//layout(location = 3) in vec3 rayDirection;
 
 #define SunColor              vec3(1.28, 1.20, 0.99)
 #define SunIntensity          13.61839144264511
@@ -31,8 +31,13 @@ vec3 calculate_sun_disk(vec3 r0, vec3 rd, vec3 sunDir, float intensity)
 
 void main()
 {
-   vec3 L = calculate_sun_disk(rayOrigin, normalize(rayDirection), normalize(sunDirection.xyz), sunDirection.w);
-   L += texture(skybox, uv).rgb;
+   vec3 L = vec3(0.0f);//calculate_sun_disk(rayOrigin, normalize(rayDirection), normalize(sunDirection.xyz), sunDirection.w);
+   #if 1
+   L +=	texture(skybox,	uv).rgb;
+   #else
+   L +=	normalize(uv);
+   #endif
+
    L /=(1.0 + L);
    fragColor = vec4(L, 1.0f);
 }

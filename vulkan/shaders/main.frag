@@ -19,6 +19,11 @@ layout(binding = 1) uniform Light
     LightProperties directionalLight;
 };
 
+layout(push_constant) uniform MaterialInput
+{
+    layout(offset = 64) Material material;
+};
+
 layout(binding = 2) uniform samplerCube u_cubemap;
 layout(binding = 3) uniform samplerCube u_irradiance;
 
@@ -28,19 +33,13 @@ void main()
     vec3 N = normalize(vnormal);
     vec3 V = normalize(viewSpacePosition);
 
-    Material material;
-    material.albedo = vec3(1.0, 0.0, 0.0);
-    material.roughness = 1.0;
-    material.ao = 1.0;
-    material.metallic = 0.2;
-
     vec3 col = calculateLight(N, directionalLight, material, V);
 
     vec3 F0 = vec3(0.04f);
     vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
     vec3 kD = (1.0 - kS) * (1.0 - material.metallic);
 	vec3 irradiance = texture(u_irradiance, N).rgb;
-    vec3 diffuse = irradiance * vec3(1.0);
+    vec3 diffuse = irradiance * material.albedo;
     vec3 ambient = (kD * diffuse) * material.ao;
 	col += ambient;
 

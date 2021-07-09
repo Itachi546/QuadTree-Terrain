@@ -21,7 +21,7 @@
 #include "scene/mesh.h"
 #include "terrain/terrain.h"
 #include <imgui/imgui.h>
-#include "atmosphere/atmosphere.h"
+#include "utils/skybox.h"
 
 Pipeline* Water::create_atmosphere_pipeline(Context* context, const std::string& vertexCode, const std::string& fragmentCode)
 {
@@ -113,6 +113,14 @@ Pipeline* Water::create_pipeline(Context* context, const std::string& vertexCode
 
 Water::Water(Context* context)
 {
+	m_reflection.ubo = Device::create_uniformbuffer(BufferUsageHint::DynamicCopy, sizeof(OffscreenUniformData));
+	m_reflection.binding = Device::create_shader_bindings();
+	m_reflection.binding->set_buffer(m_reflection.ubo, 0);
+
+	m_refraction.ubo = Device::create_uniformbuffer(BufferUsageHint::DynamicCopy, sizeof(OffscreenUniformData));
+	m_refraction.binding = Device::create_shader_bindings();
+	m_refraction.binding->set_buffer(m_refraction.ubo, 0);
+
 	m_properties = CreateRef<WaterProperties>();
 	// @TODO support other dimension by updating the 
 	// generation of bit reversed indices
@@ -145,13 +153,15 @@ Water::Water(Context* context)
 		ASSERT(vertexCode.size() % 4 == 0);
 		std::string fragmentCode = load_file("spirv/water_offscreen.frag.spv");
 		ASSERT(fragmentCode.size() % 4 == 0);
-		m_offscreenMeshPipeline = create_pipeline(context, vertexCode, fragmentCode);
+		m_reflection.meshPipeline = create_pipeline(context, vertexCode, fragmentCode);
+		m_refraction.meshPipeline = create_pipeline(context, vertexCode, fragmentCode);
 
 		vertexCode = load_file("spirv/water_offscreen_terrain.vert.spv");
 		ASSERT(vertexCode.size() % 4 == 0);
 		fragmentCode = load_file("spirv/water_offscreen_terrain.frag.spv");
 		ASSERT(fragmentCode.size() % 4 == 0);
-		m_offscreenTerrainPipeline = create_pipeline(context, vertexCode, fragmentCode);
+		m_reflection.terrainPipeline = create_pipeline(context, vertexCode, fragmentCode);
+		m_refraction.terrainPipeline = create_pipeline(context, vertexCode, fragmentCode);
 
 		vertexCode = load_file("spirv/cubemap.vert.spv");
 		ASSERT(vertexCode.size() % 4 == 0);
@@ -159,8 +169,8 @@ Water::Water(Context* context)
 		ASSERT(fragmentCode.size() % 4 == 0);
 		m_offscreenCubemapPipeline = create_atmosphere_pipeline(context, vertexCode, fragmentCode);
 
-		m_reflectionFB = create_framebuffer(context);
-		m_refractionFB = create_framebuffer(context);
+		m_reflection.fb = create_framebuffer(context);
+		m_refraction.fb = create_framebuffer(context);
 	}
 
 	m_inversion = CreateRef<Inversion>(context, m_properties->dimension, m_spectrumTexture->get_pingpoing_texture0(), m_spectrumTexture->get_pingpoing_texture1());
@@ -169,14 +179,14 @@ Water::Water(Context* context)
 	m_rendererBindings = Device::create_shader_bindings();
 	m_rendererBindings->set_texture_sampler(m_inversion->get_height_texture(), 2);
 	m_rendererBindings->set_texture_sampler(m_normaMapGenerator->get_normal_texture(), 3);
-	m_rendererBindings->set_texture_sampler(m_reflectionFB->get_color_attachment(0), 4);
-	m_rendererBindings->set_texture_sampler(m_refractionFB->get_color_attachment(0), 5);
-	m_rendererBindings->set_texture_sampler(m_refractionFB->get_depth_attachment(), 6);
+	m_rendererBindings->set_texture_sampler(m_reflection.fb->get_color_attachment(0), 4);
+	m_rendererBindings->set_texture_sampler(m_refraction.fb->get_color_attachment(0), 5);
+	m_rendererBindings->set_texture_sampler(m_refraction.fb->get_depth_attachment(), 6);
 	m_renderer = CreateRef<WaterRenderer>(context);
 
 	debugBindings = Device::create_shader_bindings();
 	//debugBindings->set_texture_sampler(m_normaMapGenerator->get_normal_texture(), 0);
-	debugBindings->set_texture_sampler(m_refractionFB->get_color_attachment(0), 0);
+	debugBindings->set_texture_sampler(m_refraction.fb->get_color_attachment(0), 0);
 	{
 		m_waterParams.maxDepth = 100.0f;
 		m_waterParams.maxFoamDepth = 0.05f;
@@ -236,123 +246,103 @@ void Water::render(Context* context, Ref<Camera> camera, ShaderBindings** unifor
 
 void Water::prepass(Context* context, Scene* scene, ShaderBindings** bindings, uint32_t count)
 {
-	context->update_pipeline(m_offscreenMeshPipeline, bindings, count);
-	context->update_pipeline(m_offscreenTerrainPipeline, bindings, count);
+	std::vector<ShaderBindings*> updatedBindings;
+	for (uint32_t i = 0; i < count; ++i)
+		updatedBindings.push_back(*bindings + i);
+	updatedBindings.push_back(m_reflection.binding);
+	uint32_t bindingCount = static_cast<uint32_t>(updatedBindings.size());
 
-	generate_reflection_texture(context, scene);
-	generate_refraction_texture(context, scene);
+	Ref<Camera> camera = scene->get_camera();
+	OffscreenUniformData uniformData;
+	uniformData.P = camera->get_projection();
 
-	Texture* textures[] = { m_reflectionFB->get_color_attachment(0), m_refractionFB->get_color_attachment(0), m_refractionFB->get_depth_attachment()};
+	// Reflection Data
+	{
+		glm::vec3 position = camera->get_position();
+		float distance = 2.0f * (position.y - m_translate.y);
+		position.y -= distance;
+
+		glm::vec3 rotation = camera->get_rotation();
+		glm::mat3 rotate = glm::yawPitchRoll(rotation.y, -rotation.x, rotation.z);
+		glm::vec3 up = glm::normalize(rotate * vec3(0.0f, 1.0f, 0.0f));
+		glm::vec3 forward = glm::normalize(rotate * vec3(0.0f, 0.0f, 1.0f));
+
+		Ref<Camera> newCamera = camera->clone();
+		newCamera->set_rotation(glm::vec3(-rotation.x, rotation.y, rotation.z));
+		newCamera->set_position(position);
+		newCamera->update(1.0f);
+
+		uniformData.V = newCamera->get_view();
+		uniformData.clipPlane = glm::vec4(0.0f, 1.0f, 0.0f, -m_translate.y - 1.0);
+		uniformData.cameraPosition = newCamera->get_position();
+		context->copy(m_reflection.ubo, &uniformData, 0, sizeof(uniformData));
+
+		context->update_pipeline(m_reflection.meshPipeline, updatedBindings.data(), bindingCount);
+		context->update_pipeline(m_reflection.terrainPipeline, updatedBindings.data(), bindingCount);
+		generate_offscreen_texture(context, scene, &m_reflection, newCamera, true);
+	}
+
+	// Refraction Data
+	{
+		updatedBindings[count] = m_refraction.binding;
+		uniformData.V = camera->get_view();
+		uniformData.clipPlane = glm::vec4(0.0f, -1.0f, 0.0f, m_translate.y + 1.0);
+		uniformData.cameraPosition = camera->get_position();
+		context->copy(m_refraction.ubo, &uniformData, 0, sizeof(uniformData));
+
+		context->update_pipeline(m_refraction.meshPipeline, updatedBindings.data(), bindingCount);
+		context->update_pipeline(m_refraction.terrainPipeline, updatedBindings.data(), bindingCount);
+		generate_offscreen_texture(context, scene, &m_refraction, camera, false);
+		//generate_refraction_texture(context, scene);
+	}
+
+	Texture* textures[] = { m_reflection.fb->get_color_attachment(0), m_refraction.fb->get_color_attachment(0), m_refraction.fb->get_depth_attachment()};
 	context->transition_layout_for_shader_read(textures, ARRAYSIZE(textures));
 }
 
-void Water::generate_reflection_texture(Context* context, Scene* scene)
+void Water::generate_offscreen_texture(Context* context, Scene* scene, OffscreenPipelineInfo* info,	Ref<Camera> camera,	bool reflectionPass)
 {
-	Ref<Camera> camera = scene->get_camera();
-	glm::vec3 position = camera->get_position();
-	float distance = 2.0f * (position.y - m_translate.y);
-	position.y -= distance;
-
-	glm::vec3 rotation = camera->get_rotation();
-	glm::mat3 rotate = glm::yawPitchRoll(rotation.y, -rotation.x, rotation.z);
-	glm::vec3 up = glm::normalize(rotate * vec3(0.0f, 1.0f, 0.0f));
-	glm::vec3 forward = glm::normalize(rotate * vec3(0.0f, 0.0f, 1.0f));
-
-	Ref<Camera> newCamera = camera->clone();
-	newCamera->set_rotation(glm::vec3(-rotation.x, rotation.y, rotation.z));
-	newCamera->set_position(position);
-	newCamera->update(1.0f);
-	glm::mat4 view = newCamera->get_view();
-
-	glm::mat4 VP[] = { camera->get_projection(), view };
-	glm::vec4 waterPlane = glm::vec4(0.0f, 1.0f, 0.0f, -m_translate.y - 1.0);
-
 	context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
 	context->set_clear_depth(1.0f);
-	context->begin_renderpass(m_renderPass, m_reflectionFB);
-
-
-	context->set_pipeline(m_offscreenMeshPipeline);
-	uint32_t uniformOffset = sizeof(glm::mat4);
-	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::mat4) * 2, &VP[0][0]);
-	uniformOffset += sizeof(glm::mat4) * 2;
-	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
-	uniformOffset += sizeof(glm::vec4);
-
-	glm::vec3 cameraPosition = newCamera->get_position();
-	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &cameraPosition);
-
-	scene->render_entities(context, newCamera, 0);
+	context->begin_renderpass(m_renderPass, info->fb);
+	context->set_pipeline(info->meshPipeline);
+	scene->render_entities(context, camera, 0);
 	//render_scene(context, scene, uniformOffset);
 
 	Ref<Terrain> terrain = scene->get_terrain();
 	if (scene->get_terrain())
 	{
-		context->set_pipeline(m_offscreenTerrainPipeline);
-		uint32_t uniformOffset = 0;
-		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
-		uniformOffset += sizeof(glm::mat4) * 2;
-		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
-		uniformOffset += sizeof(glm::vec4);
-		terrain->render_no_renderpass(context, newCamera);
-	}
-	Ref<Atmosphere> atmosphere = scene->get_atmosphere();
-	if (atmosphere)
-	{
-		ShaderBindings* bindings = atmosphere->get_cubemap_bindings();
-		context->update_pipeline(m_offscreenCubemapPipeline, &bindings, 1);
-		context->set_pipeline(m_offscreenCubemapPipeline);
-		context->set_uniform(ShaderStage::Vertex, 0, sizeof(VP), &VP);
-
-		Ref<Mesh> cube = scene->get_cube_mesh();
-		VertexBufferView* vb = cube->get_vb();
-		context->set_buffer(vb->buffer, vb->offset);
-		IndexBufferView* ib = cube->get_ib();
-		context->set_buffer(ib->buffer, ib->offset);
-		context->draw_indexed(cube->get_indices_count());
-	}
-
-	context->end_renderpass();
-}
-
-void Water::generate_refraction_texture(Context* context, Scene* scene)
-{
-	Ref<Camera> camera = scene->get_camera();
-
-	glm::mat4 VP[] = { camera->get_projection(), camera->get_view()};
-	glm::vec4 waterPlane = glm::vec4(0.0f, -1.0f, 0.0f, m_translate.y + 1.0f);
-
-	context->set_clear_color(0.5f, 0.7f, 1.0f, 1.0f);
-	context->set_clear_depth(1.0f);
-	context->begin_renderpass(m_renderPass, m_refractionFB);
-	context->set_pipeline(m_offscreenMeshPipeline);
-
-
-	uint32_t uniformOffset = sizeof(glm::mat4);
-	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::mat4) * 2, &VP[0][0]);
-	uniformOffset += sizeof(glm::mat4) * 2;
-	context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
-	uniformOffset += sizeof(glm::vec4);
-
-	scene->render_entities(context, camera, 0);
-
-	Ref<Terrain> terrain = scene->get_terrain();
-	if (scene->get_terrain())
-	{
-		context->set_pipeline(m_offscreenTerrainPipeline);
-		uint32_t uniformOffset = 0;
-		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4) * 2, &VP[0][0]);
-		uniformOffset += sizeof(glm::mat4) * 2;
-		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &waterPlane);
-		uniformOffset += sizeof(glm::vec4);
-		glm::vec3 cameraPosition = camera->get_position();
-		context->set_uniform(ShaderStage::Vertex, uniformOffset, sizeof(glm::vec4), &cameraPosition);
-
+		context->set_pipeline(info->terrainPipeline);
 		terrain->render_no_renderpass(context, camera);
 	}
+
+	if(reflectionPass)
+	{
+		Ref<Skybox> skybox = scene->get_skybox();
+		ShaderBindings* bindings = skybox->get_cubemap_bindings();
+		context->update_pipeline(m_offscreenCubemapPipeline, &bindings, 1);
+		context->set_pipeline(m_offscreenCubemapPipeline);
+
+		struct UniformData
+		{
+			glm::mat4 projection;
+			glm::mat4 view;
+			vec4 cameraPosition;
+			vec4 lightDirection;
+		} uniformData;
+		uniformData.projection = camera->get_projection();
+		uniformData.view = camera->get_view();
+
+		Ref<Mesh> cubeMesh = scene->get_cube_mesh();
+		context->set_uniform(ShaderStage::Vertex, 0, sizeof(uniformData), &uniformData);
+		VertexBufferView* vb = cubeMesh->get_vb();
+		context->set_buffer(vb->buffer, vb->offset);
+		IndexBufferView* ib = cubeMesh->get_ib();
+		context->set_buffer(ib->buffer, ib->offset);
+		context->draw_indexed(cubeMesh->get_indices_count());
+	}
 	context->end_renderpass();
 }
-
 void Water::destroy()
 {
 	m_butterflyTexture->destroy();
@@ -365,14 +355,22 @@ void Water::destroy()
 	Device::destroy_shader_bindings(m_rendererBindings);
 	Device::destroy_shader_bindings(m_fftBindings);
 	Device::destroy_shader_bindings(debugBindings);
+	Device::destroy_shader_bindings(m_reflection.binding);
+	Device::destroy_shader_bindings(m_refraction.binding);
 
-	Device::destroy_pipeline(m_offscreenMeshPipeline);
-	Device::destroy_pipeline(m_offscreenTerrainPipeline);
+	Device::destroy_pipeline(m_reflection.meshPipeline);
+	Device::destroy_pipeline(m_refraction.meshPipeline);
+
+	Device::destroy_pipeline(m_reflection.terrainPipeline);
+	Device::destroy_pipeline(m_refraction.terrainPipeline);
 	Device::destroy_pipeline(m_offscreenCubemapPipeline);
 
 	Device::destroy_renderpass(m_renderPass);
-	Device::destroy_framebuffer(m_reflectionFB);
-	Device::destroy_framebuffer(m_refractionFB);
+	Device::destroy_framebuffer(m_reflection.fb);
+	Device::destroy_framebuffer(m_refraction.fb);
+
 	Device::destroy_buffer(m_waterUniformParams);
+	Device::destroy_buffer(m_reflection.ubo);
+	Device::destroy_buffer(m_refraction.ubo);
 }
 

@@ -295,14 +295,7 @@ VkPipeline VulkanPipeline::create_graphics_pipeline(VkDevice device, VkPipelineL
 	{
 		if (shader.shaderStage == VK_SHADER_STAGE_FRAGMENT_BIT)
 			continue;
-		/*
-		auto it = std::find_if(bindingDescriptions.begin(), bindingDescriptions.end(), 
-			[&](const VkVertexInputBindingDescription& lhs) {
-				return lhs.binding == shader.bindingDescriptions.binding;
-			});
 
-		if(it == bindingDescriptions.end())
-		*/
 		bindingDescriptions.push_back(shader.bindingDescriptions);
 			
 		attributeDescriptions.insert(attributeDescriptions.end(), shader.attributeDescriptions.begin(), shader.attributeDescriptions.end());
@@ -441,10 +434,19 @@ VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanAPI> m_api, const PipelineD
 	std::vector<VkPushConstantRange> pushConstantRanges;
 
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+	std::size_t pushConstantSize = pushConstantRanges.size();
+	uint32_t offset = 0;
 	for (std::size_t i = 0; i < desc.shaderStageCount; ++i)
 	{
 		const ShaderDescription& shaderDesc = desc.shaderStages[i];
 		create_shader(shaders[i], device, shaderDesc.code.c_str(), shaderDesc.sizeInByte, bindings, pushConstantRanges);
+		if (pushConstantSize < pushConstantRanges.size())
+		{
+			pushConstantRanges[i].offset = offset;
+			offset = pushConstantRanges[i].size;
+		}
+		pushConstantSize = pushConstantRanges.size();
 	}
 
 	VkDescriptorSetLayoutCreateInfo layoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };

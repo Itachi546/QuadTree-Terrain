@@ -9,8 +9,7 @@
 #include "water/water.h"
 #include "core/frustum.h"
 #include "common/common.h"
-#include "atmosphere/atmosphere.h"
-
+#include "utils/skybox.h"
 #include "imgui/imgui.h"
 
 struct LightData
@@ -62,22 +61,23 @@ Scene::Scene(std::string name, Context* context) : m_name(name)
 	pipelineDesc.rasterizationState.topology = Topology::Triangle;
 	m_pipeline = Device::create_pipeline(pipelineDesc);
 
-	m_atmosphere = CreateRef<Atmosphere>(context);
-
 	m_lightUniformBuffer = Device::create_uniformbuffer(BufferUsageHint::DynamicDraw, sizeof(LightData));
 	m_uniformBindings = Device::create_shader_bindings();
 	m_uniformBindings->set_buffer(m_uniformBuffer, 0);
 
+	m_skybox = CreateRef<Skybox>(context);
 	m_lightBindings = Device::create_shader_bindings();
 	m_lightBindings->set_buffer(m_lightUniformBuffer, 1);
-	m_lightBindings->set_texture_sampler(m_atmosphere->get_cubemap_texture(), 2);
-	m_lightBindings->set_texture_sampler(m_atmosphere->get_irradiance_texture(), 3);
+	m_lightBindings->set_texture_sampler(m_skybox->get_skybox_texture(), 2);
+	m_lightBindings->set_texture_sampler(m_skybox->get_irradiance_texture(), 3);
 }
 
 Entity* Scene::create_entity(std::string name)
 {
 	Ref<Transform> transform = CreateRef<Transform>();
 	Entity* entity = new Entity(name, transform);
+	entity->material = CreateRef<Material>();
+
 	m_entities.push_back(entity);
 	return entity;
 }
@@ -106,7 +106,8 @@ void Scene::update(Context* context, float dt)
 
 	LightData sun = { m_sun->get_direction(), m_sun->get_intensity(), m_sun->get_light_color(), float(m_sun->cast_shadow()) };
 	context->copy(m_lightUniformBuffer, &sun, 0, sizeof(LightData));
-	m_atmosphere->update(context, m_camera, m_sun->get_direction(), m_sun->get_intensity());
+	if(m_skybox)
+		m_skybox->update(context, m_camera, m_sun);
 }
 
 void Scene::prepass(Context* context)
@@ -134,8 +135,10 @@ void Scene::render(Context* context)
 		m_terrain->render(context, m_camera, bindings, bindingCount);
 	if (m_water)
 		m_water->render(context, m_camera, bindings, 2);
-	if (m_atmosphere)
-		m_atmosphere->render(context, m_cubeMesh, m_camera, m_sun->get_direction(), m_sun->get_intensity());
+
+	if(m_skybox)
+		m_skybox->render(context, m_camera, m_cubeMesh);
+
 	DebugDraw::render(context, m_uniformBindings);
 }
 
@@ -146,6 +149,7 @@ void Scene::render_entities(Context* context, Ref<Camera> camera, uint32_t model
 	{
 		Ref<Transform> transform = entity->transform;
 		Ref<Mesh> mesh = entity->mesh;
+		Ref<Material> mat = entity->material;
 
 		BoundingBox box = mesh->boundingBox;
 		if (frustum->intersect_box(BoundingBox{ transform->position + box.min * transform->scale, transform->position + box.max * transform->scale }))
@@ -160,6 +164,8 @@ void Scene::render_entities(Context* context, Ref<Camera> camera, uint32_t model
 			context->set_buffer(mesh->vb->buffer, mesh->vb->offset);
 			context->set_buffer(mesh->ib->buffer, mesh->ib->offset);
 			context->set_uniform(ShaderStage::Vertex, modelMatrixOffset, sizeof(mat4), &model[0][0]);
+			context->set_uniform(ShaderStage::Fragment, modelMatrixOffset + sizeof(mat4), sizeof(Material), mat.get());
+
 			context->draw_indexed(mesh->get_indices_count());
 		}
 	}
@@ -170,8 +176,9 @@ void Scene::render_entities(Context* context, Ref<Camera> camera, uint32_t model
 void Scene::destroy()
 {
 	m_sunLightShadowCascade->destroy();
-	m_atmosphere->destroy();
-
+	if(m_skybox)
+		m_skybox->destroy();
+	
 	for (std::size_t i = 0; i < m_entities.size(); ++i)
 		delete m_entities[i];
 	m_entities.clear();
@@ -209,6 +216,14 @@ bool Scene::cast_ray(const Ray& ray, RayHit& hit)
 	hit.entity = intersectedEntity;
 	hit.t = min_dist;
 	return intersect;
+}
+
+void Scene::set_skybox(Ref<Skybox> skybox)
+{
+	m_skybox->destroy();
+	m_skybox = skybox;
+	m_lightBindings->set_texture_sampler(m_skybox->get_skybox_texture(), 2);
+	m_lightBindings->set_texture_sampler(m_skybox->get_irradiance_texture(), 3);
 }
 
 Entity* Scene::create_cube()

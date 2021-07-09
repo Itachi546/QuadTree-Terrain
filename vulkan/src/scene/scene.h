@@ -15,6 +15,7 @@ class ShadowCascade;
 class DirectionalLight;
 class Terrain;
 class Water;
+class Skybox;
 class Atmosphere;
 
 class Scene
@@ -23,15 +24,14 @@ public:
 	Scene(std::string name, Context* context);
 	Entity* create_entity(std::string name);
 	void destroy_entity(Entity* entity);
-	void update(Context* context, float dt);
-	void prepass(Context* context);
 
+	void prepass(Context* context);
+	void update(Context* context, float dt);
 	void render(Context* context);
+	void destroy();
 
 	// modelMatrixOffset is offset to the model matrix in push constant
 	void render_entities(Context* context, Ref<Camera> camera, uint32_t modelMatrixOffset);
-
-	void destroy();
 
 	void set_camera(Ref<Camera> camera);
 	void show_bounding_box(bool state) { m_showBoundingBox = state; }
@@ -47,9 +47,11 @@ public:
 
 	void set_terrain(Ref<Terrain> terrain) { m_terrain = terrain; }
 	Ref<Terrain> get_terrain() { return m_terrain; }
-	Ref<Atmosphere> get_atmosphere() { return m_atmosphere; }
 
 	void set_water(Ref<Water> water) { m_water = water; }
+
+	void set_skybox(Ref<Skybox> skybox);
+	Ref<Skybox> get_skybox() { return m_skybox; }
 
 	ShaderBindings* get_uniform_binding() { return m_uniformBindings; }
 	Ref<DirectionalLight> get_directional_light() { return m_sun; }
@@ -89,7 +91,7 @@ private:
 	ShaderBindings* m_lightBindings = nullptr;
 	
 
-	Ref<Atmosphere> m_atmosphere;
+	Ref<Skybox> m_skybox;
 	// Debug
 	bool m_showBoundingBox = false;
 

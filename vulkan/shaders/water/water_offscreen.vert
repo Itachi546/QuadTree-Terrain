@@ -8,13 +8,17 @@ layout(location	= 1) in	vec3 normal;
 layout(location = 0) out vec3 vnormal;
 layout(location = 1) out vec3 viewSpacePosition;
 
+layout(binding = 0) uniform UniformMatrices
+{
+  mat4 P;
+  mat4 V;
+  vec4 clipPlane;
+  vec3 cameraPosition;
+};
+
 layout(push_constant) uniform block
 {
    mat4 model;
-   mat4 P;
-   mat4 V;
-   vec4 clipPlane;
-   vec4 cameraPosition;
 };
 
 

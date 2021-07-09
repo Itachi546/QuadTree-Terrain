@@ -213,8 +213,10 @@
     <ClInclude Include="src\atmosphere\atmosphere.h" />
     <ClInclude Include="src\atmosphere_example.h" />
     <ClInclude Include="src\common\image_loader.h" />
+    <ClInclude Include="src\pbr_example.h" />
     <ClInclude Include="src\renderer\gpu_query.h" />
     <ClInclude Include="src\renderer\vulkan\vulkan_query.h" />
+    <ClInclude Include="src\scene\material.h" />
     <ClInclude Include="src\utils\diffuse_irradiance_generator.h" />
     <ClInclude Include="src\utils\skybox.h" />
     <ClInclude Include="src\water\normal_map_generator.h" />

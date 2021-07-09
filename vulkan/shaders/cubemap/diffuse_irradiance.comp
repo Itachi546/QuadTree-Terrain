@@ -3,13 +3,18 @@
 #extension GL_GOOGLE_include_directive   : require
 
 #include "../shader_constants.h"
-#include "cubemap.h"
+#include "cubemap.glsl"
 
 #define LOCAL_SIZE 8
 layout(local_size_x = LOCAL_SIZE, local_size_y = LOCAL_SIZE, local_size_z = 1) in;
 
 layout(binding = 0, rgba16f) uniform readonly imageCube u_cubeMap;
 layout(binding = 1, rgba16f) uniform writeonly imageCube u_diffuseIrradiance;
+layout(binding = 2) uniform Matrices
+{
+   mat4 u_invViews[6];
+   mat4 u_invProjection;
+};
 
 layout(push_constant) uniform Data
 {
@@ -17,12 +22,24 @@ layout(push_constant) uniform Data
     int numStep;
 };
 
+vec3 generate_direction(vec2 uv, int index)
+{
+    vec4 d = vec4(uv, 0.0, 0.0);
+    d = u_invProjection * d;
+    d.z = -1.0f, d.w = 0.0f;
+
+    vec3 worldSpace = vec3(u_invViews[index] * d);
+    return normalize(worldSpace);
+}
+
+
 void main() 
 {
-    ivec3 uv = ivec3(gl_GlobalInvocationID.xyz);
-    vec2 dims = vec2(cubemapDims);
+    ivec3 cubeCoord = ivec3(gl_GlobalInvocationID.xyz);
+	vec2 dims = vec2(cubemapDims);
+    vec2 uv = vec2(cubeCoord.xy) / dims;
 
-	vec3 normal = normalize(cubeCoordToWorld(uv, dims));
+	vec3 normal = generate_direction(uv * 2.0f - 1.0f, cubeCoord.z); 
 	vec3 right  = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
 	vec3 up     = cross(normal, right);
 
@@ -45,5 +62,5 @@ void main()
 	   }
 	}
 	irradiance = (PI * irradiance) / float(totalSample);
-	imageStore(u_diffuseIrradiance, uv, vec4(irradiance, 1.0f));
+	imageStore(u_diffuseIrradiance, cubeCoord, vec4(irradiance, 1.0f));
 }

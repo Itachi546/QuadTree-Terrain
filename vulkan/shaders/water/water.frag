@@ -79,9 +79,8 @@ void main()
    float cos_theta = max(dot(viewDir, vec3(0.0, 1.0, 0.0)), 0.0);
    float f0 = 0.02;
    float reflectance = f0 + (1.0 - f0) * pow(1.0 - cos_theta, 5.0);
-   vec3 col = calculate_light(viewDir, lightDir, normal) + refl;
+   vec3 col = calculate_light(viewDir, lightDir, normal) * 0.4 + refl;
    col = mix(refr, col, reflectance);
-
    col = mix(foamColor, col, smoothstep(0.0, maxFoamDepth, waterDepth));
    col /=(1.0f + col);
 

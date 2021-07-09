@@ -12,16 +12,13 @@ layout(location = 4) in float vMorph;
 
 layout(location = 0) out vec4 fragColor;
 
+#define INCLUDE_IMPLEMENTATION
+#include "../pbr.h"
 
-const bool enablePCF = true;
-const bool enableShadowDebug = false;
 
 layout(binding = 1) uniform Light
 {
-   vec3 lightDirection;
-   float lightIntensity;
-   vec3 lightColor;
-   float castShadow;
+   LightProperties directionalLight;
 };
 layout(binding = 2) uniform samplerCube u_cubemap;
 layout(binding = 3) uniform samplerCube u_irradiance;
@@ -48,34 +45,34 @@ vec3 calculateColor(vec3 n)
 
 	return col;
 }
+
 void main() 
 {
-    vec3 normal = normalize(vnormal);
-    vec3 col = vec3(0.0f);
-	float shadow = 1.0f;
 
-	if(castShadow > 0.5f)
-	  shadow = calculateShadowFactor(worldSpacePosition, length(viewSpacePosition), enablePCF);
+    vec3 N = normalize(vnormal);
+    vec3 V = normalize(viewSpacePosition);
 
-    col += max(dot(normal, lightDirection), 0.0) * lightColor * lightIntensity * shadow * calculateColor(normal);
-	col	+= (normal.y * 0.5 + 0.5) *	vec3(0.16, 0.20, 0.28) * 0.5f;
+    Material material;
+    material.albedo = calculateColor(N);
+    material.roughness = 1.0;
+    material.ao = 0.5;
+    material.metallic = 0.0;
 
-	if(castShadow > 0.5f && enableShadowDebug)
+    vec3 col = calculateLight(N, directionalLight, material, V);
+
+    vec3 F0 = vec3(0.04f);
+    vec3 kS = F0;//fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 kD = (1.0 - kS);
+    kD *=(1.0 - material.metallic);
+
+	vec3 irradiance = texture(u_irradiance, N).rgb;
+    vec3 diffuse = irradiance * material.albedo;
+    vec3 ambient = (kD * diffuse) * material.ao;
+	col += ambient;
+
+	if(directionalLight.castShadow > 0.5f && enableShadowDebug)
 	  col *= debugCascade();
 
-
-	//float fog = 1.0f - exp(-length(viewSpacePosition) * 0.002);
-	//col = mix(col, vec3(0.5, 0.7, 1.0), fog);
-
-	if(intersectionPoint.w > 0.5f)
-	{
-	   const float radius = 10.0f;
-	   float d = length(worldSpacePosition - intersectionPoint.xyz);
-	   d = smoothstep(d, radius - 0.5f, radius);
-	   col = mix(vec3(1.0f), col, d);
-	}
-
     col /= (1.0 + col);
-	fragColor =	vec4(col, 1.0f);
-	//fragColor =	vec4(vMorph, vMorph, vMorph, 1.0f);
+    fragColor = vec4(col, 1.0f);
 }

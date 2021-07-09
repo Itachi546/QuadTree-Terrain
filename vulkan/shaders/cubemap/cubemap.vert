@@ -13,9 +13,9 @@ layout(push_constant) uniform Matrices
 };
 
 layout(location = 0) out vec3 uv;
-layout(location = 1) out vec3 rayOrigin;
-layout(location = 2) out vec4 sunDir;
-layout(location = 3) out vec3 rayDirection;
+//layout(location = 1) out vec3 rayOrigin;
+//layout(location = 2) out vec4 sunDir;
+//layout(location = 3) out vec3 rayDirection;
 
 void main()
 {
@@ -24,7 +24,7 @@ void main()
 
     uv = position;
 
-    rayOrigin = cameraPosition.xyz;
-    rayDirection = normalize(position);
-    sunDir = sunDirection;
+	//rayOrigin =	cameraPosition.xyz;
+    //rayDirection = normalize(position);
+    //sunDir = sunDirection;
 }
