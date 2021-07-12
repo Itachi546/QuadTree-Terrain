@@ -12,6 +12,13 @@ namespace ImageLoader
 		return buffer;
 	}
 
+	inline unsigned char* load_image(const char* filename, int* width, int* height, int* nChannel)
+	{
+		unsigned char* buffer = stbi_load(filename, width, height, nChannel, 0);
+		ASSERT(buffer != nullptr);
+		return buffer;
+	}
+
 	inline void free(void* buffer)
 	{
 		stbi_image_free(buffer);

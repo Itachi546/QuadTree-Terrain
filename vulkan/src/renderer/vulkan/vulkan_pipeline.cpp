@@ -159,6 +159,8 @@ static VkShaderStageFlagBits get_shader_stage(SpvExecutionModel executionModel)
 		return VK_SHADER_STAGE_FRAGMENT_BIT;
 	case SpvExecutionModelGLCompute:
 		return VK_SHADER_STAGE_COMPUTE_BIT;
+	case SpvExecutionModelGeometry:
+		return VK_SHADER_STAGE_GEOMETRY_BIT;
 	default:
 		ASSERT_MSG(0, "Undefined Shader Stage");
 	}
@@ -293,7 +295,7 @@ VkPipeline VulkanPipeline::create_graphics_pipeline(VkDevice device, VkPipelineL
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 	for (const auto& shader : shaders)
 	{
-		if (shader.shaderStage == VK_SHADER_STAGE_FRAGMENT_BIT)
+		if (shader.shaderStage != VK_SHADER_STAGE_VERTEX_BIT)
 			continue;
 
 		bindingDescriptions.push_back(shader.bindingDescriptions);

@@ -1,4 +1,4 @@
-#include "cube_example.h"
+#include "grass_example.h"
 #include "gizmo_example.h"
 #include "terrain_example.h"
 #include "water_example.h"
@@ -22,14 +22,14 @@ ExampleBase* GetExample(std::string name)
 
 int main()
 {
-	Register("CubeExample", CreateCubeExampleFn);
-	Register("GizmoExample", CreateGizmoExampleFn);
-	Register("TerrainExample", CreateTerrainExampleFn);
-	Register("WaterExample", CreateWaterExampleFn);
-	Register("AtmosphereExample", CreateAtmosphereExampleFn);
-	Register("PBRExample", CreatePBRExampleFn);
+	Register("Grass", CreateGrassExampleFn);
+	Register("Gizmo", CreateGizmoExampleFn);
+	Register("Terrain", CreateTerrainExampleFn);
+	Register("Water", CreateWaterExampleFn);
+	Register("Atmosphere", CreateAtmosphereExampleFn);
+	Register("PBR", CreatePBRExampleFn);
 
-	ExampleBase* example = GetExample("TerrainExample");
+	ExampleBase* example = GetExample("Grass");
 	if (example)
 	{
 		example->run();

@@ -19,7 +19,11 @@ class Mesh
 {
 	friend class Scene;
 public:
-	Mesh() {}
+	Mesh() 
+	{
+		boundingBox.min = glm::vec3(-FLT_MAX);
+		boundingBox.max = glm::vec3( FLT_MAX);
+	}
 	Mesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices, const BoundingBox& boundingBox) : 
 		vertices(vertices),
 		indices(indices),

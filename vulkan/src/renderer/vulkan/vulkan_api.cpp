@@ -135,6 +135,9 @@ VkDevice VulkanAPI::create_device(VkInstance instance, VkPhysicalDevice physical
 	features.shaderClipDistance = true;
 	features.wideLines = true;
 	features.multiDrawIndirect = true;
+	features.geometryShader = true;
+	features.tessellationShader = true;
+	features.samplerAnisotropy = true;
 	createInfo.pEnabledFeatures = &features;
 
 

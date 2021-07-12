@@ -203,6 +203,9 @@
     <ClCompile Include="src\utils\skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\terrain\grass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer\graphics_window.h">
@@ -334,7 +337,7 @@
     <ClInclude Include="src\scene\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\cube_example.h">
+    <ClInclude Include="src\grass_example.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gizmo_example.h">
@@ -499,6 +502,9 @@
     <ClInclude Include="src\scene\material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\terrain\grass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shaders\debug\edge_detection.frag">
@@ -566,6 +572,9 @@
     <CustomBuild Include="shaders\cubemap\cubemap.frag" />
     <CustomBuild Include="shaders\cubemap\diffuse_irradiance.comp" />
     <CustomBuild Include="shaders\cubemap\equirectangular_to_cubemap.comp" />
+    <CustomBuild Include="shaders\terrain\grass.geom" />
+    <CustomBuild Include="shaders\terrain\grass.vert" />
+    <CustomBuild Include="shaders\terrain\grass.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

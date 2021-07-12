@@ -80,6 +80,7 @@ protected:
 
 		m_frameCount++;
 		m_elapsedTime += dt;
+		m_totalTime += dt;
 		if (m_elapsedTime > 1.0f)
 		{
 			m_lastFPS = m_frameCount;
@@ -107,6 +108,8 @@ protected:
 	float m_dt = 1.0f / 60.0f;
 	int m_frameCount = 0;
 	int m_lastFPS = 60;
+
+	float m_totalTime = 0.0;
 
 	float m_average = 1.0f / 60.0f;
 };

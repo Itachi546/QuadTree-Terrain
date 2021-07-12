@@ -54,6 +54,8 @@ public:
 	Ref<Skybox> get_skybox() { return m_skybox; }
 
 	ShaderBindings* get_uniform_binding() { return m_uniformBindings; }
+	ShaderBindings* get_light_binding() { return m_lightBindings; }
+
 	Ref<DirectionalLight> get_directional_light() { return m_sun; }
 
 	Entity* create_cube();
