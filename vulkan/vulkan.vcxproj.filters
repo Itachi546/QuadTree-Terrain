@@ -337,9 +337,6 @@
     <ClInclude Include="src\scene\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\grass_example.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\gizmo_example.h">
       <Filter>Header Files</Filter>
     </ClInclude>

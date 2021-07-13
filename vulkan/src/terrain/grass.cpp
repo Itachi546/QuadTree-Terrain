@@ -7,6 +7,7 @@
 #include "renderer/texture.h"
 #include "scene/entity.h"
 #include "common/image_loader.h"
+#include "terrain_chunk.h"
 
 Texture* create_texture(Context* context, const char* filename)
 {
@@ -102,6 +103,28 @@ void Grass::render(Context* context, Entity* entity, ShaderBindings** bindings, 
 	context->set_buffer(vb->buffer, vb->offset);
 	context->set_buffer(ib->buffer, ib->offset);
 	context->draw_indexed(entity->mesh->get_indices_count());
+}
+
+void Grass::render(Context* context, std::vector<TerrainChunk*> chunks, IndexBuffer* ib, uint32_t indicesCount, ShaderBindings** bindings, uint32_t count, float elapsedTime)
+{
+	std::vector<ShaderBindings*> totalBindings;
+	for (uint32_t i = 0; i < count; ++i)
+		totalBindings.push_back(*(bindings + i));
+	totalBindings.push_back(m_bindings);
+
+	context->update_pipeline(m_pipeline, totalBindings.data(), static_cast<uint32_t>(totalBindings.size()));
+	context->set_pipeline(m_pipeline);
+
+	glm::mat4 model = glm::mat4(1.0f);
+	context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);
+	context->set_uniform(ShaderStage::Geometry, sizeof(glm::mat4), sizeof(float), &elapsedTime);
+	context->set_buffer(ib, 0);
+	for (auto& chunk : chunks)
+	{
+		Ref<VertexBufferView> vb = chunk->vb;
+		context->set_buffer(vb->buffer, vb->offset);
+		context->draw_indexed(indicesCount);
+	}
 }
 
 void Grass::destroy()

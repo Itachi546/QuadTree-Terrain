@@ -32,7 +32,7 @@ void main()
 
     vec3 N = normalize(vnormal);
     vec3 V = normalize(viewSpacePosition);
-
+    /*
     vec3 col = calculateLight(N, directionalLight, material, V);
 
     vec3 F0 = vec3(0.04f);
@@ -45,7 +45,10 @@ void main()
 
 	if(directionalLight.castShadow > 0.5f && enableShadowDebug)
 	  col *= debugCascade();
+      */
 
+	vec3 col = max(dot(N,	directionalLight.direction), 0.0) * material.albedo;
+	col	 +=	texture(u_irradiance, N).rgb * 0.1;
     col /= (1.0 + col);
     fragColor = vec4(col, 1.0f);
 }

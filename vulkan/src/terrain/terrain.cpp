@@ -2,6 +2,8 @@
 #include "terrain_stream.h"
 #include "terrain_quadtree.h"
 #include "terrain_chunkmanager.h"
+#include "grass.h"
+#include "terrain_chunk.h"
 
 #include "renderer/buffer.h"
 #include "renderer/pipeline.h"
@@ -11,6 +13,7 @@
 #include "renderer/context.h"
 #include "scene/camera.h"
 #include "renderer/graphics_window.h"
+
 
 float sample_height(Ref<TerrainStream> stream, float x, float y, float maxHeight)
 {
@@ -65,6 +68,7 @@ Terrain::Terrain(Context* context, Ref<TerrainStream> stream): m_stream(stream)
 	m_maxLod = depth;
 
 	m_quadTree = CreateRef<QuadTree>(context, stream, depth, terrainSize, m_maxHeight);
+	m_grass = CreateRef<Grass>(context);
 }
 
 bool Terrain::ray_cast(const Ray& ray, glm::vec3& p_out)
@@ -102,7 +106,7 @@ void Terrain::update(Context* context, Ref<Camera> camera)
 	m_quadTree->update(context, camera);
 }
 
-void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, bool depthPass)
+void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, float elapsedTime, bool depthPass)
 {
 	if (!depthPass)
 	{
@@ -112,9 +116,29 @@ void Terrain::render(Context* context, Ref<Camera> camera, ShaderBindings** unif
 		glm::mat4 model = glm::mat4(1.0f);
 		context->set_uniform(ShaderStage::Vertex, 0, sizeof(glm::mat4), &model[0][0]);
 		context->set_uniform(ShaderStage::Vertex, sizeof(glm::mat4), sizeof(glm::vec4), &m_terrainIntersection[0]);
-	}
-	m_quadTree->render(context, camera);
+		m_quadTree->render(context, camera);
 
+		std::vector<TerrainChunk*>& chunks = m_quadTree->get_visible_list();
+		
+		glm::vec3 cameraPosition = camera->get_position();
+		const float maxGrassDistance = 800.0f;
+
+		std::vector<TerrainChunk*> grassChunk;
+		for (int i = 0; i < chunks.size(); ++i)
+		{
+			TerrainChunk* chunk = chunks[i];
+			glm::ivec2 chunkPos = chunk->get_center();
+			if (glm::distance(glm::vec3(chunkPos.x, cameraPosition.y, chunkPos.y), cameraPosition) < maxGrassDistance)
+				grassChunk.push_back(chunk);
+		}
+
+		IndexBuffer* ib = m_quadTree->get_ib();
+		m_grass->render(context, grassChunk, ib, m_quadTree->get_indices_count(), uniformBindings, count, elapsedTime);
+	}
+	else
+	{
+		m_quadTree->render(context, camera);
+	}
 }
 
 void Terrain::render_no_renderpass(Context* context, Ref<Camera> camera)
@@ -126,6 +150,7 @@ void Terrain::destroy()
 {
 	m_quadTree->destroy();
 	m_stream->destroy();
+	m_grass->destroy();
 	Device::destroy_pipeline(m_pipeline);
 	Device::destroy_pipeline(m_wireframePipeline);
 }

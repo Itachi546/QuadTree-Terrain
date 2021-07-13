@@ -93,6 +93,7 @@ void Scene::destroy_entity(Entity* entity)
 
 void Scene::update(Context* context, float dt)
 {
+	m_elapsedTime += dt;
 	m_camera->update(dt);
 
 	if (m_sun->cast_shadow())
@@ -132,7 +133,7 @@ void Scene::render(Context* context)
 	render_entities(context, m_camera, 0);
 
 	if (m_terrain)
-		m_terrain->render(context, m_camera, bindings, bindingCount);
+		m_terrain->render(context, m_camera, bindings, bindingCount, m_elapsedTime);
 	if (m_water)
 		m_water->render(context, m_camera, bindings, 2);
 

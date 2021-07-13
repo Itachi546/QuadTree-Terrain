@@ -1,6 +1,5 @@
 #include "terrain_quadtree.h"
 #include "debug/debug_draw.h"
-#include "terrain_chunkmanager.h"
 #include "terrain_chunk.h"
 #include "scene/camera.h"
 #include "core/frustum.h"
@@ -45,7 +44,7 @@ bool QuadTree::split(const glm::ivec2& position, const glm::ivec2& size, Ref<Cam
 	if (camera->get_frustum()->intersect_box(box))
 	{
 		float distance = glm::length(glm::vec3(position.x, 0.0f, position.y) - camPos);
-		if (distance < size.x * 2.0f)
+		if (distance < size.x * 4.0f)
 			return true;
 		return false;
 	}

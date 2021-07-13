@@ -92,6 +92,7 @@ private:
 	Ref<DirectionalLight> m_sun;
 	ShaderBindings* m_lightBindings = nullptr;
 	
+	float m_elapsedTime = 0.0f;
 
 	Ref<Skybox> m_skybox;
 	// Debug

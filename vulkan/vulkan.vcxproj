@@ -230,7 +230,6 @@
     <ClInclude Include="src\core\math.h" />
     <ClInclude Include="src\core\plane.h" />
     <ClInclude Include="src\core\ray.h" />
-    <ClInclude Include="src\grass_example.h" />
     <ClInclude Include="src\debug\gizmo.h" />
     <ClInclude Include="src\example_base.h" />
     <ClInclude Include="src\fx\outlinefx.h" />

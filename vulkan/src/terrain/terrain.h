@@ -15,6 +15,7 @@ class QuadTree;
 class Camera;
 class TerrainChunk;
 class TerrainStream;
+class Grass;
 
 class Terrain
 {
@@ -29,7 +30,7 @@ public:
 	float get_height(glm::vec3 position);
 	void update(Context* context, Ref<Camera> camera);
 
-	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, bool depthPass = false);
+	void render(Context* context, Ref<Camera> camera, ShaderBindings** uniformBindings, int count, float elapsedTime, bool depthPass = false);
 	void render_no_renderpass(Context* context, Ref<Camera> camera);
 	void destroy();
 private:
@@ -39,6 +40,7 @@ private:
 
 	Ref<TerrainStream> m_stream;
 	Ref<QuadTree> m_quadTree;
+	Ref<Grass> m_grass;
 
 	uint32_t m_minchunkSize = 64;
 	uint32_t m_maxLod;
