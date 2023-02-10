@@ -80,10 +80,11 @@ void main()
    const float maxOffset = 0.1;
    origin.xyz += vec3(cos(ang) * maxOffset, 0.0, sin(ang) * maxOffset);
 
-   vec2 windFrequency = vec2(0.0, 0.02);
-   vec2 uv = origin.xz * 0.01 + windFrequency * time;
-   float windSpeed = 1.0;
-   vec2 windSample = (texture(u_distortionTexture, uv).rg * 2.0 - 1.0) * PI * windSpeed;
+   vec2 windFrequency = vec2(5.0, 5.);
+   float windSpeed = 0.02;
+   float windIntensity = 0.5;
+   vec2 uv = (origin.xz * 0.1 + windFrequency * time) * windSpeed;
+   vec2 windSample = (texture(u_distortionTexture, uv).rg * 2.0 - 1.0) * PI * windIntensity;
    vec3 wind = normalize(vec3(windSample, 0.0));
    mat4	distortionRotation = rotate(wind, windSample.x) * rotate(wind,	windSample.y);
 
